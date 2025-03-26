@@ -3,21 +3,21 @@ import React from 'react';
 
 const testimonials = [
   {
-    quote: "EdPath helped me identify career paths I never considered, and I now have a clear plan for my future!",
+    quote: "EdPath hjalp meg med å identifisere karriereveier jeg aldri hadde vurdert, og nå har jeg en klar plan for fremtiden min!",
     author: "Student",
-    institution: "BI University",
+    institution: "BI Universitetet",
     avatar: "https://randomuser.me/api/portraits/women/32.jpg",
   },
   {
-    quote: "I was unsure about what job options matched my degree, but EdPath made it easy to see all my possibilities.",
-    author: "Graduate",
+    quote: "Jeg var usikker på hvilke jobbmuligheter som passet til graden min, men EdPath gjorde det enkelt å se alle mulighetene mine.",
+    author: "Nyutdannet",
     institution: "NTNU",
     avatar: "https://randomuser.me/api/portraits/men/44.jpg",
   },
   {
-    quote: "As a new graduate, the career insights I received were exactly what I needed to take the next step in my journey.",
-    author: "New Graduate",
-    institution: "University of Oslo",
+    quote: "Som nyutdannet var karriereinnsikten jeg fikk akkurat det jeg trengte for å ta det neste steget på min reise.",
+    author: "Nyutdannet",
+    institution: "Universitetet i Oslo",
     avatar: "https://randomuser.me/api/portraits/women/68.jpg",
   },
 ];
@@ -27,9 +27,9 @@ const Testimonials: React.FC = () => {
     <section id="testimonials" className="py-20 bg-secondary/30">
       <div className="container mx-auto px-4">
         <div className="mb-12 text-center">
-          <h2 className="mb-4 text-3xl font-bold md:text-4xl">What Our Users Are Saying</h2>
+          <h2 className="mb-4 text-3xl font-bold md:text-4xl">Hva våre brukere sier</h2>
           <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-            Hear from students and graduates who have found their career path using EdPath.
+            Hør fra studenter og nyutdannede som har funnet sin karrierevei ved hjelp av EdPath.
           </p>
         </div>
         

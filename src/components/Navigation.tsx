@@ -7,11 +7,11 @@ const Navigation: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
-    { name: 'Home', href: '#home' },
-    { name: 'How It Works', href: '#how-it-works' },
-    { name: 'Features', href: '#features' },
-    { name: 'Testimonials', href: '#testimonials' },
-    { name: 'Contact', href: '#contact' },
+    { name: 'Hjem', href: '#home' },
+    { name: 'Hvordan det fungerer', href: '#how-it-works' },
+    { name: 'Fordeler', href: '#features' },
+    { name: 'Tilbakemeldinger', href: '#testimonials' },
+    { name: 'Kontakt', href: '#contact' },
   ];
 
   useEffect(() => {
@@ -57,7 +57,7 @@ const Navigation: React.FC = () => {
         </nav>
         
         <button className="hidden rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-all duration-200 hover:opacity-90 md:block">
-          Get Started
+          Kom i gang
         </button>
         
         <button 
@@ -100,7 +100,7 @@ const Navigation: React.FC = () => {
                 ))}
                 <li>
                   <button className="mt-2 w-full rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground">
-                    Get Started
+                    Kom i gang
                   </button>
                 </li>
               </ul>

@@ -3,8 +3,8 @@ import React from 'react';
 
 const features = [
   {
-    title: 'Personalized Career Advice',
-    description: 'AI-driven recommendations based on your unique education and interests.',
+    title: 'Personlig karriererådgivning',
+    description: 'AI-drevne anbefalinger basert på din unike utdanning og interesser.',
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"></path>
@@ -17,8 +17,8 @@ const features = [
     ),
   },
   {
-    title: 'Simple and Quick',
-    description: 'Easy-to-use platform that gets you started with just a few clicks.',
+    title: 'Enkelt og raskt',
+    description: 'Brukervennlig plattform som lar deg komme i gang med bare noen få klikk.',
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10"></circle>
@@ -27,8 +27,8 @@ const features = [
     ),
   },
   {
-    title: 'Data-Driven Insights',
-    description: 'Access valuable insights to help you make informed career decisions.',
+    title: 'Datadrevet innsikt',
+    description: 'Få tilgang til verdifull innsikt som hjelper deg med å ta informerte karrierebeslutninger.',
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 3v18h18"></path>
@@ -37,8 +37,8 @@ const features = [
     ),
   },
   {
-    title: 'Free Access for Early Users',
-    description: 'Be one of the first to try out the platform with no cost.',
+    title: 'Gratis tilgang for tidlige brukere',
+    description: 'Vær blant de første til å prøve plattformen uten kostnader.',
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect width="20" height="12" x="2" y="6" rx="2"></rect>
@@ -54,9 +54,9 @@ const Features: React.FC = () => {
     <section id="features" className="py-20">
       <div className="container mx-auto px-4">
         <div className="mb-12 text-center">
-          <h2 className="mb-4 text-3xl font-bold md:text-4xl">Why Choose EdPath?</h2>
+          <h2 className="mb-4 text-3xl font-bold md:text-4xl">Hvorfor velge EdPath?</h2>
           <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-            Our platform offers everything you need to find the perfect career path based on your education and interests.
+            Vår plattform tilbyr alt du trenger for å finne den perfekte karriereveien basert på din utdanning og interesser.
           </p>
         </div>
         

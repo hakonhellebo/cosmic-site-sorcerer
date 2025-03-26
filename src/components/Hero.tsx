@@ -14,20 +14,20 @@ const Hero: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-3xl text-center">
           <span className="opacity-0 animate-stagger-1 inline-block mb-3 rounded-full bg-secondary px-3 py-1 text-xs font-medium">
-            Welcome to EdPath
+            Velkommen til EdPath
           </span>
           <h1 className="opacity-0 animate-stagger-2 mb-6 text-balance text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-            Find Your Path: Personalized Career Guidance
+            Finn din vei: Personlig karriereveiledning
           </h1>
           <p className="opacity-0 animate-stagger-3 mx-auto mb-8 max-w-2xl text-balance text-xl text-muted-foreground">
-            EdPath helps you discover your best career options with data-driven insights, tailored specifically to your education and aspirations.
+            EdPath hjelper deg med å oppdage dine beste karrieremuligheter med datadrevet innsikt, skreddersydd spesielt for din utdanning og ambisjoner.
           </p>
           <div className="opacity-0 animate-stagger-4 flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 justify-center">
             <button className="rounded-full bg-primary px-8 py-3 font-medium text-primary-foreground transition-transform-200 hover:scale-105">
-              Get Started for Free
+              Kom i gang gratis
             </button>
             <button className="rounded-full border border-primary px-8 py-3 font-medium transition-all-200 hover:bg-primary hover:text-primary-foreground">
-              Learn More
+              Lær mer
             </button>
           </div>
         </div>

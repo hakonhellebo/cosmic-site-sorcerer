@@ -9,40 +9,40 @@ const Footer: React.FC = () => {
           <div className="mb-8 md:mb-0">
             <h2 className="mb-4 text-lg font-semibold">EdPath</h2>
             <p className="max-w-xs text-sm text-muted-foreground">
-              Personalized career guidance based on your education and interests.
+              Personlig karriereveiledning basert på din utdanning og interesser.
             </p>
           </div>
           
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
             <div>
-              <h3 className="mb-3 text-sm font-medium">Company</h3>
+              <h3 className="mb-3 text-sm font-medium">Selskap</h3>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">About Us</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">Contact</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">Careers</a></li>
+                <li><a href="#" className="text-muted-foreground hover:text-foreground">Om oss</a></li>
+                <li><a href="#" className="text-muted-foreground hover:text-foreground">Kontakt</a></li>
+                <li><a href="#" className="text-muted-foreground hover:text-foreground">Karriere</a></li>
               </ul>
             </div>
             
             <div>
-              <h3 className="mb-3 text-sm font-medium">Resources</h3>
+              <h3 className="mb-3 text-sm font-medium">Ressurser</h3>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">Blog</a></li>
+                <li><a href="#" className="text-muted-foreground hover:text-foreground">Blogg</a></li>
                 <li><a href="#" className="text-muted-foreground hover:text-foreground">FAQ</a></li>
                 <li><a href="#" className="text-muted-foreground hover:text-foreground">Support</a></li>
               </ul>
             </div>
             
             <div>
-              <h3 className="mb-3 text-sm font-medium">Legal</h3>
+              <h3 className="mb-3 text-sm font-medium">Juridisk</h3>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">Privacy Policy</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">Terms & Conditions</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">Cookie Policy</a></li>
+                <li><a href="#" className="text-muted-foreground hover:text-foreground">Personvern</a></li>
+                <li><a href="#" className="text-muted-foreground hover:text-foreground">Vilkår og betingelser</a></li>
+                <li><a href="#" className="text-muted-foreground hover:text-foreground">Cookiepolicy</a></li>
               </ul>
             </div>
             
             <div>
-              <h3 className="mb-3 text-sm font-medium">Follow Us</h3>
+              <h3 className="mb-3 text-sm font-medium">Følg oss</h3>
               <div className="flex space-x-4">
                 <a href="#" className="text-muted-foreground hover:text-foreground">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect width="4" height="12" x="2" y="9"></rect><circle cx="4" cy="4" r="2"></circle></svg>
@@ -61,11 +61,11 @@ const Footer: React.FC = () => {
         <hr className="my-8 border-border" />
         
         <div className="flex flex-col items-center justify-between md:flex-row">
-          <p className="text-sm text-muted-foreground">© 2025 EdPath. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">© 2025 EdPath. Alle rettigheter forbeholdt.</p>
           <div className="mt-4 md:mt-0">
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground">Privacy Policy</a>
+            <a href="#" className="text-sm text-muted-foreground hover:text-foreground">Personvern</a>
             <span className="mx-2 text-muted-foreground">•</span>
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground">Terms of Service</a>
+            <a href="#" className="text-sm text-muted-foreground hover:text-foreground">Tjenestevilkår</a>
           </div>
         </div>
       </div>
