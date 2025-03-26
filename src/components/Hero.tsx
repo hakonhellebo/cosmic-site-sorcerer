@@ -1,5 +1,7 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 const Hero: React.FC = () => {
   return (
@@ -23,12 +25,12 @@ const Hero: React.FC = () => {
             EdPath hjelper deg med å oppdage dine beste karrieremuligheter med datadrevet innsikt, skreddersydd spesielt for din utdanning og ambisjoner.
           </p>
           <div className="opacity-0 animate-stagger-4 flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 justify-center">
-            <button className="rounded-full bg-primary px-8 py-3 font-medium text-primary-foreground transition-transform-200 hover:scale-105">
-              Kom i gang gratis
-            </button>
-            <button className="rounded-full border border-primary px-8 py-3 font-medium transition-all-200 hover:bg-primary hover:text-primary-foreground">
-              Lær mer
-            </button>
+            <Button className="rounded-full px-8 py-3 font-medium transition-transform hover:scale-105" asChild>
+              <Link to="/registrer">Kom i gang gratis</Link>
+            </Button>
+            <Button variant="outline" className="rounded-full border border-primary px-8 py-3 font-medium transition-all hover:bg-primary hover:text-primary-foreground" asChild>
+              <Link to="/registrer">Lær mer</Link>
+            </Button>
           </div>
         </div>
       </div>
