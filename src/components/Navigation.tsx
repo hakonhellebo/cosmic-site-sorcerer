@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 const Navigation: React.FC = () => {
@@ -7,7 +8,7 @@ const Navigation: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
-    { name: 'Hjem', href: '#home' },
+    { name: 'Hjem', href: '/' },
     { name: 'Hvordan det fungerer', href: '#how-it-works' },
     { name: 'Fordeler', href: '#features' },
     { name: 'Tilbakemeldinger', href: '#testimonials' },
@@ -37,28 +38,37 @@ const Navigation: React.FC = () => {
       )}
     >
       <div className="container mx-auto flex items-center justify-between px-4">
-        <a href="/" className="text-xl font-bold tracking-tight">
+        <Link to="/" className="text-xl font-bold tracking-tight">
           EdPath
-        </a>
+        </Link>
         
         <nav className="hidden md:block">
           <ul className="flex space-x-8">
             {navItems.map((item) => (
               <li key={item.name}>
-                <a 
-                  href={item.href} 
-                  className="link-hover text-sm font-medium"
-                >
-                  {item.name}
-                </a>
+                {item.name === 'Hjem' ? (
+                  <Link 
+                    to={item.href} 
+                    className="link-hover text-sm font-medium"
+                  >
+                    {item.name}
+                  </Link>
+                ) : (
+                  <a 
+                    href={item.href} 
+                    className="link-hover text-sm font-medium"
+                  >
+                    {item.name}
+                  </a>
+                )}
               </li>
             ))}
           </ul>
         </nav>
         
-        <button className="hidden rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-all duration-200 hover:opacity-90 md:block">
+        <Link to="/registrer" className="hidden rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-all duration-200 hover:opacity-90 md:block">
           Kom i gang
-        </button>
+        </Link>
         
         <button 
           className="md:hidden"
@@ -89,19 +99,29 @@ const Navigation: React.FC = () => {
               <ul className="flex flex-col space-y-4">
                 {navItems.map((item) => (
                   <li key={item.name}>
-                    <a 
-                      href={item.href} 
-                      className="block py-2 text-sm font-medium"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      {item.name}
-                    </a>
+                    {item.name === 'Hjem' ? (
+                      <Link 
+                        to={item.href} 
+                        className="block py-2 text-sm font-medium"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        {item.name}
+                      </Link>
+                    ) : (
+                      <a 
+                        href={item.href} 
+                        className="block py-2 text-sm font-medium"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        {item.name}
+                      </a>
+                    )}
                   </li>
                 ))}
                 <li>
-                  <button className="mt-2 w-full rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground">
+                  <Link to="/registrer" className="mt-2 w-full rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground">
                     Kom i gang
-                  </button>
+                  </Link>
                 </li>
               </ul>
             </nav>
