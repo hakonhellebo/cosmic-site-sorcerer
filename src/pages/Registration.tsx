@@ -2,6 +2,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from "sonner";
+import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +26,7 @@ type FormData = {
 };
 
 const Registration: React.FC = () => {
+  const navigate = useNavigate();
   const form = useForm<FormData>({
     defaultValues: {
       name: '',
@@ -41,6 +43,11 @@ const Registration: React.FC = () => {
       description: "Takk for din registrering. Vi vil kontakte deg snart."
     });
     form.reset();
+    
+    // Redirect to dashboard after successful registration
+    setTimeout(() => {
+      navigate('/dashboard');
+    }, 1500);
   };
 
   return (
