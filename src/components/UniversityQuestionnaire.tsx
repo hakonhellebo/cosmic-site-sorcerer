@@ -1086,6 +1086,76 @@ const UniversityQuestionnaire = ({
 
             <FormField
               control={form.control}
+              name="university.valueImportance"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>29. Hvor viktig er det for deg at arbeidsgiveren din har tydelige verdier?</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="very" id="values-very" />
+                        <Label htmlFor="values-very">Veldig viktig</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="somewhat" id="values-somewhat" />
+                        <Label htmlFor="values-somewhat">Litt viktig</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="not-really" id="values-not-really" />
+                        <Label htmlFor="values-not-really">Ikke så viktig</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="not-at-all" id="values-not-at-all" />
+                        <Label htmlFor="values-not-at-all">Ikke viktig i det hele tatt</Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="university.workEnvironment"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>30. Hvilke arbeidsmiljøer trives du best i?</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="structured" id="env-structured" />
+                        <Label htmlFor="env-structured">Strukturerte og organiserte</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="flexible" id="env-flexible" />
+                        <Label htmlFor="env-flexible">Fleksible og kreative</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="social" id="env-social" />
+                        <Label htmlFor="env-social">Sosiale og team-orienterte</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="independent" id="env-independent" />
+                        <Label htmlFor="env-independent">Uavhengige og selvstyrte</Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="university.dreamJob"
               render={({ field }) => (
                 <FormItem>
