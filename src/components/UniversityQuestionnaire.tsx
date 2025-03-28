@@ -25,16 +25,13 @@ const UniversityQuestionnaire = ({ form, onSubmit }) => {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-bold mb-4">Personlige opplysninger</h2>
-        <p className="text-muted-foreground mb-6">Fortell oss om din utdanning</p>
-        
         <div className="space-y-6">
           <FormField
             control={form.control}
             name="university.studyField"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Hva studerer du?</FormLabel>
+                <FormLabel>1. Hva studerer du?</FormLabel>
                 <FormControl>
                   <Input placeholder="F.eks. Informatikk, Økonomi, etc." {...field} />
                 </FormControl>
@@ -48,7 +45,7 @@ const UniversityQuestionnaire = ({ form, onSubmit }) => {
             name="university.institution"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Hvilket studiested går du på?</FormLabel>
+                <FormLabel>2. Hvilket studiested går du på?</FormLabel>
                 <Select 
                   onValueChange={field.onChange} 
                   defaultValue={field.value}
@@ -78,7 +75,7 @@ const UniversityQuestionnaire = ({ form, onSubmit }) => {
             name="university.level"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Hvilket nivå er du på i studiet?</FormLabel>
+                <FormLabel>3. Hvilket nivå er du på i studiet?</FormLabel>
                 <Select 
                   onValueChange={field.onChange} 
                   defaultValue={field.value}
@@ -108,7 +105,7 @@ const UniversityQuestionnaire = ({ form, onSubmit }) => {
             name="university.changedField"
             render={({ field }) => (
               <FormItem className="space-y-3">
-                <FormLabel>Har du byttet studieretning underveis?</FormLabel>
+                <FormLabel>4. Har du byttet studieretning underveis?</FormLabel>
                 <FormControl>
                   <RadioGroup
                     onValueChange={field.onChange}
@@ -129,138 +126,37 @@ const UniversityQuestionnaire = ({ form, onSubmit }) => {
               </FormItem>
             )}
           />
-        </div>
-      </div>
-
-      <div>
-        <h2 className="text-2xl font-bold mb-4">Kompetanser og ferdigheter</h2>
-        <p className="text-muted-foreground mb-6">Fortell oss om dine styrker og interesser</p>
-        
-        <div className="space-y-6">
-          <FormField
-            control={form.control}
-            name="university.interests"
-            render={() => (
-              <FormItem>
-                <div className="mb-4">
-                  <FormLabel>Hvilke fagområder interesserer deg mest i studiet? (Velg opptil 3)</FormLabel>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  {['Teknologi', 'Økonomi', 'Samfunnsvitenskap', 'Humaniora', 'Naturvitenskap', 
-                    'Helse', 'Kunst og design', 'Ingeniørfag', 'Lærerutdanning', 'Jus'].map(
-                    (subject) => (
-                      <FormField
-                        key={subject}
-                        control={form.control}
-                        name={`university.interests.${subject.toLowerCase().replace(/\s+/g, '_')}`}
-                        render={({ field }) => (
-                          <FormItem
-                            key={subject}
-                            className="flex flex-row items-start space-x-3 space-y-0"
-                          >
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                              <FormLabel>
-                                {subject}
-                              </FormLabel>
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                    )
-                  )}
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
 
           <FormField
             control={form.control}
-            name="university.strengths"
-            render={() => (
-              <FormItem>
-                <div className="mb-4">
-                  <FormLabel>Hvilke ferdigheter føler du at du har styrke i? (Velg opptil 3)</FormLabel>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  {['Kritisk tenkning', 'Problemløsning', 'Kreativitet', 'Kommunikasjon',
-                    'Selvledelse', 'Prosjektstyring', 'Teknologiforståelse', 'Empati'].map(
-                    (skill) => (
-                      <FormField
-                        key={skill}
-                        control={form.control}
-                        name={`university.strengths.${skill.toLowerCase().replace(/\s+/g, '_')}`}
-                        render={({ field }) => (
-                          <FormItem
-                            key={skill}
-                            className="flex flex-row items-start space-x-3 space-y-0"
-                          >
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                              <FormLabel>
-                                {skill}
-                              </FormLabel>
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                    )
-                  )}
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="university.weaknesses"
-            render={() => (
-              <FormItem>
-                <div className="mb-4">
-                  <FormLabel>Hvilke ferdigheter føler du at du mangler? (Velg opptil 3)</FormLabel>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  {['Kritisk tenkning', 'Problemløsning', 'Kreativitet', 'Kommunikasjon',
-                    'Selvledelse', 'Prosjektstyring', 'Teknologiforståelse', 'Empati'].map(
-                    (skill) => (
-                      <FormField
-                        key={skill}
-                        control={form.control}
-                        name={`university.weaknesses.${skill.toLowerCase().replace(/\s+/g, '_')}`}
-                        render={({ field }) => (
-                          <FormItem
-                            key={skill}
-                            className="flex flex-row items-start space-x-3 space-y-0"
-                          >
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                              <FormLabel>
-                                {skill}
-                              </FormLabel>
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                    )
-                  )}
-                </div>
+            name="university.certaintylevel"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel>5. Hvor sikker er du på at du har valgt riktig studie?</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex flex-col space-y-1"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="very" id="certainty-very" />
+                      <Label htmlFor="certainty-very">Veldig sikker</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="quite" id="certainty-quite" />
+                      <Label htmlFor="certainty-quite">Ganske sikker</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="little" id="certainty-little" />
+                      <Label htmlFor="certainty-little">Litt usikker</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="not" id="certainty-not" />
+                      <Label htmlFor="certainty-not">Helt usikker</Label>
+                    </div>
+                  </RadioGroup>
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -269,8 +165,8 @@ const UniversityQuestionnaire = ({ form, onSubmit }) => {
       </div>
 
       <div className="flex justify-end">
-        <Button type="submit" className="rounded-full">
-          Fullfør registrering
+        <Button type="button" onClick={onSubmit} className="rounded-full">
+          Neste
         </Button>
       </div>
     </div>
