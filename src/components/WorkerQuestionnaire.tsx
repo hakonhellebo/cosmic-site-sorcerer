@@ -314,7 +314,7 @@ const WorkerQuestionnaire: React.FC<WorkerQuestionnaireProps> = ({
             <FormItem>
               <FormLabel>Annet (spesifiser)</FormLabel>
               <FormControl>
-                <Input placeholder="Skriv inn annen metode" {...field} />
+                <Input placeholder="Skriv inn annen metode" {...field} value={field.value || ""} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -521,7 +521,7 @@ const WorkerQuestionnaire: React.FC<WorkerQuestionnaireProps> = ({
             <FormItem>
               <FormLabel>Annet (spesifiser)</FormLabel>
               <FormControl>
-                <Input placeholder="Skriv inn annen årsak" {...field} />
+                <Input placeholder="Skriv inn annen årsak" {...field} value={field.value || ""} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -654,7 +654,8 @@ const WorkerQuestionnaire: React.FC<WorkerQuestionnaireProps> = ({
                 <Textarea 
                   placeholder="Skriv svaret ditt her" 
                   className="min-h-[100px]" 
-                  {...field} 
+                  {...field}
+                  value={field.value || ""} 
                 />
               </FormControl>
               <FormMessage />
