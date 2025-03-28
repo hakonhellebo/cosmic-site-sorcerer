@@ -411,7 +411,33 @@ const UniversityQuestionnaire = ({
                 </FormItem>
               )}
             />
+          </div>
+        </div>
 
+        <div className="flex justify-between">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onPrevious}
+            className="rounded-full"
+          >
+            Tilbake
+          </Button>
+          <Button 
+            type="button" 
+            onClick={onSubmit}
+            className="rounded-full"
+          >
+            Neste
+          </Button>
+        </div>
+      </div>
+    );
+  } else if (page === 3) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <div className="space-y-6">
             <FormField
               control={form.control}
               name="university.aiUsage"
@@ -514,33 +540,7 @@ const UniversityQuestionnaire = ({
                 )}
               />
             )}
-          </div>
-        </div>
 
-        <div className="flex justify-between">
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={onPrevious}
-            className="rounded-full"
-          >
-            Tilbake
-          </Button>
-          <Button 
-            type="button" 
-            onClick={onSubmit}
-            className="rounded-full"
-          >
-            Neste
-          </Button>
-        </div>
-      </div>
-    );
-  } else if (page === 3) {
-    return (
-      <div className="space-y-8">
-        <div>
-          <div className="space-y-6">
             <FormField
               control={form.control}
               name="university.studyReason"
@@ -614,7 +614,33 @@ const UniversityQuestionnaire = ({
                 </FormItem>
               )}
             />
+          </div>
+        </div>
 
+        <div className="flex justify-between">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onPrevious}
+            className="rounded-full"
+          >
+            Tilbake
+          </Button>
+          <Button 
+            type="button" 
+            onClick={onSubmit}
+            className="rounded-full"
+          >
+            Neste
+          </Button>
+        </div>
+      </div>
+    );
+  } else if (page === 4) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <div className="space-y-6">
             <FormField
               control={form.control}
               name="university.impactImportance"
@@ -803,7 +829,7 @@ const UniversityQuestionnaire = ({
         </div>
       </div>
     );
-  } else if (page === 4) {
+  } else if (page === 5) {
     return (
       <div className="space-y-8">
         <div>
@@ -905,11 +931,11 @@ const UniversityQuestionnaire = ({
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="ngo" id="company-ngo" />
-                        <Label htmlFor="company-ngo">Ideell organisasjon (NGO)</Label>
+                        <Label htmlFor="company-ngo">Ideell organisasjon</Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="unsure" id="company-unsure" />
-                        <Label htmlFor="company-unsure">Vet ikke</Label>
+                        <Label htmlFor="company-unsure">Vet ikke ennå</Label>
                       </div>
                     </RadioGroup>
                   </FormControl>
@@ -917,7 +943,297 @@ const UniversityQuestionnaire = ({
                 </FormItem>
               )}
             />
-            
+
+            <FormField
+              control={form.control}
+              name="university.techImportance"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>24. Hvor viktig er det for deg å jobbe med teknologi i fremtidig jobb?</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="very" id="tech-very" />
+                        <Label htmlFor="tech-very">Veldig viktig</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="somewhat" id="tech-somewhat" />
+                        <Label htmlFor="tech-somewhat">Litt viktig</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="not-really" id="tech-not-really" />
+                        <Label htmlFor="tech-not-really">Ikke så viktig</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="not-at-all" id="tech-not-at-all" />
+                        <Label htmlFor="tech-not-at-all">Ikke viktig i det hele tatt</Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="university.workLifeBalance"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>25. Hvordan ser du på balansen mellom jobb og fritid?</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="work-first" id="balance-work" />
+                        <Label htmlFor="balance-work">Jeg prioriterer jobb først</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="balanced" id="balance-both" />
+                        <Label htmlFor="balance-both">Jeg prioriterer balanse mellom jobb og fritid</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="life-first" id="balance-life" />
+                        <Label htmlFor="balance-life">Jeg prioriterer fritid først</Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-between">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onPrevious}
+            className="rounded-full"
+          >
+            Tilbake
+          </Button>
+          <Button 
+            type="button" 
+            onClick={onSubmit}
+            className="rounded-full"
+          >
+            Neste
+          </Button>
+        </div>
+      </div>
+    );
+  } else if (page === 6) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <div className="space-y-6">
+            <FormField
+              control={form.control}
+              name="university.remoteWorkImportance"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>26. Hvor viktig er det for deg å ha mulighet til å jobbe hjemmefra?</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="very" id="remote-very" />
+                        <Label htmlFor="remote-very">Veldig viktig</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="somewhat" id="remote-somewhat" />
+                        <Label htmlFor="remote-somewhat">Litt viktig</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="not-really" id="remote-not-really" />
+                        <Label htmlFor="remote-not-really">Ikke så viktig</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="not-at-all" id="remote-not-at-all" />
+                        <Label htmlFor="remote-not-at-all">Ikke viktig i det hele tatt</Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="university.travelImportance"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>27. Hvor viktig er det for deg å ha en jobb som involverer reising?</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="very" id="travel-very" />
+                        <Label htmlFor="travel-very">Veldig viktig</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="somewhat" id="travel-somewhat" />
+                        <Label htmlFor="travel-somewhat">Litt viktig</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="not-really" id="travel-not-really" />
+                        <Label htmlFor="travel-not-really">Ikke så viktig</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="not-at-all" id="travel-not-at-all" />
+                        <Label htmlFor="travel-not-at-all">Ikke viktig i det hele tatt</Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="university.satisfactionFactors"
+              render={() => (
+                <FormItem>
+                  <FormLabel>28. Hvilke faktorer tror du vil gi deg mest tilfredshet i jobben? (Velg opptil 2)</FormLabel>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {['Meningsfylt arbeid', 'Høy lønn', 'Karriereutvikling', 'Fleksibilitet', 'Innovasjon', 'Stabilitet'].map((factor) => (
+                      <FormField
+                        key={factor}
+                        control={form.control}
+                        name={`university.satisfactionFactors.${factor.toLowerCase().replace(/ /g, '_')}`}
+                        render={({ field }) => {
+                          return (
+                            <div className="flex items-center space-x-2">
+                              <Checkbox 
+                                id={`satisfaction-${factor.toLowerCase().replace(/ /g, '_')}`} 
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                              <Label htmlFor={`satisfaction-${factor.toLowerCase().replace(/ /g, '_')}`}>{factor}</Label>
+                            </div>
+                          );
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="university.valueImportance"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>29. Hvor viktig er det for deg at arbeidsgiveren din har tydelige verdier?</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="very" id="values-very" />
+                        <Label htmlFor="values-very">Veldig viktig</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="somewhat" id="values-somewhat" />
+                        <Label htmlFor="values-somewhat">Litt viktig</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="not-really" id="values-not-really" />
+                        <Label htmlFor="values-not-really">Ikke så viktig</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="not-at-all" id="values-not-at-all" />
+                        <Label htmlFor="values-not-at-all">Ikke viktig i det hele tatt</Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="university.workEnvironment"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>30. Hvilke arbeidsmiljøer trives du best i?</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="structured" id="env-structured" />
+                        <Label htmlFor="env-structured">Strukturerte og organiserte</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="flexible" id="env-flexible" />
+                        <Label htmlFor="env-flexible">Fleksible og kreative</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="social" id="env-social" />
+                        <Label htmlFor="env-social">Sosiale og team-orienterte</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="independent" id="env-independent" />
+                        <Label htmlFor="env-independent">Uavhengige og selvstyrte</Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-between">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onPrevious}
+            className="rounded-full"
+          >
+            Tilbake
+          </Button>
+          <Button 
+            type="button" 
+            onClick={onSubmit}
+            className="rounded-full"
+          >
+            Neste
+          </Button>
+        </div>
+      </div>
+    );
+  } else if (page === 7) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <div className="space-y-6">
             <FormField
               control={form.control}
               name="university.motivationSource"
@@ -974,8 +1290,8 @@ const UniversityQuestionnaire = ({
                         <Label htmlFor="project-long">Langsiktige prosjekter</Label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="combination" id="project-combination" />
-                        <Label htmlFor="project-combination">En kombinasjon</Label>
+                        <RadioGroupItem value="combination" id="project-both" />
+                        <Label htmlFor="project-both">En kombinasjon</Label>
                       </div>
                     </RadioGroup>
                   </FormControl>
@@ -1032,20 +1348,20 @@ const UniversityQuestionnaire = ({
                       className="flex flex-col space-y-1"
                     >
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="very" id="careerpath-very" />
-                        <Label htmlFor="careerpath-very">Veldig viktig</Label>
+                        <RadioGroupItem value="very" id="career-path-very" />
+                        <Label htmlFor="career-path-very">Veldig viktig</Label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="somewhat" id="careerpath-somewhat" />
-                        <Label htmlFor="careerpath-somewhat">Litt viktig</Label>
+                        <RadioGroupItem value="somewhat" id="career-path-somewhat" />
+                        <Label htmlFor="career-path-somewhat">Litt viktig</Label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="not-really" id="careerpath-not-really" />
-                        <Label htmlFor="careerpath-not-really">Ikke så viktig</Label>
+                        <RadioGroupItem value="not-really" id="career-path-not-really" />
+                        <Label htmlFor="career-path-not-really">Ikke så viktig</Label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="not-at-all" id="careerpath-not-at-all" />
-                        <Label htmlFor="careerpath-not-at-all">Ikke viktig i det hele tatt</Label>
+                        <RadioGroupItem value="not-at-all" id="career-path-not-at-all" />
+                        <Label htmlFor="career-path-not-at-all">Ikke viktig i det hele tatt</Label>
                       </div>
                     </RadioGroup>
                   </FormControl>
@@ -1061,11 +1377,7 @@ const UniversityQuestionnaire = ({
                 <FormItem>
                   <FormLabel>35. Hvis du kunne velge én jobb akkurat nå – hva ville det vært?</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Beskriv drømmejobben din..." 
-                      {...field} 
-                      className="resize-none"
-                    />
+                    <Textarea placeholder="Beskriv drømmejobben din..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -1086,22 +1398,24 @@ const UniversityQuestionnaire = ({
           <Button 
             type="button" 
             onClick={onSubmit}
-            disabled={isSubmitting}
             className="rounded-full"
+            disabled={isSubmitting}
           >
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Sender...
+                Sender inn...
               </>
             ) : (
-              "Fullfør"
+              "Fullfør registrering"
             )}
           </Button>
         </div>
       </div>
     );
   }
+
+  return null;
 };
 
 export default UniversityQuestionnaire;

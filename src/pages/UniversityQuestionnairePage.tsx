@@ -52,7 +52,7 @@ type QuestionnaireFormData = {
 const UniversityQuestionnairePage: React.FC = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
-  const totalPages = 4;
+  const totalPages = 7; // Updated to support more pages
   const progressValue = (page / totalPages) * 100;
   const [userData, setUserData] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -178,14 +178,20 @@ const UniversityQuestionnairePage: React.FC = () => {
           <h2 className="text-2xl font-bold mb-4">
             {page === 1 && "Personlige opplysninger"}
             {page === 2 && "Kompetanser og ferdigheter"}
-            {page === 3 && "Motivasjon og ambisjoner"}
-            {page === 4 && "Karriereforventninger"}
+            {page === 3 && "Kompetanser og ferdigheter"}
+            {page === 4 && "Motivasjon og ambisjoner"}
+            {page === 5 && "Karriereforventninger"}
+            {page === 6 && "Arbeidsmiljø og preferanser"}
+            {page === 7 && "Personlige preferanser og arbeidsstil"}
           </h2>
           <p className="text-muted-foreground mb-6">
             {page === 1 && "Fortell oss om din utdanning"}
-            {page === 2 && "Fortell oss om dine styrker og interesser"}
-            {page === 3 && "Fortell oss om hva som driver deg"}
-            {page === 4 && "Fortell oss om dine mål og forventninger"}
+            {page === 2 && "Fortell oss om dine interesser og styrker"}
+            {page === 3 && "Fortell oss om dine preferanser og erfaringer"}
+            {page === 4 && "Fortell oss om hva som driver deg"}
+            {page === 5 && "Fortell oss om dine fremtidige karrieremål"}
+            {page === 6 && "Fortell oss om hva slags arbeidsmiljø du foretrekker"}
+            {page === 7 && "Fortell oss om dine personlige preferanser i arbeidshverdagen"}
           </p>
           
           <UniversityQuestionnaire 
