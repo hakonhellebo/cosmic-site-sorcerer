@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -891,4 +892,216 @@ const UniversityQuestionnaire = ({
                         <Label htmlFor="company-startup">Startup</Label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="sme" id="company-s
+                        <RadioGroupItem value="sme" id="company-sme" />
+                        <Label htmlFor="company-sme">Mellomstor bedrift</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="large" id="company-large" />
+                        <Label htmlFor="company-large">Stor bedrift</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="public" id="company-public" />
+                        <Label htmlFor="company-public">Offentlig sektor</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="ngo" id="company-ngo" />
+                        <Label htmlFor="company-ngo">Ideell organisasjon (NGO)</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="unsure" id="company-unsure" />
+                        <Label htmlFor="company-unsure">Vet ikke</Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="university.motivationSource"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>31. Er du mest motivert av å jobbe med mennesker eller teknologi?</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="people" id="motivation-people" />
+                        <Label htmlFor="motivation-people">Mennesker</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="technology" id="motivation-technology" />
+                        <Label htmlFor="motivation-technology">Teknologi</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="both" id="motivation-both" />
+                        <Label htmlFor="motivation-both">Begge</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="neither" id="motivation-neither" />
+                        <Label htmlFor="motivation-neither">Ingen av delene</Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="university.projectPreference"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>32. Foretrekker du å jobbe med korte eller langsiktige prosjekter?</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="short" id="project-short" />
+                        <Label htmlFor="project-short">Korte prosjekter</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="long" id="project-long" />
+                        <Label htmlFor="project-long">Langsiktige prosjekter</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="combination" id="project-combination" />
+                        <Label htmlFor="project-combination">En kombinasjon</Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="university.uncertaintyResponse"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>33. Hvordan reagerer du på usikkerhet på arbeidsplassen?</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="enjoy" id="uncertainty-enjoy" />
+                        <Label htmlFor="uncertainty-enjoy">Trives med det</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="handle" id="uncertainty-handle" />
+                        <Label htmlFor="uncertainty-handle">Håndterer det greit</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="challenging" id="uncertainty-challenging" />
+                        <Label htmlFor="uncertainty-challenging">Synes det er utfordrende</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="dislike" id="uncertainty-dislike" />
+                        <Label htmlFor="uncertainty-dislike">Misliker det sterkt</Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="university.careerPathImportance"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>34. Hvor viktig er det for deg å ha en klar karrierevei?</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="very" id="careerpath-very" />
+                        <Label htmlFor="careerpath-very">Veldig viktig</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="somewhat" id="careerpath-somewhat" />
+                        <Label htmlFor="careerpath-somewhat">Litt viktig</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="not-really" id="careerpath-not-really" />
+                        <Label htmlFor="careerpath-not-really">Ikke så viktig</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="not-at-all" id="careerpath-not-at-all" />
+                        <Label htmlFor="careerpath-not-at-all">Ikke viktig i det hele tatt</Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="university.dreamJob"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>35. Hvis du kunne velge én jobb akkurat nå – hva ville det vært?</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Beskriv drømmejobben din..." 
+                      {...field} 
+                      className="resize-none"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-between">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onPrevious}
+            className="rounded-full"
+          >
+            Tilbake
+          </Button>
+          <Button 
+            type="button" 
+            onClick={onSubmit}
+            disabled={isSubmitting}
+            className="rounded-full"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Sender...
+              </>
+            ) : (
+              "Fullfør"
+            )}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+};
+
+export default UniversityQuestionnaire;
