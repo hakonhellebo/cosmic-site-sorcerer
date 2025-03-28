@@ -8,9 +8,9 @@ import { Label } from "@/components/ui/label";
 const CareerPlanning = ({ form }) => {
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Fremtidsplaner - Karriereplanlegging</h2>
+      <h2 className="text-2xl font-bold">Karriereplanlegging og motivasjon</h2>
       <p className="text-muted-foreground mb-6">
-        Fortell oss om din karriereplanlegging og motivasjon.
+        Fortell oss om dine tanker rundt fremtidig karriere og hva som motiverer deg.
       </p>
 
       {/* Work Location */}
@@ -83,9 +83,9 @@ const CareerPlanning = ({ form }) => {
                 {[
                   { id: "fewJobs", label: "For få relevante jobber" },
                   { id: "highRequirements", label: "Høye krav fra arbeidsgiver" },
-                  { id: "lackExperience", label: "Manglende erfaring" },
+                  { id: "lackOfExperience", label: "Manglende erfaring" },
                   { id: "competition", label: "Konkurranse med andre kandidater" },
-                  { id: "uncertainty", label: "Usikkerhet om hva jeg vil jobbe med" },
+                  { id: "careerUncertainty", label: "Usikkerhet om hva jeg vil jobbe med" },
                   { id: "unknown", label: "Vet ikke" },
                 ].map((item) => (
                   <FormField
@@ -126,10 +126,10 @@ const CareerPlanning = ({ form }) => {
               </FormLabel>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
                 {[
-                  { id: "betterInsight", label: "Bedre innsikt i yrker og utdanninger" },
+                  { id: "careerInsight", label: "Bedre innsikt i yrker og utdanninger" },
                   { id: "workExperience", label: "Praksis og arbeidserfaring" },
                   { id: "careerGuidance", label: "Karriereveiledning" },
-                  { id: "industryContact", label: "Kontakt med folk i bransjen" },
+                  { id: "industryContacts", label: "Kontakt med folk i bransjen" },
                   { id: "betterGrades", label: "Bedre karakterer" },
                 ].map((item) => (
                   <FormField
