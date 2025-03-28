@@ -1,11 +1,12 @@
+
 import React, { useEffect } from 'react';
 import NavigationButtons from '@/components/questionnaire/NavigationButtons';
 import FutureIndustries from '@/components/questionnaire/FutureIndustries';
 import CareerPlanning from '@/components/questionnaire/CareerPlanning';
-import Introduction from '@/components/questionnaire/high-school/Introduction';
-import InterestsAndSkills from '@/components/questionnaire/high-school/InterestsAndSkills';
-import SchoolSubjects from '@/components/questionnaire/high-school/SchoolSubjects';
-import WorkReadiness from '@/components/questionnaire/high-school/WorkReadiness';
+import Introduction from './questionnaire/high-school/Introduction';
+import InterestsAndSkills from './questionnaire/high-school/InterestsAndSkills';
+import SchoolSubjects from './questionnaire/high-school/SchoolSubjects';
+import WorkReadiness from './questionnaire/high-school/WorkReadiness';
 
 // The component has been updated to now show 6 pages, where pages 5 and 6 are the new "Future Plans" sections
 
