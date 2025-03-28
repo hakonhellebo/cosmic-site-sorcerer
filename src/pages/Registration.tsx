@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from "sonner";
@@ -114,44 +113,24 @@ const Registration: React.FC = () => {
                   onValueChange={(value: 'high-school' | 'university' | 'worker') => handleUserTypeChange(value)}
                   className="grid grid-cols-1 md:grid-cols-3 gap-4"
                 >
-                  <div 
-                    className={`p-4 border rounded-md cursor-pointer transition-all ${userType === 'high-school' ? 'border-primary bg-primary/5' : 'hover:bg-secondary/50'}`}
-                    onClick={() => handleUserTypeChange('high-school')}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem 
-                        value="high-school" 
-                        id="high-school"
-                      />
-                      <Label htmlFor="high-school" className="cursor-pointer">Videregående elev</Label>
+                  {[
+                    { id: 'high-school', label: 'Videregående elev', value: 'high-school' },
+                    { id: 'university', label: 'Bachelor/Master student', value: 'university' },
+                    { id: 'worker', label: 'Yrkesaktiv', value: 'worker' }
+                  ].map((option) => (
+                    <div 
+                      key={option.id}
+                      className={`p-4 border rounded-md cursor-pointer transition-all ${userType === option.value ? 'border-primary bg-primary/5' : 'hover:bg-secondary/50'}`}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem 
+                          value={option.value} 
+                          id={option.id}
+                        />
+                        <Label htmlFor={option.id} className="cursor-pointer">{option.label}</Label>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div 
-                    className={`p-4 border rounded-md cursor-pointer transition-all ${userType === 'university' ? 'border-primary bg-primary/5' : 'hover:bg-secondary/50'}`}
-                    onClick={() => handleUserTypeChange('university')}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem 
-                        value="university" 
-                        id="university"
-                      />
-                      <Label htmlFor="university" className="cursor-pointer">Bachelor/Master student</Label>
-                    </div>
-                  </div>
-
-                  <div 
-                    className={`p-4 border rounded-md cursor-pointer transition-all ${userType === 'worker' ? 'border-primary bg-primary/5' : 'hover:bg-secondary/50'}`}
-                    onClick={() => handleUserTypeChange('worker')}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem 
-                        value="worker" 
-                        id="worker"
-                      />
-                      <Label htmlFor="worker" className="cursor-pointer">Yrkesaktiv</Label>
-                    </div>
-                  </div>
+                  ))}
                 </RadioGroup>
               </div>
 
