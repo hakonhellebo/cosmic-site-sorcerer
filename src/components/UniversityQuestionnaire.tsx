@@ -1,55 +1,33 @@
-
 import React from 'react';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-
-const UniversityQuestionnaire = ({ form, onSubmit }) => {
-  return (
-    <div className="space-y-8">
+const UniversityQuestionnaire = ({
+  form,
+  onSubmit
+}) => {
+  return <div className="space-y-8">
       <div>
         <div className="space-y-6">
-          <FormField
-            control={form.control}
-            name="university.studyField"
-            render={({ field }) => (
-              <FormItem>
+          <FormField control={form.control} name="university.studyField" render={({
+          field
+        }) => <FormItem>
                 <FormLabel>1. Hva studerer du?</FormLabel>
                 <FormControl>
                   <Input placeholder="F.eks. Informatikk, Økonomi, etc." {...field} />
                 </FormControl>
                 <FormMessage />
-              </FormItem>
-            )}
-          />
+              </FormItem>} />
 
-          <FormField
-            control={form.control}
-            name="university.institution"
-            render={({ field }) => (
-              <FormItem>
+          <FormField control={form.control} name="university.institution" render={({
+          field
+        }) => <FormItem>
                 <FormLabel>2. Hvilket studiested går du på?</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
-                  defaultValue={field.value}
-                >
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Velg studiested" />
@@ -66,20 +44,13 @@ const UniversityQuestionnaire = ({ form, onSubmit }) => {
                   </SelectContent>
                 </Select>
                 <FormMessage />
-              </FormItem>
-            )}
-          />
+              </FormItem>} />
 
-          <FormField
-            control={form.control}
-            name="university.level"
-            render={({ field }) => (
-              <FormItem>
+          <FormField control={form.control} name="university.level" render={({
+          field
+        }) => <FormItem>
                 <FormLabel>3. Hvilket nivå er du på i studiet?</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
-                  defaultValue={field.value}
-                >
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Velg nivå" />
@@ -96,22 +67,14 @@ const UniversityQuestionnaire = ({ form, onSubmit }) => {
                   </SelectContent>
                 </Select>
                 <FormMessage />
-              </FormItem>
-            )}
-          />
+              </FormItem>} />
 
-          <FormField
-            control={form.control}
-            name="university.changedField"
-            render={({ field }) => (
-              <FormItem className="space-y-3">
+          <FormField control={form.control} name="university.changedField" render={({
+          field
+        }) => <FormItem className="space-y-3">
                 <FormLabel>4. Har du byttet studieretning underveis?</FormLabel>
                 <FormControl>
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    className="flex flex-row space-x-4"
-                  >
+                  <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-row space-x-4">
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="yes" id="changed-yes" />
                       <Label htmlFor="changed-yes">Ja</Label>
@@ -123,22 +86,14 @@ const UniversityQuestionnaire = ({ form, onSubmit }) => {
                   </RadioGroup>
                 </FormControl>
                 <FormMessage />
-              </FormItem>
-            )}
-          />
+              </FormItem>} />
 
-          <FormField
-            control={form.control}
-            name="university.certaintylevel"
-            render={({ field }) => (
-              <FormItem className="space-y-3">
+          <FormField control={form.control} name="university.certaintylevel" render={({
+          field
+        }) => <FormItem className="space-y-3">
                 <FormLabel>5. Hvor sikker er du på at du har valgt riktig studie?</FormLabel>
                 <FormControl>
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    className="flex flex-col space-y-1"
-                  >
+                  <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="very" id="certainty-very" />
                       <Label htmlFor="certainty-very">Veldig sikker</Label>
@@ -153,14 +108,12 @@ const UniversityQuestionnaire = ({ form, onSubmit }) => {
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="not" id="certainty-not" />
-                      <Label htmlFor="certainty-not">Helt usikker</Label>
+                      <Label htmlFor="certainty-not">Veldig usikker</Label>
                     </div>
                   </RadioGroup>
                 </FormControl>
                 <FormMessage />
-              </FormItem>
-            )}
-          />
+              </FormItem>} />
         </div>
       </div>
 
@@ -169,8 +122,6 @@ const UniversityQuestionnaire = ({ form, onSubmit }) => {
           Neste
         </Button>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default UniversityQuestionnaire;
