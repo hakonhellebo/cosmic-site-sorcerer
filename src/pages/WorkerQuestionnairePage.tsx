@@ -20,7 +20,7 @@ type QuestionnaireFormData = {
     otherMethod: string;
     timeToJob: 'right-after' | 'within-1' | 'within-2' | 'within-5' | 'not-yet';
     startingSalary: string;
-    // New fields for career page
+    // Career development fields
     yearsWorking: '0-2' | '3-5' | '6-10' | '11-20' | 'over-20';
     industryChange: 'once' | 'multiple' | 'never';
     jobChanges: 'never' | '1-2' | '3-5' | 'more-than-5';
@@ -32,6 +32,14 @@ type QuestionnaireFormData = {
     furtherEducation: 'yes' | 'no';
     educationChange: string;
     rightIndustry: 'yes' | 'no' | 'unsure';
+    // New job satisfaction and future fields
+    jobSatisfaction: 'very-satisfied' | 'somewhat-satisfied' | 'slightly-satisfied' | 'dissatisfied';
+    jobImportance: Record<string, boolean>;
+    nextCareerGoal: string;
+    meaningfulWork: 'very-important' | 'somewhat-important' | 'slightly-important' | 'not-important';
+    careerAdvice: string;
+    jobChangeOpenness: 'very-open' | 'somewhat-open' | 'not-open';
+    aiCareerAdvice: 'yes' | 'maybe' | 'no';
   };
 };
 
@@ -72,7 +80,7 @@ const WorkerQuestionnairePage: React.FC = () => {
         otherMethod: '',
         timeToJob: 'right-after',
         startingSalary: '',
-        // Default values for new fields
+        // Default values for existing fields
         yearsWorking: '3-5',
         industryChange: 'never',
         jobChanges: '1-2',
@@ -84,6 +92,14 @@ const WorkerQuestionnairePage: React.FC = () => {
         furtherEducation: 'no',
         educationChange: '',
         rightIndustry: 'yes',
+        // Default values for new fields
+        jobSatisfaction: 'somewhat-satisfied',
+        jobImportance: {},
+        nextCareerGoal: '',
+        meaningfulWork: 'somewhat-important',
+        careerAdvice: '',
+        jobChangeOpenness: 'somewhat-open',
+        aiCareerAdvice: 'maybe',
       }
     },
   });
