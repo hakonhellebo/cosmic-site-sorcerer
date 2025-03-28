@@ -1,7 +1,6 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
-  Form,
   FormControl,
   FormField,
   FormItem,
@@ -19,31 +18,34 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 
-const HighSchoolQuestionnaire = ({ form, onSubmit }) => {
+const HighSchoolQuestionnaire = ({ form, setFormProgress }) => {
   // Helper function to count selected checkboxes in a group
   const countSelectedCheckboxes = (fieldGroup) => {
     return Object.values(form.getValues(fieldGroup) || {}).filter(Boolean).length;
   };
-
-  // Validate maximum selections for checkbox groups
-  const validateMaxSelections = (fieldGroup, maxAllowed, errorMessage) => {
-    const selectedCount = countSelectedCheckboxes(fieldGroup);
-    if (selectedCount > maxAllowed) {
-      return errorMessage;
-    }
-    return true;
-  };
-
-  // Check if at least one checkbox is selected in a group
-  const validateMinSelections = (fieldGroup, minRequired, errorMessage) => {
-    const selectedCount = countSelectedCheckboxes(fieldGroup);
-    if (selectedCount < minRequired) {
-      return errorMessage;
-    }
-    return true;
-  };
+  
+  // Update progress on form changes
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      // Calculate form progress based on filled fields
+      const totalFields = 7; // Total number of required field groups
+      let filledFields = 0;
+      
+      if (value.highSchool.grade) filledFields++;
+      if (value.highSchool.studyDirection) filledFields++;
+      if (value.highSchool.averageGrade) filledFields++;
+      if (countSelectedCheckboxes('highSchool.favoriteCourses') > 0) filledFields++;
+      if (countSelectedCheckboxes('highSchool.difficultCourses') > 0) filledFields++;
+      if (countSelectedCheckboxes('highSchool.educationPriorities') > 0) filledFields++;
+      if (value.highSchool.workEnvironment) filledFields++;
+      
+      const progress = Math.round((filledFields / totalFields) * 100);
+      setFormProgress(progress);
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [form, setFormProgress]);
 
   return (
     <div className="space-y-8">
@@ -371,7 +373,24 @@ const HighSchoolQuestionnaire = ({ form, onSubmit }) => {
                             <FormControl>
                               <Checkbox
                                 checked={field.value}
-                                onCheckedChange={field.onChange}
+                                onCheckedChange={(checked) => {
+                                  field.onChange(checked);
+                                  // Validate max selections after change
+                                  const currentCount = countSelectedCheckboxes('highSchool.interests');
+                                  if (checked && currentCount > 3) {
+                                    // Find the first checked box and uncheck it
+                                    const keys = Object.keys(form.getValues('highSchool.interests') || {});
+                                    for (const key of keys) {
+                                      if (
+                                        form.getValues(`highSchool.interests.${key}`) && 
+                                        `highSchool.interests.${key}` !== field.name
+                                      ) {
+                                        form.setValue(`highSchool.interests.${key}`, false);
+                                        break;
+                                      }
+                                    }
+                                  }
+                                }}
                               />
                             </FormControl>
                             <div className="space-y-1 leading-none">

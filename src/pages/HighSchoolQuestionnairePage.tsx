@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import Layout from '@/components/Layout';
 import HighSchoolQuestionnaire from '@/components/HighSchoolQuestionnaire';
 import { Progress } from "@/components/ui/progress";
+import { Form } from "@/components/ui/form";
 
 const HighSchoolQuestionnairePage = () => {
   const navigate = useNavigate();
@@ -92,9 +93,12 @@ const HighSchoolQuestionnairePage = () => {
           </div>
           
           <div className="bg-white rounded-lg shadow-md p-6">
-            <form onSubmit={form.handleSubmit(onSubmit)}>
-              <HighSchoolQuestionnaire form={form} onSubmit={form.handleSubmit(onSubmit)} />
-            </form>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)}>
+                <HighSchoolQuestionnaire form={form} setFormProgress={setFormProgress} />
+                {/* Submission button is inside the questionnaire component */}
+              </form>
+            </Form>
           </div>
         </div>
       </div>
