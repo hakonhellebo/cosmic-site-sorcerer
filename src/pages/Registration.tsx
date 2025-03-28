@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from "sonner";
 import { useNavigate } from 'react-router-dom';
@@ -16,6 +16,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 
 type FormData = {
   name: string;
@@ -23,10 +26,13 @@ type FormData = {
   education: string;
   interests: string;
   terms: boolean;
+  userType: 'high-school' | 'university' | 'worker' | '';
 };
 
 const Registration: React.FC = () => {
   const navigate = useNavigate();
+  const [userType, setUserType] = useState<'high-school' | 'university' | 'worker' | ''>('');
+  
   const form = useForm<FormData>({
     defaultValues: {
       name: '',
@@ -34,6 +40,7 @@ const Registration: React.FC = () => {
       education: '',
       interests: '',
       terms: false,
+      userType: '',
     },
   });
 
@@ -48,6 +55,11 @@ const Registration: React.FC = () => {
     setTimeout(() => {
       navigate('/dashboard');
     }, 1500);
+  };
+
+  const handleUserTypeChange = (value: 'high-school' | 'university' | 'worker') => {
+    setUserType(value);
+    form.setValue('userType', value);
   };
 
   return (
@@ -91,37 +103,88 @@ const Registration: React.FC = () => {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="education"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Utdanning</FormLabel>
-                    <FormControl>
-                      <Input placeholder="F.eks. Bachelor i Informatikk, NTNU" required {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="interests"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Karriereinteresser (valgfritt)</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Fortell oss om dine karriereinteresser og mål"
-                        className="min-h-[120px]" 
-                        {...field} 
+              <div className="space-y-3">
+                <FormLabel>Jeg er:</FormLabel>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div 
+                    className={`p-4 border rounded-md cursor-pointer transition-all ${userType === 'high-school' ? 'border-primary bg-primary/5' : 'hover:bg-secondary/50'}`}
+                    onClick={() => handleUserTypeChange('high-school')}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem 
+                        value="high-school" 
+                        id="high-school"
+                        checked={userType === 'high-school'}
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <Label htmlFor="high-school" className="cursor-pointer">Videregående elev</Label>
+                    </div>
+                  </div>
+                  
+                  <div 
+                    className={`p-4 border rounded-md cursor-pointer transition-all ${userType === 'university' ? 'border-primary bg-primary/5' : 'hover:bg-secondary/50'}`}
+                    onClick={() => handleUserTypeChange('university')}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem 
+                        value="university" 
+                        id="university"
+                        checked={userType === 'university'}
+                      />
+                      <Label htmlFor="university" className="cursor-pointer">Bachelor/Master student</Label>
+                    </div>
+                  </div>
+
+                  <div 
+                    className={`p-4 border rounded-md cursor-pointer transition-all ${userType === 'worker' ? 'border-primary bg-primary/5' : 'hover:bg-secondary/50'}`}
+                    onClick={() => handleUserTypeChange('worker')}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem 
+                        value="worker" 
+                        id="worker"
+                        checked={userType === 'worker'}
+                      />
+                      <Label htmlFor="worker" className="cursor-pointer">Yrkesaktiv</Label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {userType && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="education"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Utdanning</FormLabel>
+                        <FormControl>
+                          <Input placeholder="F.eks. Bachelor i Informatikk, NTNU" required {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="interests"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Karriereinteresser (valgfritt)</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Fortell oss om dine karriereinteresser og mål"
+                            className="min-h-[120px]" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
 
               <FormField
                 control={form.control}
