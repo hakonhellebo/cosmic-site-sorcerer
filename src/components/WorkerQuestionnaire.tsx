@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import {
@@ -266,7 +265,7 @@ const WorkerQuestionnaire: React.FC<WorkerQuestionnaireProps> = ({
             <FormItem>
               <FormLabel>Hva er ditt nåværende yrke?</FormLabel>
               <FormControl>
-                <Input placeholder="Skriv inn din jobbstilling" {...field} />
+                <Input placeholder="Skriv inn din jobbstilling" {...field} value={field.value || ""} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -360,7 +359,7 @@ const WorkerQuestionnaire: React.FC<WorkerQuestionnaireProps> = ({
             <FormItem>
               <FormLabel>Hva var startlønnen din?</FormLabel>
               <FormControl>
-                <Input placeholder="F.eks. 450 000 kr" {...field} />
+                <Input placeholder="F.eks. 450 000 kr" {...field} value={field.value || ""} />
               </FormControl>
               <FormMessage />
             </FormItem>
