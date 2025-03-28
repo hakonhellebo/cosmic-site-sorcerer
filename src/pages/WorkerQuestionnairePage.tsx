@@ -50,6 +50,7 @@ const WorkerQuestionnairePage: React.FC = () => {
   const progressValue = (page / totalPages) * 100;
   const [userData, setUserData] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formErrors, setFormErrors] = useState<string | null>(null);
   
   useEffect(() => {
     // Retrieve user data from localStorage
@@ -67,39 +68,40 @@ const WorkerQuestionnairePage: React.FC = () => {
     }
   }, [navigate]);
 
+  // Initialize the form without default selected values
   const form = useForm<QuestionnaireFormData>({
     defaultValues: {
       worker: {
-        educationLevel: 'bachelor',
+        educationLevel: undefined,
         studyField: {},
         otherField: '',
-        preparedness: 'well',
+        preparedness: undefined,
         usedSkills: {},
         currentJob: '',
-        firstJobMethod: 'nettverk',
+        firstJobMethod: undefined,
         otherMethod: '',
-        timeToJob: 'right-after',
+        timeToJob: undefined,
         startingSalary: '',
-        // Default values for existing fields
-        yearsWorking: '3-5',
-        industryChange: 'never',
-        jobChanges: '1-2',
-        jobChangeReason: 'career-development',
+        // Career development fields without defaults
+        yearsWorking: undefined,
+        industryChange: undefined,
+        jobChanges: undefined,
+        jobChangeReason: undefined,
         jobChangeReasonOther: '',
-        leadershipRole: 'no',
-        careerSatisfaction: 'satisfied',
-        keySkill: 'problem-solving',
-        furtherEducation: 'no',
+        leadershipRole: undefined,
+        careerSatisfaction: undefined,
+        keySkill: undefined,
+        furtherEducation: undefined,
         educationChange: '',
-        rightIndustry: 'yes',
-        // Default values for new fields
-        jobSatisfaction: 'somewhat-satisfied',
+        rightIndustry: undefined,
+        // Job satisfaction fields without defaults
+        jobSatisfaction: undefined,
         jobImportance: {},
         nextCareerGoal: '',
-        meaningfulWork: 'somewhat-important',
+        meaningfulWork: undefined,
         careerAdvice: '',
-        jobChangeOpenness: 'somewhat-open',
-        aiCareerAdvice: 'maybe',
+        jobChangeOpenness: undefined,
+        aiCareerAdvice: undefined,
       }
     },
   });
@@ -140,6 +142,7 @@ const WorkerQuestionnairePage: React.FC = () => {
     if (page < totalPages) {
       setPage(page + 1);
       window.scrollTo(0, 0);
+      setFormErrors(null);
     }
   };
 
@@ -147,16 +150,60 @@ const WorkerQuestionnairePage: React.FC = () => {
     if (page > 1) {
       setPage(page - 1);
       window.scrollTo(0, 0);
+      setFormErrors(null);
     }
   };
 
+  const validateCurrentPage = () => {
+    let isValid = true;
+    let errorMessage = "";
+    
+    // Required fields for each page
+    const requiredFields = {
+      1: ['educationLevel', 'preparedness'],
+      2: ['currentJob', 'firstJobMethod', 'timeToJob'],
+      3: ['yearsWorking', 'jobSatisfaction', 'meaningfulWork', 'jobChangeOpenness', 'aiCareerAdvice']
+    };
+    
+    const currentPageFields = requiredFields[page as keyof typeof requiredFields];
+    
+    // Check if required fields for the current page are filled
+    currentPageFields.forEach(field => {
+      const value = form.getValues(`worker.${field}`);
+      if (!value) {
+        isValid = false;
+        errorMessage = "Vennligst fyll ut alle obligatoriske felt før du fortsetter.";
+      }
+    });
+    
+    // For page 3, check if at least one job importance is selected
+    if (page === 3) {
+      const jobImportance = form.getValues('worker.jobImportance');
+      const hasSelection = Object.values(jobImportance).some(value => value === true);
+      
+      if (!hasSelection) {
+        isValid = false;
+        errorMessage = "Vennligst velg minst én viktig faktor for jobb.";
+      }
+    }
+    
+    if (!isValid) {
+      setFormErrors(errorMessage);
+    }
+    
+    return isValid;
+  };
+
   const handleFormSubmission = () => {
-    console.log("Current page:", page, "Total pages:", totalPages);
     if (page < totalPages) {
-      nextPage();
+      if (validateCurrentPage()) {
+        nextPage();
+      }
     } else {
-      // When on the last page, call the onSubmit function
-      form.handleSubmit(onSubmit)();
+      // Final validation before submission
+      if (validateCurrentPage()) {
+        form.handleSubmit(onSubmit)();
+      }
     }
   };
 
@@ -174,6 +221,12 @@ const WorkerQuestionnairePage: React.FC = () => {
             {page === 2 && "Fortell oss om din arbeidserfaring"}
             {page === 3 && "Fortell oss om din karriereutvikling"}
           </p>
+          
+          {formErrors && (
+            <div className="bg-destructive/15 text-destructive p-3 rounded-md mb-4">
+              {formErrors}
+            </div>
+          )}
           
           <WorkerQuestionnaire 
             form={form} 
