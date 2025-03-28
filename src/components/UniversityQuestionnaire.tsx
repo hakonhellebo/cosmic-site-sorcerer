@@ -1322,7 +1322,7 @@ const UniversityQuestionnaire = ({
             Tilbake
           </Button>
           <Button 
-            type="submit" 
+            type="button" 
             onClick={onSubmit}
             className="rounded-full"
             disabled={isSubmitting}

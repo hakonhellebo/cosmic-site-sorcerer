@@ -58,12 +58,12 @@ const UniversityQuestionnairePage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   useEffect(() => {
-    // Hent brukerdata fra localStorage
+    // Retrieve user data from localStorage
     const savedUserData = localStorage.getItem('userData');
     if (savedUserData) {
       setUserData(JSON.parse(savedUserData));
     } else {
-      // Hvis ingen data finnes, send tilbake til registrering
+      // If no data exists, redirect back to registration
       toast.error("Ingen brukerdata funnet", {
         description: "Vennligst registrer deg først"
       });
@@ -114,25 +114,25 @@ const UniversityQuestionnairePage: React.FC = () => {
     },
   });
 
-  const onSubmit = (data: QuestionnaireFormData) => {
+  const onSubmit = async (data: QuestionnaireFormData) => {
     console.log("Form submitted:", data);
     setIsSubmitting(true);
     
     try {
-      // Kombinere brukerdata med spørreskjemasvar
+      // Combine user data with questionnaire answers
       const combinedData = {
         ...userData,
         questionnaire: data
       };
       
-      // Lagre resultatene i localStorage
+      // Save results to localStorage
       localStorage.setItem('userFullData', JSON.stringify(combinedData));
       
       toast.success("Spørreskjema fullført!", {
         description: "Takk for dine svar. Vi har laget en personlig karriereprofil til deg."
       });
       
-      // Navigere til dashbordet etter en kort forsinkelse for å sikre at brukeren ser bekreftelsen
+      // Navigate to dashboard after a brief delay to ensure the user sees the confirmation
       setTimeout(() => {
         navigate('/dashboard');
       }, 1500);
@@ -159,6 +159,14 @@ const UniversityQuestionnairePage: React.FC = () => {
     }
   };
 
+  const handleFormSubmission = () => {
+    if (page < totalPages) {
+      nextPage();
+    } else {
+      form.handleSubmit(onSubmit)();
+    }
+  };
+
   const renderPageContent = () => {
     return (
       <div className="space-y-8">
@@ -180,7 +188,7 @@ const UniversityQuestionnairePage: React.FC = () => {
             form={form} 
             page={page}
             onPrevious={prevPage}
-            onSubmit={page < totalPages ? nextPage : form.handleSubmit(onSubmit)}
+            onSubmit={handleFormSubmission}
             isSubmitting={isSubmitting}
           />
         </div>
@@ -201,7 +209,7 @@ const UniversityQuestionnairePage: React.FC = () => {
           </div>
           
           <Form {...form}>
-            <form className="space-y-8" onSubmit={form.handleSubmit(onSubmit)}>
+            <form className="space-y-8">
               {renderPageContent()}
             </form>
           </Form>
