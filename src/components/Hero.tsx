@@ -19,7 +19,7 @@ const Hero: React.FC = () => {
             Velkommen til EdPath
           </span>
           <h1 className="opacity-0 animate-stagger-2 mb-6 text-balance text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-            Finn din vei: Personlig karriereveiledning
+            Finn din vei: Personlig karriere- og utdanningsveiledning
           </h1>
           <p className="opacity-0 animate-stagger-3 mx-auto mb-8 max-w-2xl text-balance text-xl text-muted-foreground">
             EdPath hjelper deg med å oppdage dine beste karrieremuligheter med datadrevet innsikt, skreddersydd spesielt for din utdanning og ambisjoner.
