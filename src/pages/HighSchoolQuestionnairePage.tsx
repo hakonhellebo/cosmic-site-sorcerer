@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -12,23 +11,41 @@ const HighSchoolQuestionnairePage = () => {
   const navigate = useNavigate();
   const [formProgress, setFormProgress] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = 2; // Now we have 2 pages
+  const totalPages = 4; // Updated to 4 pages
   
   const form = useForm({
     defaultValues: {
       highSchool: {
+        // Page 1 - Introduction and background
         grade: '',
         studyDirection: '',
         averageGrade: '',
         favoriteCourses: {},
         difficultCourses: {},
         educationPriorities: {},
+        // Page 2 - Interests and skills
         interests: {},
         workTasks: {},
         workEnvironment: '',
         workPreference: '',
         goodSkills: {},
         improveSkills: {},
+        // Page 3 - School subjects and learning preferences
+        bestSubjects: {},
+        challengingSubjects: {},
+        learningStyle: {},
+        digitalTools: {},
+        technologyComfort: '',
+        schoolChallenges: {},
+        // Page 4 - Work readiness and school habits
+        workIndependently: '',
+        preparedness: '',
+        collaboration: '',
+        aiUsage: '',
+        missingSkills: {},
+        studyTime: '',
+        workExperience: '',
+        workExperienceValue: ''
       }
     }
   });
@@ -45,9 +62,20 @@ const HighSchoolQuestionnairePage = () => {
     const isGoodSkillsValid = Object.values(data.highSchool.goodSkills || {}).filter(Boolean).length > 0;
     const isImproveSkillsValid = Object.values(data.highSchool.improveSkills || {}).filter(Boolean).length > 0;
     
+    // Validate page 3 and 4 fields
+    const isBestSubjectsValid = Object.values(data.highSchool.bestSubjects || {}).filter(Boolean).length > 0;
+    const isChallengingSubjectsValid = Object.values(data.highSchool.challengingSubjects || {}).filter(Boolean).length > 0;
+    const isLearningStyleValid = Object.values(data.highSchool.learningStyle || {}).filter(Boolean).length > 0;
+    const isDigitalToolsValid = Object.values(data.highSchool.digitalTools || {}).filter(Boolean).length > 0;
+    const isSchoolChallengesValid = Object.values(data.highSchool.schoolChallenges || {}).filter(Boolean).length > 0;
+    const isMissingSkillsValid = Object.values(data.highSchool.missingSkills || {}).filter(Boolean).length > 0;
+    
     if (!isFavoriteCoursesValid || !isDifficultCoursesValid || !isEducationPrioritiesValid || 
-        !isInterestsValid || !isWorkTasksValid || !isGoodSkillsValid || !isImproveSkillsValid) {
+        !isInterestsValid || !isWorkTasksValid || !isGoodSkillsValid || !isImproveSkillsValid ||
+        !isBestSubjectsValid || !isChallengingSubjectsValid || !isLearningStyleValid || 
+        !isDigitalToolsValid || !isSchoolChallengesValid || !isMissingSkillsValid) {
       
+      // Set errors for page 1 and 2 fields
       if (!isFavoriteCoursesValid) {
         form.setError('highSchool.favoriteCourses', {
           type: 'manual',
@@ -97,6 +125,49 @@ const HighSchoolQuestionnairePage = () => {
         });
       }
       
+      // Set errors for page 3 and 4 fields
+      if (!isBestSubjectsValid) {
+        form.setError('highSchool.bestSubjects', {
+          type: 'manual',
+          message: 'Velg minst ett fag du liker best på skolen'
+        });
+      }
+      
+      if (!isChallengingSubjectsValid) {
+        form.setError('highSchool.challengingSubjects', {
+          type: 'manual',
+          message: 'Velg minst ett fag du synes er utfordrende'
+        });
+      }
+      
+      if (!isLearningStyleValid) {
+        form.setError('highSchool.learningStyle', {
+          type: 'manual',
+          message: 'Velg minst én måte du lærer best på'
+        });
+      }
+      
+      if (!isDigitalToolsValid) {
+        form.setError('highSchool.digitalTools', {
+          type: 'manual',
+          message: 'Velg minst ett digitalt verktøy du bruker'
+        });
+      }
+      
+      if (!isSchoolChallengesValid) {
+        form.setError('highSchool.schoolChallenges', {
+          type: 'manual',
+          message: 'Velg minst én utfordring med skolearbeidet'
+        });
+      }
+      
+      if (!isMissingSkillsValid) {
+        form.setError('highSchool.missingSkills', {
+          type: 'manual',
+          message: 'Velg minst én ferdighet du føler du mangler'
+        });
+      }
+      
       toast.error("Du må fylle ut alle nødvendige felt", {
         description: "Kontroller at du har valgt minst ett alternativ der det kreves"
       });
@@ -115,7 +186,7 @@ const HighSchoolQuestionnairePage = () => {
       description: "Takk for dine svar."
     });
     
-    // Navigate to index page
+    // Navigate to index page directly
     navigate('/');
   };
 
