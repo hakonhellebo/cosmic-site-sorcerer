@@ -22,6 +22,29 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
 const HighSchoolQuestionnaire = ({ form, onSubmit }) => {
+  // Helper function to count selected checkboxes in a group
+  const countSelectedCheckboxes = (fieldGroup) => {
+    return Object.values(form.getValues(fieldGroup) || {}).filter(Boolean).length;
+  };
+
+  // Validate maximum selections for checkbox groups
+  const validateMaxSelections = (fieldGroup, maxAllowed, errorMessage) => {
+    const selectedCount = countSelectedCheckboxes(fieldGroup);
+    if (selectedCount > maxAllowed) {
+      return errorMessage;
+    }
+    return true;
+  };
+
+  // Check if at least one checkbox is selected in a group
+  const validateMinSelections = (fieldGroup, minRequired, errorMessage) => {
+    const selectedCount = countSelectedCheckboxes(fieldGroup);
+    if (selectedCount < minRequired) {
+      return errorMessage;
+    }
+    return true;
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -127,6 +150,11 @@ const HighSchoolQuestionnaire = ({ form, onSubmit }) => {
                 <div className="mb-4">
                   <FormLabel>Hvilke av disse fagene liker du best? (Velg opptil 3)</FormLabel>
                 </div>
+                {form.formState.errors.highSchool?.favoriteCourses?.message && (
+                  <p className="text-sm font-medium text-destructive">
+                    {form.formState.errors.highSchool?.favoriteCourses?.message}
+                  </p>
+                )}
                 <div className="grid grid-cols-2 gap-2">
                   {['Matematikk', 'Norsk', 'Engelsk', 'Samfunnsfag', 'Naturfag', 
                     'Kroppsøving', 'Kunst og håndverk', 'Fremmedspråk'].map(
@@ -134,7 +162,7 @@ const HighSchoolQuestionnaire = ({ form, onSubmit }) => {
                       <FormField
                         key={subject}
                         control={form.control}
-                        name={`highSchool.favoriteCourses.${subject.toLowerCase()}`}
+                        name={`highSchool.favoriteCourses.${subject.toLowerCase().replace(/\s+/g, '_')}`}
                         render={({ field }) => (
                           <FormItem
                             key={subject}
@@ -143,7 +171,24 @@ const HighSchoolQuestionnaire = ({ form, onSubmit }) => {
                             <FormControl>
                               <Checkbox
                                 checked={field.value}
-                                onCheckedChange={field.onChange}
+                                onCheckedChange={(checked) => {
+                                  field.onChange(checked);
+                                  // Validate max selections after change
+                                  const currentCount = countSelectedCheckboxes('highSchool.favoriteCourses');
+                                  if (checked && currentCount >= 3) {
+                                    // Find the first checked box and uncheck it
+                                    const keys = Object.keys(form.getValues('highSchool.favoriteCourses') || {});
+                                    for (const key of keys) {
+                                      if (
+                                        form.getValues(`highSchool.favoriteCourses.${key}`) && 
+                                        `highSchool.favoriteCourses.${key}` !== field.name
+                                      ) {
+                                        form.setValue(`highSchool.favoriteCourses.${key}`, false);
+                                        break;
+                                      }
+                                    }
+                                  }
+                                }}
                               />
                             </FormControl>
                             <div className="space-y-1 leading-none">
@@ -157,7 +202,140 @@ const HighSchoolQuestionnaire = ({ form, onSubmit }) => {
                     )
                   )}
                 </div>
-                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="highSchool.difficultCourses"
+            render={() => (
+              <FormItem>
+                <div className="mb-4">
+                  <FormLabel>Hvilke fag synes du er vanskeligst? (Velg opptil 3)</FormLabel>
+                </div>
+                {form.formState.errors.highSchool?.difficultCourses?.message && (
+                  <p className="text-sm font-medium text-destructive">
+                    {form.formState.errors.highSchool?.difficultCourses?.message}
+                  </p>
+                )}
+                <div className="grid grid-cols-2 gap-2">
+                  {['Matematikk', 'Norsk', 'Engelsk', 'Samfunnsfag', 'Naturfag', 
+                    'Kroppsøving', 'Kunst og håndverk', 'Fremmedspråk'].map(
+                    (subject) => (
+                      <FormField
+                        key={subject}
+                        control={form.control}
+                        name={`highSchool.difficultCourses.${subject.toLowerCase().replace(/\s+/g, '_')}`}
+                        render={({ field }) => (
+                          <FormItem
+                            key={subject}
+                            className="flex flex-row items-start space-x-3 space-y-0"
+                          >
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={(checked) => {
+                                  field.onChange(checked);
+                                  // Validate max selections after change
+                                  const currentCount = countSelectedCheckboxes('highSchool.difficultCourses');
+                                  if (checked && currentCount >= 3) {
+                                    // Find the first checked box and uncheck it
+                                    const keys = Object.keys(form.getValues('highSchool.difficultCourses') || {});
+                                    for (const key of keys) {
+                                      if (
+                                        form.getValues(`highSchool.difficultCourses.${key}`) && 
+                                        `highSchool.difficultCourses.${key}` !== field.name
+                                      ) {
+                                        form.setValue(`highSchool.difficultCourses.${key}`, false);
+                                        break;
+                                      }
+                                    }
+                                  }
+                                }}
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel>
+                                {subject}
+                              </FormLabel>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                    )
+                  )}
+                </div>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="highSchool.educationPriorities"
+            render={() => (
+              <FormItem>
+                <div className="mb-4">
+                  <FormLabel>Hva er viktigst for deg når det gjelder utdanning? (Velg opptil 2)</FormLabel>
+                </div>
+                {form.formState.errors.highSchool?.educationPriorities?.message && (
+                  <p className="text-sm font-medium text-destructive">
+                    {form.formState.errors.highSchool?.educationPriorities?.message}
+                  </p>
+                )}
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { id: 'good_pay', label: 'Få en godt betalt jobb' },
+                    { id: 'follow_interests', label: 'Følge interessene mine' },
+                    { id: 'job_security', label: 'Ha trygg jobb' },
+                    { id: 'flexible_work', label: 'Ha en fleksibel arbeidshverdag' },
+                    { id: 'meaningful_work', label: 'Jobbe med noe meningsfullt' },
+                    { id: 'high_status', label: 'Oppnå høy status' }
+                  ].map(
+                    (priority) => (
+                      <FormField
+                        key={priority.id}
+                        control={form.control}
+                        name={`highSchool.educationPriorities.${priority.id}`}
+                        render={({ field }) => (
+                          <FormItem
+                            key={priority.id}
+                            className="flex flex-row items-start space-x-3 space-y-0"
+                          >
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={(checked) => {
+                                  field.onChange(checked);
+                                  // Validate max selections after change
+                                  const currentCount = countSelectedCheckboxes('highSchool.educationPriorities');
+                                  if (checked && currentCount >= 2) {
+                                    // Find the first checked box and uncheck it
+                                    const keys = Object.keys(form.getValues('highSchool.educationPriorities') || {});
+                                    for (const key of keys) {
+                                      if (
+                                        form.getValues(`highSchool.educationPriorities.${key}`) && 
+                                        `highSchool.educationPriorities.${key}` !== field.name
+                                      ) {
+                                        form.setValue(`highSchool.educationPriorities.${key}`, false);
+                                        break;
+                                      }
+                                    }
+                                  }
+                                }}
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel>
+                                {priority.label}
+                              </FormLabel>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                    )
+                  )}
+                </div>
               </FormItem>
             )}
           />
