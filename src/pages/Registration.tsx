@@ -14,17 +14,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
 
 type FormData = {
   name: string;
   email: string;
   education: string;
-  interests: string;
   terms: boolean;
   userType: 'high-school' | 'university' | 'worker' | '';
 };
@@ -38,7 +35,6 @@ const Registration: React.FC = () => {
       name: '',
       email: '',
       education: '',
-      interests: '',
       terms: false,
       userType: '',
     },
@@ -47,14 +43,22 @@ const Registration: React.FC = () => {
   const onSubmit = (data: FormData) => {
     console.log(data);
     toast.success("Registrering fullført!", {
-      description: "Takk for din registrering. Vi vil kontakte deg snart."
+      description: "Takk for din registrering. Vi vil nå stille deg noen spørsmål."
     });
-    form.reset();
     
-    // Redirect to dashboard after successful registration
-    setTimeout(() => {
+    // Lagre brukerdata i localStorage for å kunne bruke det i spørreskjemaene
+    localStorage.setItem('userData', JSON.stringify(data));
+    
+    // Navigere til riktig spørreskjema basert på brukertypen
+    if (data.userType === 'university') {
+      navigate('/university-questionnaire');
+    } else if (data.userType === 'high-school') {
+      navigate('/high-school-questionnaire');
+    } else if (data.userType === 'worker') {
+      navigate('/worker-questionnaire');
+    } else {
       navigate('/dashboard');
-    }, 1500);
+    }
   };
 
   const handleUserTypeChange = (value: 'high-school' | 'university' | 'worker') => {
@@ -152,39 +156,19 @@ const Registration: React.FC = () => {
               </div>
 
               {userType && (
-                <>
-                  <FormField
-                    control={form.control}
-                    name="education"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Utdanning</FormLabel>
-                        <FormControl>
-                          <Input placeholder="F.eks. Bachelor i Informatikk, NTNU" required {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="interests"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Karriereinteresser (valgfritt)</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Fortell oss om dine karriereinteresser og mål"
-                            className="min-h-[120px]" 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
+                <FormField
+                  control={form.control}
+                  name="education"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Utdanning</FormLabel>
+                      <FormControl>
+                        <Input placeholder="F.eks. Bachelor i Informatikk, NTNU" required {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
 
               <FormField
