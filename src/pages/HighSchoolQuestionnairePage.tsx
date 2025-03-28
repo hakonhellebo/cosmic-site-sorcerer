@@ -22,8 +22,11 @@ const HighSchoolQuestionnairePage = () => {
         difficultCourses: {},
         educationPriorities: {},
         interests: {},
+        workTasks: {},
         workEnvironment: '',
         workPreference: '',
+        goodSkills: {},
+        improveSkills: {},
       }
     }
   });
@@ -35,8 +38,14 @@ const HighSchoolQuestionnairePage = () => {
     const isFavoriteCoursesValid = Object.values(data.highSchool.favoriteCourses || {}).filter(Boolean).length > 0;
     const isDifficultCoursesValid = Object.values(data.highSchool.difficultCourses || {}).filter(Boolean).length > 0;
     const isEducationPrioritiesValid = Object.values(data.highSchool.educationPriorities || {}).filter(Boolean).length > 0;
+    const isInterestsValid = Object.values(data.highSchool.interests || {}).filter(Boolean).length > 0;
+    const isWorkTasksValid = Object.values(data.highSchool.workTasks || {}).filter(Boolean).length > 0;
+    const isGoodSkillsValid = Object.values(data.highSchool.goodSkills || {}).filter(Boolean).length > 0;
+    const isImproveSkillsValid = Object.values(data.highSchool.improveSkills || {}).filter(Boolean).length > 0;
     
-    if (!isFavoriteCoursesValid || !isDifficultCoursesValid || !isEducationPrioritiesValid) {
+    if (!isFavoriteCoursesValid || !isDifficultCoursesValid || !isEducationPrioritiesValid || 
+        !isInterestsValid || !isWorkTasksValid || !isGoodSkillsValid || !isImproveSkillsValid) {
+      
       if (!isFavoriteCoursesValid) {
         form.setError('highSchool.favoriteCourses', {
           type: 'manual',
@@ -55,6 +64,34 @@ const HighSchoolQuestionnairePage = () => {
         form.setError('highSchool.educationPriorities', {
           type: 'manual',
           message: 'Velg minst én prioritet for utdanningen din'
+        });
+      }
+      
+      if (!isInterestsValid) {
+        form.setError('highSchool.interests', {
+          type: 'manual',
+          message: 'Velg minst én interesse'
+        });
+      }
+      
+      if (!isWorkTasksValid) {
+        form.setError('highSchool.workTasks', {
+          type: 'manual',
+          message: 'Velg minst én arbeidsoppgave'
+        });
+      }
+      
+      if (!isGoodSkillsValid) {
+        form.setError('highSchool.goodSkills', {
+          type: 'manual',
+          message: 'Velg minst én ferdighet du er god på'
+        });
+      }
+      
+      if (!isImproveSkillsValid) {
+        form.setError('highSchool.improveSkills', {
+          type: 'manual',
+          message: 'Velg minst én ferdighet du vil bli bedre på'
         });
       }
       
