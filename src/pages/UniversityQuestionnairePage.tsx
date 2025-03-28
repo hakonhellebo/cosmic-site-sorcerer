@@ -63,11 +63,13 @@ const UniversityQuestionnairePage: React.FC = () => {
     if (savedUserData) {
       setUserData(JSON.parse(savedUserData));
     } else {
-      // If no data exists, redirect back to registration
-      toast.error("Ingen brukerdata funnet", {
-        description: "Vennligst registrer deg først"
-      });
-      navigate('/registrer');
+      // Only redirect if we don't have userData and we're not coming from dashboard
+      if (!window.location.pathname.includes('dashboard')) {
+        toast.error("Ingen brukerdata funnet", {
+          description: "Vennligst registrer deg først"
+        });
+        navigate('/registrer');
+      }
     }
   }, [navigate]);
 
@@ -160,9 +162,11 @@ const UniversityQuestionnairePage: React.FC = () => {
   };
 
   const handleFormSubmission = () => {
+    console.log("Current page:", page, "Total pages:", totalPages);
     if (page < totalPages) {
       nextPage();
     } else {
+      // When on the last page, call the onSubmit function
       form.handleSubmit(onSubmit)();
     }
   };
