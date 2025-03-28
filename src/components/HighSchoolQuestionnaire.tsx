@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import NavigationButtons from '@/components/questionnaire/NavigationButtons';
 import FutureIndustries from '@/components/questionnaire/FutureIndustries';
@@ -18,8 +17,6 @@ const HighSchoolQuestionnaire = ({
   onNextPage,
   onPrevPage
 }) => {
-  
-  // Pages 1-4 remain unchanged with existing fields and UI
   
   // Calculate progress based on current page
   useEffect(() => {
@@ -44,7 +41,7 @@ const HighSchoolQuestionnaire = ({
     );
   }
   
-  // Page 6 - Career planning and motivation
+  // Page 6 - Career planning and motivation (final page)
   if (currentPage === 6) {
     return (
       <div className="space-y-6">
@@ -61,7 +58,7 @@ const HighSchoolQuestionnaire = ({
     );
   }
   
-  // Pages 1-4 rendering logic remains unchanged
+  // Pages 1-4 rendering logic
   if (currentPage === 1) {
     return (
       <div className="space-y-6">
