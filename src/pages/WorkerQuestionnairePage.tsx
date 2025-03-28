@@ -20,13 +20,25 @@ type QuestionnaireFormData = {
     otherMethod: string;
     timeToJob: 'right-after' | 'within-1' | 'within-2' | 'within-5' | 'not-yet';
     startingSalary: string;
+    // New fields for career page
+    yearsWorking: '0-2' | '3-5' | '6-10' | '11-20' | 'over-20';
+    industryChange: 'once' | 'multiple' | 'never';
+    jobChanges: 'never' | '1-2' | '3-5' | 'more-than-5';
+    jobChangeReason: 'higher-salary' | 'better-environment' | 'career-development' | 'lack-challenges' | 'conflict' | 'other';
+    jobChangeReasonOther: string;
+    leadershipRole: 'yes' | 'no';
+    careerSatisfaction: 'very-satisfied' | 'satisfied' | 'somewhat-satisfied' | 'dissatisfied';
+    keySkill: 'technical' | 'network' | 'communication' | 'leadership' | 'creativity' | 'problem-solving';
+    furtherEducation: 'yes' | 'no';
+    educationChange: string;
+    rightIndustry: 'yes' | 'no' | 'unsure';
   };
 };
 
 const WorkerQuestionnairePage: React.FC = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
-  const totalPages = 2;
+  const totalPages = 3;
   const progressValue = (page / totalPages) * 100;
   const [userData, setUserData] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,6 +72,18 @@ const WorkerQuestionnairePage: React.FC = () => {
         otherMethod: '',
         timeToJob: 'right-after',
         startingSalary: '',
+        // Default values for new fields
+        yearsWorking: '3-5',
+        industryChange: 'never',
+        jobChanges: '1-2',
+        jobChangeReason: 'career-development',
+        jobChangeReasonOther: '',
+        leadershipRole: 'no',
+        careerSatisfaction: 'satisfied',
+        keySkill: 'problem-solving',
+        furtherEducation: 'no',
+        educationChange: '',
+        rightIndustry: 'yes',
       }
     },
   });
@@ -84,7 +108,7 @@ const WorkerQuestionnairePage: React.FC = () => {
       
       // Give a small delay to ensure toast is shown and data is saved
       setTimeout(() => {
-        // Force immediate navigation to front page with replace (will clear navigation history)
+        // Navigate to front page
         window.location.href = '/';
       }, 300);
     } catch (error) {
@@ -127,10 +151,12 @@ const WorkerQuestionnairePage: React.FC = () => {
           <h2 className="text-2xl font-bold mb-4">
             {page === 1 && "Bakgrunn og utdanning"}
             {page === 2 && "Arbeidserfaring"}
+            {page === 3 && "Karrierevei og erfaring"}
           </h2>
           <p className="text-muted-foreground mb-6">
             {page === 1 && "Fortell oss om din utdanningsbakgrunn"}
             {page === 2 && "Fortell oss om din arbeidserfaring"}
+            {page === 3 && "Fortell oss om din karriereutvikling"}
           </p>
           
           <WorkerQuestionnaire 
