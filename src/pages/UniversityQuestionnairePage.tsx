@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from "sonner";
@@ -134,8 +133,11 @@ const UniversityQuestionnairePage: React.FC = () => {
         description: "Takk for dine svar. Vi har laget en personlig karriereprofil til deg."
       });
       
-      // Force navigation to dashboard with immediate redirect
-      navigate('/dashboard', { replace: true });
+      // Give a small delay to ensure toast is shown and data is saved
+      setTimeout(() => {
+        // Force immediate navigation to dashboard with replace (will clear navigation history)
+        window.location.href = '/dashboard';
+      }, 300);
     } catch (error) {
       console.error("Error saving form data:", error);
       toast.error("Det oppstod en feil", {
