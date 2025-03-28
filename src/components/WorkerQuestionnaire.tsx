@@ -99,7 +99,8 @@ const WorkerQuestionnaire: React.FC<WorkerQuestionnaireProps> = ({
                         id={`field-${option}`}
                         checked={field.value?.[option] || false}
                         onCheckedChange={(checked) => {
-                          const currentValues = { ...field.value } || {};
+                          // Create a new object for immutability, using empty object as fallback if field.value is null/undefined
+                          const currentValues = field.value ? { ...field.value } : {};
                           
                           // Count existing selections
                           const selectedCount = Object.values(currentValues).filter(Boolean).length;
@@ -204,7 +205,8 @@ const WorkerQuestionnaire: React.FC<WorkerQuestionnaireProps> = ({
                         id={`skill-${option}`}
                         checked={field.value?.[option] || false}
                         onCheckedChange={(checked) => {
-                          const currentValues = { ...field.value } || {};
+                          // Create a new object for immutability, using empty object as fallback if field.value is null/undefined
+                          const currentValues = field.value ? { ...field.value } : {};
                           
                           // Count existing selections
                           const selectedCount = Object.values(currentValues).filter(Boolean).length;
