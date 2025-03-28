@@ -4,7 +4,6 @@ import { useForm } from 'react-hook-form';
 import { toast } from "sonner";
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
-import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Progress } from "@/components/ui/progress";
 import UniversityQuestionnaire from '@/components/UniversityQuestionnaire';
@@ -13,6 +12,7 @@ type QuestionnaireFormData = {
   university: {
     studyField: string;
     institution: string;
+    otherInstitution?: string;
     level: string;
     changedField: 'yes' | 'no';
     certaintylevel: 'very' | 'quite' | 'little' | 'not';
@@ -75,6 +75,7 @@ const UniversityQuestionnairePage: React.FC = () => {
       university: {
         studyField: '',
         institution: '',
+        otherInstitution: '',
         level: '',
         changedField: 'no',
         certaintylevel: 'quite',
@@ -147,101 +148,31 @@ const UniversityQuestionnairePage: React.FC = () => {
   };
 
   const renderPageContent = () => {
-    switch(page) {
-      case 1:
-        return (
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-2xl font-bold mb-4">Personlige opplysninger</h2>
-              <p className="text-muted-foreground mb-6">Fortell oss om din utdanning</p>
-              <UniversityQuestionnaire form={form} onSubmit={form.handleSubmit(nextPage)} />
-            </div>
-          </div>
-        );
-      case 2:
-        return (
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-2xl font-bold mb-4">Kompetanser og ferdigheter</h2>
-              <p className="text-muted-foreground mb-6">Fortell oss om dine styrker og interesser</p>
-              {/* Dette vil vise andre delen av spørreskjemaet */}
-            </div>
-            <div className="flex justify-between">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={prevPage}
-                className="rounded-full"
-              >
-                Tilbake
-              </Button>
-              <Button 
-                type="button" 
-                onClick={nextPage}
-                className="rounded-full"
-              >
-                Neste
-              </Button>
-            </div>
-          </div>
-        );
-      case 3:
-        return (
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-2xl font-bold mb-4">Motivasjon og ambisjoner</h2>
-              <p className="text-muted-foreground mb-6">Fortell oss om hva som driver deg</p>
-              {/* Dette vil vise tredje delen av spørreskjemaet */}
-            </div>
-            <div className="flex justify-between">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={prevPage}
-                className="rounded-full"
-              >
-                Tilbake
-              </Button>
-              <Button 
-                type="button" 
-                onClick={nextPage}
-                className="rounded-full"
-              >
-                Neste
-              </Button>
-            </div>
-          </div>
-        );
-      case 4:
-        return (
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-2xl font-bold mb-4">Karriereforventninger</h2>
-              <p className="text-muted-foreground mb-6">Fortell oss om dine mål og forventninger</p>
-              {/* Dette vil vise fjerde delen av spørreskjemaet */}
-            </div>
-            <div className="flex justify-between">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={prevPage}
-                className="rounded-full"
-              >
-                Tilbake
-              </Button>
-              <Button 
-                type="submit" 
-                onClick={form.handleSubmit(onSubmit)}
-                className="rounded-full"
-              >
-                Fullfør
-              </Button>
-            </div>
-          </div>
-        );
-      default:
-        return null;
-    }
+    return (
+      <div className="space-y-8">
+        <div>
+          <h2 className="text-2xl font-bold mb-4">
+            {page === 1 && "Personlige opplysninger"}
+            {page === 2 && "Kompetanser og ferdigheter"}
+            {page === 3 && "Motivasjon og ambisjoner"}
+            {page === 4 && "Karriereforventninger"}
+          </h2>
+          <p className="text-muted-foreground mb-6">
+            {page === 1 && "Fortell oss om din utdanning"}
+            {page === 2 && "Fortell oss om dine styrker og interesser"}
+            {page === 3 && "Fortell oss om hva som driver deg"}
+            {page === 4 && "Fortell oss om dine mål og forventninger"}
+          </p>
+          
+          <UniversityQuestionnaire 
+            form={form} 
+            page={page}
+            onPrevious={prevPage}
+            onSubmit={page < totalPages ? nextPage : form.handleSubmit(onSubmit)}
+          />
+        </div>
+      </div>
+    );
   };
 
   return (

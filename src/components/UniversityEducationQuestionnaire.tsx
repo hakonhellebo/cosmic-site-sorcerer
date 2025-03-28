@@ -64,7 +64,7 @@ const UniversityEducationQuestionnaire = ({ form, onSubmit }) => {
                     <SelectItem value="bi">BI</SelectItem>
                     <SelectItem value="nhh">NHH</SelectItem>
                     <SelectItem value="hinn">Høgskolen i Innlandet</SelectItem>
-                    <SelectItem value="other">Andre</SelectItem>
+                    <SelectItem value="other">Annet</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
