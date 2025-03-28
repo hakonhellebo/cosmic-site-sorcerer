@@ -105,7 +105,11 @@ const Registration: React.FC = () => {
 
               <div className="space-y-3">
                 <FormLabel>Jeg er:</FormLabel>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <RadioGroup 
+                  value={userType} 
+                  onValueChange={(value: 'high-school' | 'university' | 'worker') => handleUserTypeChange(value)}
+                  className="grid grid-cols-1 md:grid-cols-3 gap-4"
+                >
                   <div 
                     className={`p-4 border rounded-md cursor-pointer transition-all ${userType === 'high-school' ? 'border-primary bg-primary/5' : 'hover:bg-secondary/50'}`}
                     onClick={() => handleUserTypeChange('high-school')}
@@ -114,7 +118,6 @@ const Registration: React.FC = () => {
                       <RadioGroupItem 
                         value="high-school" 
                         id="high-school"
-                        checked={userType === 'high-school'}
                       />
                       <Label htmlFor="high-school" className="cursor-pointer">Videregående elev</Label>
                     </div>
@@ -128,7 +131,6 @@ const Registration: React.FC = () => {
                       <RadioGroupItem 
                         value="university" 
                         id="university"
-                        checked={userType === 'university'}
                       />
                       <Label htmlFor="university" className="cursor-pointer">Bachelor/Master student</Label>
                     </div>
@@ -142,12 +144,11 @@ const Registration: React.FC = () => {
                       <RadioGroupItem 
                         value="worker" 
                         id="worker"
-                        checked={userType === 'worker'}
                       />
                       <Label htmlFor="worker" className="cursor-pointer">Yrkesaktiv</Label>
                     </div>
                   </div>
-                </div>
+                </RadioGroup>
               </div>
 
               {userType && (
