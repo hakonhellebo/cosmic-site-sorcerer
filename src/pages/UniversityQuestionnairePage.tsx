@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from "sonner";
@@ -133,8 +134,8 @@ const UniversityQuestionnairePage: React.FC = () => {
         description: "Takk for dine svar. Vi har laget en personlig karriereprofil til deg."
       });
       
-      // Navigate to dashboard instead of home page
-      navigate('/dashboard');
+      // Force navigation to dashboard with immediate redirect
+      navigate('/dashboard', { replace: true });
     } catch (error) {
       console.error("Error saving form data:", error);
       toast.error("Det oppstod en feil", {
