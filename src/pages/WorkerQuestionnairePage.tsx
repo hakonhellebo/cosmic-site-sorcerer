@@ -159,13 +159,13 @@ const WorkerQuestionnairePage: React.FC = () => {
     let errorMessage = "";
     
     // Required fields for each page
-    const requiredFields = {
+    const requiredFields: Record<number, Array<keyof QuestionnaireFormData['worker']>> = {
       1: ['educationLevel', 'preparedness'],
       2: ['currentJob', 'firstJobMethod', 'timeToJob'],
       3: ['yearsWorking', 'jobSatisfaction', 'meaningfulWork', 'jobChangeOpenness', 'aiCareerAdvice']
     };
     
-    const currentPageFields = requiredFields[page as keyof typeof requiredFields];
+    const currentPageFields = requiredFields[page];
     
     // Check if required fields for the current page are filled
     currentPageFields.forEach(field => {
