@@ -4,13 +4,15 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
 import Layout from '@/components/Layout';
-import HighSchoolQuestionnaire from '@/components/HighSchoolQuestionnaire';
 import { Progress } from "@/components/ui/progress";
 import { Form } from "@/components/ui/form";
+import HighSchoolQuestionnaire from '@/components/HighSchoolQuestionnaire';
 
 const HighSchoolQuestionnairePage = () => {
   const navigate = useNavigate();
   const [formProgress, setFormProgress] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = 2; // Now we have 2 pages
   
   const form = useForm({
     defaultValues: {
@@ -113,8 +115,24 @@ const HighSchoolQuestionnairePage = () => {
       description: "Takk for dine svar."
     });
     
-    // Navigate to index page instead of dashboard
+    // Navigate to index page
     navigate('/');
+  };
+
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+      window.scrollTo(0, 0);
+    } else {
+      form.handleSubmit(onSubmit)();
+    }
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+      window.scrollTo(0, 0);
+    }
   };
 
   return (
@@ -122,7 +140,10 @@ const HighSchoolQuestionnairePage = () => {
       <div className="container mx-auto px-4 py-12 md:py-16">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Spørreskjema for videregåendeelever</h1>
+            <div className="flex justify-between items-center mb-2">
+              <h1 className="text-3xl font-bold">Spørreskjema for videregåendeelever</h1>
+              <span className="text-sm font-medium">{currentPage} av {totalPages}</span>
+            </div>
             <p className="text-muted-foreground mb-4">
               Hjelp oss å forstå din bakgrunn, interesser og mål slik at vi kan gi deg bedre veiledning.
             </p>
@@ -132,8 +153,14 @@ const HighSchoolQuestionnairePage = () => {
           <div className="bg-white rounded-lg shadow-md p-6">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)}>
-                <HighSchoolQuestionnaire form={form} setFormProgress={setFormProgress} />
-                {/* Submission button is inside the questionnaire component */}
+                <HighSchoolQuestionnaire 
+                  form={form} 
+                  setFormProgress={setFormProgress} 
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onNextPage={nextPage}
+                  onPrevPage={prevPage}
+                />
               </form>
             </Form>
           </div>
