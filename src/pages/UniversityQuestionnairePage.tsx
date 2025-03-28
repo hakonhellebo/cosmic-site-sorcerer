@@ -55,6 +55,7 @@ const UniversityQuestionnairePage: React.FC = () => {
   const totalPages = 4;
   const progressValue = (page / totalPages) * 100;
   const [userData, setUserData] = useState<any>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   useEffect(() => {
     // Hent brukerdata fra localStorage
@@ -114,23 +115,34 @@ const UniversityQuestionnairePage: React.FC = () => {
   });
 
   const onSubmit = (data: QuestionnaireFormData) => {
-    console.log(data);
+    console.log("Form submitted:", data);
+    setIsSubmitting(true);
     
-    // Kombinere brukerdata med spørreskjemasvar
-    const combinedData = {
-      ...userData,
-      questionnaire: data
-    };
-    
-    // Lagre resultatene i localStorage
-    localStorage.setItem('userFullData', JSON.stringify(combinedData));
-    
-    toast.success("Spørreskjema fullført!", {
-      description: "Takk for dine svar. Vi har laget en personlig karriereprofil til deg."
-    });
-    
-    // Navigere til dashbordet
-    navigate('/dashboard');
+    try {
+      // Kombinere brukerdata med spørreskjemasvar
+      const combinedData = {
+        ...userData,
+        questionnaire: data
+      };
+      
+      // Lagre resultatene i localStorage
+      localStorage.setItem('userFullData', JSON.stringify(combinedData));
+      
+      toast.success("Spørreskjema fullført!", {
+        description: "Takk for dine svar. Vi har laget en personlig karriereprofil til deg."
+      });
+      
+      // Navigere til dashbordet etter en kort forsinkelse for å sikre at brukeren ser bekreftelsen
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1500);
+    } catch (error) {
+      console.error("Error saving form data:", error);
+      toast.error("Det oppstod en feil", {
+        description: "Kunne ikke lagre svarene dine. Vennligst prøv igjen."
+      });
+      setIsSubmitting(false);
+    }
   };
 
   const nextPage = () => {
@@ -169,6 +181,7 @@ const UniversityQuestionnairePage: React.FC = () => {
             page={page}
             onPrevious={prevPage}
             onSubmit={page < totalPages ? nextPage : form.handleSubmit(onSubmit)}
+            isSubmitting={isSubmitting}
           />
         </div>
       </div>
@@ -188,7 +201,7 @@ const UniversityQuestionnairePage: React.FC = () => {
           </div>
           
           <Form {...form}>
-            <form className="space-y-8">
+            <form className="space-y-8" onSubmit={form.handleSubmit(onSubmit)}>
               {renderPageContent()}
             </form>
           </Form>

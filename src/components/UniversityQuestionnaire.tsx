@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -8,12 +7,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Loader2 } from "lucide-react";
 
 const UniversityQuestionnaire = ({
   form,
   page,
   onPrevious,
-  onSubmit
+  onSubmit,
+  isSubmitting = false
 }) => {
   if (page === 1) {
     return (
@@ -1156,6 +1157,142 @@ const UniversityQuestionnaire = ({
 
             <FormField
               control={form.control}
+              name="university.motivationSource"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>31. Er du mest motivert av å jobbe med mennesker eller teknologi?</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="people" id="motivation-people" />
+                        <Label htmlFor="motivation-people">Mennesker</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="technology" id="motivation-technology" />
+                        <Label htmlFor="motivation-technology">Teknologi</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="both" id="motivation-both" />
+                        <Label htmlFor="motivation-both">Begge</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="neither" id="motivation-neither" />
+                        <Label htmlFor="motivation-neither">Ingen av delene</Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="university.projectPreference"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>32. Foretrekker du å jobbe med korte eller langsiktige prosjekter?</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="short" id="project-short" />
+                        <Label htmlFor="project-short">Korte prosjekter</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="long" id="project-long" />
+                        <Label htmlFor="project-long">Langsiktige prosjekter</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="combination" id="project-combination" />
+                        <Label htmlFor="project-combination">En kombinasjon</Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="university.uncertaintyResponse"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>33. Hvordan reagerer du på usikkerhet på arbeidsplassen?</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="enjoy" id="uncertainty-enjoy" />
+                        <Label htmlFor="uncertainty-enjoy">Trives med det</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="handle" id="uncertainty-handle" />
+                        <Label htmlFor="uncertainty-handle">Håndterer det greit</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="challenging" id="uncertainty-challenging" />
+                        <Label htmlFor="uncertainty-challenging">Synes det er utfordrende</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="dislike" id="uncertainty-dislike" />
+                        <Label htmlFor="uncertainty-dislike">Misliker det sterkt</Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="university.careerPathImportance"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>34. Hvor viktig er det for deg å ha en klar karrierevei?</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="very" id="career-path-very" />
+                        <Label htmlFor="career-path-very">Veldig viktig</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="somewhat" id="career-path-somewhat" />
+                        <Label htmlFor="career-path-somewhat">Litt viktig</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="not-really" id="career-path-not-really" />
+                        <Label htmlFor="career-path-not-really">Ikke så viktig</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="not-at-all" id="career-path-not-at-all" />
+                        <Label htmlFor="career-path-not-at-all">Ikke viktig i det hele tatt</Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="university.dreamJob"
               render={({ field }) => (
                 <FormItem>
@@ -1180,6 +1317,7 @@ const UniversityQuestionnaire = ({
             variant="outline" 
             onClick={onPrevious}
             className="rounded-full"
+            disabled={isSubmitting}
           >
             Tilbake
           </Button>
@@ -1187,8 +1325,16 @@ const UniversityQuestionnaire = ({
             type="submit" 
             onClick={onSubmit}
             className="rounded-full"
+            disabled={isSubmitting}
           >
-            Fullfør
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Sender...
+              </>
+            ) : (
+              "Fullfør"
+            )}
           </Button>
         </div>
       </div>
