@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from "sonner";
@@ -135,8 +136,8 @@ const UniversityQuestionnairePage: React.FC = () => {
       
       // Give a small delay to ensure toast is shown and data is saved
       setTimeout(() => {
-        // Force immediate navigation to dashboard with replace (will clear navigation history)
-        window.location.href = '/dashboard';
+        // Force immediate navigation to front page with replace (will clear navigation history)
+        window.location.href = '/';
       }, 300);
     } catch (error) {
       console.error("Error saving form data:", error);
