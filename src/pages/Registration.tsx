@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from "sonner";
@@ -20,7 +21,6 @@ import { Label } from "@/components/ui/label";
 type FormData = {
   name: string;
   email: string;
-  education: string;
   terms: boolean;
   userType: 'high-school' | 'university' | 'worker' | '';
 };
@@ -33,7 +33,6 @@ const Registration: React.FC = () => {
     defaultValues: {
       name: '',
       email: '',
-      education: '',
       terms: false,
       userType: '',
     },
@@ -133,22 +132,6 @@ const Registration: React.FC = () => {
                   ))}
                 </RadioGroup>
               </div>
-
-              {userType && (
-                <FormField
-                  control={form.control}
-                  name="education"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Utdanning</FormLabel>
-                      <FormControl>
-                        <Input placeholder="F.eks. Bachelor i Informatikk, NTNU" required {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
 
               <FormField
                 control={form.control}
