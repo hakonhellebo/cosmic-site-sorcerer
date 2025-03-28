@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import {
   FormControl,
@@ -177,7 +176,7 @@ const HighSchoolQuestionnaire = ({ form, setFormProgress }) => {
                                   field.onChange(checked);
                                   // Validate max selections after change
                                   const currentCount = countSelectedCheckboxes('highSchool.favoriteCourses');
-                                  if (checked && currentCount >= 3) {
+                                  if (checked && currentCount > 3) {
                                     // Find the first checked box and uncheck it
                                     const keys = Object.keys(form.getValues('highSchool.favoriteCourses') || {});
                                     for (const key of keys) {
@@ -241,7 +240,7 @@ const HighSchoolQuestionnaire = ({ form, setFormProgress }) => {
                                   field.onChange(checked);
                                   // Validate max selections after change
                                   const currentCount = countSelectedCheckboxes('highSchool.difficultCourses');
-                                  if (checked && currentCount >= 3) {
+                                  if (checked && currentCount > 3) {
                                     // Find the first checked box and uncheck it
                                     const keys = Object.keys(form.getValues('highSchool.difficultCourses') || {});
                                     for (const key of keys) {
@@ -311,7 +310,7 @@ const HighSchoolQuestionnaire = ({ form, setFormProgress }) => {
                                   field.onChange(checked);
                                   // Validate max selections after change
                                   const currentCount = countSelectedCheckboxes('highSchool.educationPriorities');
-                                  if (checked && currentCount >= 2) {
+                                  if (checked && currentCount > 2) {
                                     // Find the first checked box and uncheck it
                                     const keys = Object.keys(form.getValues('highSchool.educationPriorities') || {});
                                     for (const key of keys) {

@@ -73,11 +73,11 @@ const HighSchoolQuestionnairePage = () => {
     }));
     
     toast.success("Spørreskjema fullført!", {
-      description: "Takk for dine svar. Vi vil nå lage en personlig veiledning for deg."
+      description: "Takk for dine svar."
     });
     
-    // Navigate to dashboard or results page
-    navigate('/dashboard');
+    // Navigate to index page instead of dashboard
+    navigate('/');
   };
 
   return (
