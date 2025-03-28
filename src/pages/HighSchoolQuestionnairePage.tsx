@@ -11,7 +11,7 @@ const HighSchoolQuestionnairePage = () => {
   const navigate = useNavigate();
   const [formProgress, setFormProgress] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = 4; // Updated to 4 pages
+  const totalPages = 6; // Updated to 6 pages
   
   const form = useForm({
     defaultValues: {
@@ -45,7 +45,21 @@ const HighSchoolQuestionnairePage = () => {
         missingSkills: {},
         studyTime: '',
         workExperience: '',
-        workExperienceValue: ''
+        workExperienceValue: '',
+        // Page 5 - Industries and future roles
+        interestingIndustries: {},
+        desiredRoles: {},
+        salaryImportance: '',
+        socialImpactImportance: '',
+        workEnvironmentPreferences: {},
+        futureWorkVision: '',
+        // Page 6 - Career planning and motivation
+        workLocation: '',
+        jobChallenges: {},
+        careerSupportNeeds: {},
+        educationMotivation: '',
+        aiJobMarketImpact: '',
+        industryMentorInterest: ''
       }
     }
   });
@@ -70,10 +84,19 @@ const HighSchoolQuestionnairePage = () => {
     const isSchoolChallengesValid = Object.values(data.highSchool.schoolChallenges || {}).filter(Boolean).length > 0;
     const isMissingSkillsValid = Object.values(data.highSchool.missingSkills || {}).filter(Boolean).length > 0;
     
+    // Validate page 5 and 6 fields
+    const isInterestingIndustriesValid = Object.values(data.highSchool.interestingIndustries || {}).filter(Boolean).length > 0;
+    const isDesiredRolesValid = Object.values(data.highSchool.desiredRoles || {}).filter(Boolean).length > 0;
+    const isWorkEnvironmentPreferencesValid = Object.values(data.highSchool.workEnvironmentPreferences || {}).filter(Boolean).length > 0;
+    const isJobChallengesValid = Object.values(data.highSchool.jobChallenges || {}).filter(Boolean).length > 0;
+    const isCareerSupportNeedsValid = Object.values(data.highSchool.careerSupportNeeds || {}).filter(Boolean).length > 0;
+    
     if (!isFavoriteCoursesValid || !isDifficultCoursesValid || !isEducationPrioritiesValid || 
         !isInterestsValid || !isWorkTasksValid || !isGoodSkillsValid || !isImproveSkillsValid ||
         !isBestSubjectsValid || !isChallengingSubjectsValid || !isLearningStyleValid || 
-        !isDigitalToolsValid || !isSchoolChallengesValid || !isMissingSkillsValid) {
+        !isDigitalToolsValid || !isSchoolChallengesValid || !isMissingSkillsValid ||
+        !isInterestingIndustriesValid || !isDesiredRolesValid || !isWorkEnvironmentPreferencesValid ||
+        !isJobChallengesValid || !isCareerSupportNeedsValid) {
       
       // Set errors for page 1 and 2 fields
       if (!isFavoriteCoursesValid) {
@@ -165,6 +188,42 @@ const HighSchoolQuestionnairePage = () => {
         form.setError('highSchool.missingSkills', {
           type: 'manual',
           message: 'Velg minst én ferdighet du føler du mangler'
+        });
+      }
+      
+      // Set errors for page 5 and 6 fields
+      if (!isInterestingIndustriesValid) {
+        form.setError('highSchool.interestingIndustries', {
+          type: 'manual',
+          message: 'Velg minst én bransje som virker spennende'
+        });
+      }
+      
+      if (!isDesiredRolesValid) {
+        form.setError('highSchool.desiredRoles', {
+          type: 'manual',
+          message: 'Velg minst én jobberolle du kunne tenke deg'
+        });
+      }
+      
+      if (!isWorkEnvironmentPreferencesValid) {
+        form.setError('highSchool.workEnvironmentPreferences', {
+          type: 'manual',
+          message: 'Velg minst én faktor som er viktig for deg i et arbeidsmiljø'
+        });
+      }
+      
+      if (!isJobChallengesValid) {
+        form.setError('highSchool.jobChallenges', {
+          type: 'manual',
+          message: 'Velg minst én utfordring med å finne jobb'
+        });
+      }
+      
+      if (!isCareerSupportNeedsValid) {
+        form.setError('highSchool.careerSupportNeeds', {
+          type: 'manual',
+          message: 'Velg minst én faktor som ville gjort det enklere å velge karriere'
         });
       }
       
