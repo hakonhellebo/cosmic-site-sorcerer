@@ -38,8 +38,12 @@ const Navigation: React.FC = () => {
       )}
     >
       <div className="container mx-auto flex items-center justify-between px-4">
-        <Link to="/" className="text-xl font-bold tracking-tight">
-          EdPath
+        <Link to="/" className="flex items-center gap-2">
+          <img 
+            src="/lovable-uploads/f050a877-f3e5-4f63-a4e6-cb133ca66f39.png" 
+            alt="EdPath Logo" 
+            className="h-10 w-auto" 
+          />
         </Link>
         
         <nav className="hidden md:block">
