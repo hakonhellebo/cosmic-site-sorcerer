@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { User, LogOut } from 'lucide-react';
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { supabase } from '@/lib/supabase';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,23 +38,58 @@ const Navigation: React.FC = () => {
 
     window.addEventListener('scroll', handleScroll);
     
-    // Check if user is logged in
-    const storedUser = localStorage.getItem('currentUser');
-    if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
-    }
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          const { user } = session;
+          const userMeta = user.user_metadata;
+          
+          setCurrentUser({
+            id: user.id,
+            email: user.email,
+            firstName: userMeta.firstName || userMeta.name?.split(' ')[0] || '',
+            lastName: userMeta.lastName || 
+              (userMeta.name?.split(' ').length > 1 ? userMeta.name?.split(' ').slice(1).join(' ') : ''),
+            userType: userMeta.userType || '',
+            isVerified: true
+          });
+        } else {
+          const storedUser = localStorage.getItem('currentUser');
+          if (storedUser) {
+            setCurrentUser(JSON.parse(storedUser));
+          }
+        }
+      } catch (error) {
+        console.error("Error checking session:", error);
+        const storedUser = localStorage.getItem('currentUser');
+        if (storedUser) {
+          setCurrentUser(JSON.parse(storedUser));
+        }
+      }
+    };
+    
+    checkSession();
     
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   
-  const handleLogout = () => {
-    // Keep the user data in localStorage, but remove the session
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('userData');
-    localStorage.removeItem('userFullData');
-    setCurrentUser(null);
-    toast.success("Du er nå logget ut");
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('userData');
+      localStorage.removeItem('userFullData');
+      
+      setCurrentUser(null);
+      toast.success("Du er nå logget ut");
+      navigate('/');
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Kunne ikke logge ut. Vennligst prøv igjen.");
+    }
   };
 
   return (
@@ -154,7 +189,6 @@ const Navigation: React.FC = () => {
         </button>
       </div>
       
-      {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="border-t border-border bg-background py-4 md:hidden">
           <div className="container mx-auto px-4">

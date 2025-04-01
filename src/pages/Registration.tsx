@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from "sonner";
@@ -18,6 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
+import { supabase } from '@/lib/supabase';
 
 type FormData = {
   name: string;
@@ -33,6 +33,7 @@ const Registration: React.FC = () => {
   const [userType, setUserType] = useState<'high-school' | 'university' | 'worker' | ''>('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<FormData>({
     defaultValues: {
@@ -45,68 +46,61 @@ const Registration: React.FC = () => {
     },
   });
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = async (data: FormData) => {
     // Validate passwords match
     if (data.password !== data.confirmPassword) {
       toast.error("Passordene samsvarer ikke");
       return;
     }
 
-    console.log(data);
+    setIsSubmitting(true);
     
-    // Save user data in localStorage with password for authentication
-    const users = JSON.parse(localStorage.getItem('edpath_users') || '[]');
-    const existingUser = users.find((user: any) => user.email === data.email);
-    
-    if (existingUser) {
-      toast.error("En bruker med denne e-postadressen eksisterer allerede");
-      return;
-    }
-    
-    // Create the new user with firstName derived from name
-    const nameParts = data.name.split(' ');
-    const firstName = nameParts[0];
-    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
-    
-    const newUser = {
-      id: Date.now().toString(),
-      email: data.email,
-      password: data.password, // In a real app, this should be hashed
-      firstName,
-      lastName,
-      userType: data.userType,
-      createdAt: new Date().toISOString(),
-    };
-    
-    users.push(newUser);
-    localStorage.setItem('edpath_users', JSON.stringify(users));
-    
-    // Store current user session
-    localStorage.setItem('currentUser', JSON.stringify(newUser));
-    
-    // Create basic userData for questionnaires
-    const userData = {
-      email: data.email,
-      firstName,
-      lastName,
-      userType: data.userType,
-    };
-    
-    localStorage.setItem('userData', JSON.stringify(userData));
-    
-    toast.success("Registrering fullført!", {
-      description: "Takk for din registrering. Vi vil nå stille deg noen spørsmål."
-    });
-    
-    // Navigate to the appropriate questionnaire based on user type
-    if (data.userType === 'university') {
-      navigate('/university-questionnaire');
-    } else if (data.userType === 'high-school') {
-      navigate('/high-school-questionnaire');
-    } else if (data.userType === 'worker') {
-      navigate('/worker-questionnaire');
-    } else {
-      navigate('/dashboard');
+    try {
+      // Register the user with Supabase
+      const { data: authData, error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            name: data.name,
+            firstName: data.name.split(' ')[0],
+            lastName: data.name.split(' ').length > 1 ? data.name.split(' ').slice(1).join(' ') : '',
+            userType: data.userType,
+          },
+          emailRedirectTo: `${window.location.origin}/email-confirmed`
+        }
+      });
+      
+      if (error) {
+        toast.error("Registrering feilet: " + error.message);
+        return;
+      }
+      
+      // Save basic user info in localStorage
+      const nameParts = data.name.split(' ');
+      const firstName = nameParts[0];
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+      
+      const userData = {
+        email: data.email,
+        firstName,
+        lastName,
+        userType: data.userType,
+        isVerified: false
+      };
+      
+      localStorage.setItem('userData', JSON.stringify(userData));
+      
+      toast.success("Registrering påbegynt!", {
+        description: "Vennligst sjekk din e-post for å bekrefte kontoen."
+      });
+      
+      navigate('/verification-pending');
+    } catch (error) {
+      console.error("Registration error:", error);
+      toast.error("En feil har oppstått. Vennligst prøv igjen.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -275,8 +269,8 @@ const Registration: React.FC = () => {
                 )}
               />
 
-              <Button type="submit" className="w-full rounded-full">
-                Registrer deg
+              <Button type="submit" className="w-full rounded-full" disabled={isSubmitting}>
+                {isSubmitting ? "Registrerer..." : "Registrer deg"}
               </Button>
               
               <div className="text-center mt-4">

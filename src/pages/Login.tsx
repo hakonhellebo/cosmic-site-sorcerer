@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
+import { supabase } from '@/lib/supabase';
 
 type LoginFormData = {
   email: string;
@@ -24,6 +25,7 @@ type LoginFormData = {
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   const form = useForm<LoginFormData>({
     defaultValues: {
@@ -32,57 +34,75 @@ const Login: React.FC = () => {
     },
   });
 
-  const onSubmit = (data: LoginFormData) => {
-    // Get users from localStorage
-    const users = JSON.parse(localStorage.getItem('edpath_users') || '[]');
+  const onSubmit = async (data: LoginFormData) => {
+    setIsLoading(true);
     
-    // Find the user with matching email
-    const user = users.find((user: any) => user.email === data.email);
-    
-    if (!user) {
-      toast.error("Ingen bruker funnet med denne e-postadressen");
-      return;
-    }
-    
-    // Check if password matches
-    if (user.password !== data.password) {
-      toast.error("Feil passord");
-      return;
-    }
-    
-    // Store current user session
-    localStorage.setItem('currentUser', JSON.stringify(user));
-    
-    // Set up userData for the application
-    const userData = {
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      userType: user.userType,
-    };
-    
-    localStorage.setItem('userData', JSON.stringify(userData));
-    
-    toast.success("Innlogging vellykket!");
-    
-    // Retrieve user's full data if available
-    const userFullData = localStorage.getItem(`userFullData_${user.id}`);
-    
-    if (userFullData) {
-      localStorage.setItem('userFullData', userFullData);
-      // Navigate to results if user has completed questionnaires
-      navigate('/results');
-    } else {
-      // Navigate based on user type if no questionnaire data is found
-      if (user.userType === 'university') {
-        navigate('/university-questionnaire');
-      } else if (user.userType === 'high-school') {
-        navigate('/high-school-questionnaire');
-      } else if (user.userType === 'worker') {
-        navigate('/worker-questionnaire');
-      } else {
-        navigate('/dashboard');
+    try {
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      });
+      
+      if (error) {
+        toast.error("Innlogging feilet: " + error.message);
+        return;
       }
+      
+      if (!authData.user) {
+        toast.error("Kunne ikke hente brukerdata");
+        return;
+      }
+      
+      const { user } = authData;
+      
+      // Store user session in localStorage
+      const userMeta = user.user_metadata;
+      localStorage.setItem('currentUser', JSON.stringify({
+        id: user.id,
+        email: user.email,
+        firstName: userMeta.firstName || userMeta.name?.split(' ')[0] || '',
+        lastName: userMeta.lastName || 
+          (userMeta.name?.split(' ').length > 1 ? userMeta.name?.split(' ').slice(1).join(' ') : ''),
+        userType: userMeta.userType || '',
+        isVerified: true
+      }));
+      
+      // Store additional user data for the application
+      localStorage.setItem('userData', JSON.stringify({
+        email: user.email,
+        firstName: userMeta.firstName || userMeta.name?.split(' ')[0] || '',
+        lastName: userMeta.lastName || 
+          (userMeta.name?.split(' ').length > 1 ? userMeta.name?.split(' ').slice(1).join(' ') : ''),
+        userType: userMeta.userType || '',
+        isVerified: true
+      }));
+      
+      toast.success("Innlogging vellykket!");
+      
+      // Retrieve user's full data if available
+      const userFullData = localStorage.getItem(`userFullData_${user.id}`);
+      
+      if (userFullData) {
+        localStorage.setItem('userFullData', userFullData);
+        // Navigate to results if user has completed questionnaires
+        navigate('/results');
+      } else {
+        // Navigate based on user type if no questionnaire data is found
+        if (userMeta.userType === 'university') {
+          navigate('/university-questionnaire');
+        } else if (userMeta.userType === 'high-school') {
+          navigate('/high-school-questionnaire');
+        } else if (userMeta.userType === 'worker') {
+          navigate('/worker-questionnaire');
+        } else {
+          navigate('/dashboard');
+        }
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error("En feil har oppstått. Vennligst prøv igjen.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -147,8 +167,8 @@ const Login: React.FC = () => {
                 )}
               />
 
-              <Button type="submit" className="w-full rounded-full">
-                Logg inn
+              <Button type="submit" className="w-full rounded-full" disabled={isLoading}>
+                {isLoading ? "Logger inn..." : "Logg inn"}
               </Button>
               
               <div className="text-center mt-4">
