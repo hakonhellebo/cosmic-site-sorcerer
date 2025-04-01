@@ -90,23 +90,32 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
     }
   ];
   
-  // Define potential companies or sectors
+  // Define potential companies or sectors with website URLs
   const companies = [
     { 
       name: "NAV", 
-      description: "Rådgivning, organisasjonsutvikling"
+      description: "Rådgivning, organisasjonsutvikling",
+      website: "https://www.nav.no"
     },
     { 
-      name: "Kantega, Sopra Steria", 
-      description: "Analyse og design"
+      name: "Kantega", 
+      description: "Analyse og design",
+      website: "https://www.kantega.no"
     },
     { 
-      name: "Startups", 
-      description: "For de som scorer høyt på kreativitet og selvstendighet"
+      name: "Sopra Steria", 
+      description: "Konsulentvirksomhet, IT-tjenester",
+      website: "https://www.soprasteria.no"
     },
     { 
       name: "Kommune / skole / helsevesen", 
-      description: "Trygghet, struktur, samfunnsnytte"
+      description: "Trygghet, struktur, samfunnsnytte",
+      website: "https://www.regjeringen.no/no/tema/kommuner-og-regioner/id921/"
+    },
+    {
+      name: "Startups", 
+      description: "For de som scorer høyt på kreativitet og selvstendighet",
+      website: "https://www.startupnorway.com"
     }
   ];
   
@@ -214,16 +223,26 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
         </div>
       </div>
       
-      {/* 4. Aktuelle bedrifter eller sektorer */}
+      {/* 4. Aktuelle bedrifter eller sektorer - Updated to vertical list with links */}
       <div className="animate-fade-up">
         <h3 className="text-2xl font-semibold mb-6">Aktuelle bedrifter eller sektorer</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <div className="space-y-4">
           {companies.map((company, idx) => (
-            <div key={idx} className="flex items-start p-4 bg-card border rounded-lg">
-              <Building className="h-5 w-5 mr-3 text-primary flex-shrink-0 mt-0.5" />
-              <div>
-                <h4 className="font-medium">{company.name}</h4>
-                <p className="text-sm text-muted-foreground">{company.description}</p>
+            <div key={idx} className="flex flex-col p-4 bg-card border rounded-lg">
+              <div className="flex items-start mb-3">
+                <Building className="h-5 w-5 mr-3 text-primary flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-medium">{company.name}</h4>
+                  <p className="text-sm text-muted-foreground mb-3">{company.description}</p>
+                </div>
+              </div>
+              <div className="mt-auto self-end">
+                <Button variant="outline" size="sm" className="flex items-center gap-1" asChild>
+                  <a href={company.website} target="_blank" rel="noopener noreferrer">
+                    <span>Gå til nettside</span>
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </Button>
               </div>
             </div>
           ))}
@@ -253,9 +272,11 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
         ))}
         
         <div className="mt-6 flex justify-center">
-          <Button variant="outline" className="flex items-center gap-2">
-            <span>Finn studietilbud som passer dine interesser</span>
-            <ExternalLink className="h-4 w-4" />
+          <Button variant="outline" className="flex items-center gap-2" asChild>
+            <a href="https://utdanning.no" target="_blank" rel="noopener noreferrer">
+              <span>Finn studietilbud som passer dine interesser</span>
+              <ExternalLink className="h-4 w-4" />
+            </a>
           </Button>
         </div>
       </div>
