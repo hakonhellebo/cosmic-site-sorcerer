@@ -90,21 +90,23 @@ const UniversityQuestionnairePage: React.FC = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Spørreskjema for studenter</h1>
-        <p className="mb-8 text-gray-600">Side {page} av 7</p>
-        
-        <Form {...form}>
-          <form>
-            <UniversityQuestionnaire 
-              form={form}
-              page={page}
-              onPrevious={handlePreviousPage}
-              onSubmit={page === 7 ? handleSubmitQuestionnaire : handleNextPage}
-              isSubmitting={isSubmitting}
-            />
-          </form>
-        </Form>
+      <div className="container mx-auto px-4 pt-24 pb-12">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-3xl font-bold mb-6">Spørreskjema for studenter</h1>
+          <p className="mb-8 text-gray-600">Side {page} av 7</p>
+          
+          <Form {...form}>
+            <form>
+              <UniversityQuestionnaire 
+                form={form}
+                page={page}
+                onPrevious={handlePreviousPage}
+                onSubmit={page === 7 ? handleSubmitQuestionnaire : handleNextPage}
+                isSubmitting={isSubmitting}
+              />
+            </form>
+          </Form>
+        </div>
       </div>
     </Layout>
   );
