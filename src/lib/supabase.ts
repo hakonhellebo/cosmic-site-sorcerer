@@ -18,23 +18,48 @@ export const supabase = createClient(
   supabaseAnonKey
 );
 
-// Helper function for Google sign-in
-export const signInWithGoogle = async () => {
+// Helper function for email sign-up (without verification)
+export const signUpWithEmail = async (email: string, password: string) => {
   try {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
       options: {
-        redirectTo: `${window.location.origin}/dashboard`,
+        emailRedirectTo: `${window.location.origin}/dashboard`,
+        // Disable email verification
+        data: {
+          email_confirmed: true
+        }
       }
     });
     
     return { data, error };
   } catch (error) {
-    console.error("Google sign-in error:", error);
+    console.error("Email sign-up error:", error);
     return { 
       data: null, 
       error: {
-        message: "Kunne ikke logge inn med Google. Vennligst sjekk at Google-pålogging er aktivert."
+        message: "Kunne ikke registrere bruker. Vennligst prøv igjen."
+      } 
+    };
+  }
+};
+
+// Helper function for email sign-in
+export const signInWithEmail = async (email: string, password: string) => {
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+    
+    return { data, error };
+  } catch (error) {
+    console.error("Email sign-in error:", error);
+    return { 
+      data: null, 
+      error: {
+        message: "Kunne ikke logge inn. Sjekk e-post og passord og prøv igjen."
       } 
     };
   }
