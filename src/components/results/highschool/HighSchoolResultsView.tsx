@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import ResultCard from '../ResultCard';
 import DimensionRanking from '../DimensionRanking';
@@ -179,9 +178,9 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
       
       {/* Recommended education options */}
       <RecommendedEducation 
-        recommendations={educationRecommendations} 
+        recommendations={educationRecommendations.slice(0, 3)} 
         nextSteps={nextSteps}
-        showAllRecommendations={true}
+        showAllRecommendations={false}
       />
       
       {/* Career Opportunities based on education recommendations */}
@@ -189,7 +188,14 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
         recommendations={educationRecommendations}
         showAllOpportunities={true}
       />
+      
+      {/* Show more education options and next steps */}
+      <RecommendedEducation 
+        recommendations={educationRecommendations.slice(3)} 
+        nextSteps={nextSteps}
+        showAllRecommendations={true}
+        hideTitle={true}
+      />
     </div>
   );
 };
-

@@ -9,15 +9,22 @@ interface RecommendedEducationProps {
   recommendations: EducationRecommendation[];
   nextSteps: string[];
   showAllRecommendations?: boolean;
+  hideTitle?: boolean;
 }
 
 const RecommendedEducation: React.FC<RecommendedEducationProps> = ({ 
   recommendations, 
   nextSteps,
-  showAllRecommendations = false 
+  showAllRecommendations = false,
+  hideTitle = false
 }) => {
   const [showMore, setShowMore] = useState(false);
   const displayedRecommendations = showMore ? recommendations : recommendations.slice(0, 3);
+  
+  // If there are no recommendations, don't render anything
+  if (recommendations.length === 0) {
+    return null;
+  }
   
   // Format institutions to display nicely
   const formatInstitutions = (institutions: string) => {
@@ -34,7 +41,10 @@ const RecommendedEducation: React.FC<RecommendedEducationProps> = ({
   
   return (
     <div className="animate-fade-up">
-      <h3 className="text-2xl font-semibold mb-6">Anbefalte utdanninger</h3>
+      {!hideTitle && (
+        <h3 className="text-2xl font-semibold mb-6">Anbefalte utdanninger</h3>
+      )}
+      
       <div className="grid grid-cols-1 gap-4 mb-8">
         {displayedRecommendations.map((edu, idx) => (
           <div 
