@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -21,7 +20,7 @@ const InterestsAndSkills = ({ form }) => {
           render={() => (
             <FormItem>
               <FormLabel className="text-base font-medium">
-                Hvilke av disse interesserer deg mest? (Velg opptil 3)
+                1. Hvilke av disse interesserer deg mest? (Velg opptil 3)
               </FormLabel>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
                 {[
@@ -70,7 +69,7 @@ const InterestsAndSkills = ({ form }) => {
           render={() => (
             <FormItem>
               <FormLabel className="text-base font-medium">
-                Hvilke arbeidsoppgaver tror du at du ville trives med? (Velg opptil 3)
+                2. Hvilke arbeidsoppgaver tror du at du ville trives med? (Velg opptil 3)
               </FormLabel>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
                 {[
@@ -117,7 +116,7 @@ const InterestsAndSkills = ({ form }) => {
         name="highSchool.workEnvironment"
         render={({ field }) => (
           <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">Hvilken arbeidssituasjon tror du ville passe deg best?</FormLabel>
+            <FormLabel className="text-base font-medium">3. Hvilken arbeidssituasjon tror du ville passe deg best?</FormLabel>
             <FormControl>
               <RadioGroup
                 onValueChange={field.onChange}
@@ -161,7 +160,7 @@ const InterestsAndSkills = ({ form }) => {
         name="highSchool.workPreference"
         render={({ field }) => (
           <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">Foretrekker du å jobbe:</FormLabel>
+            <FormLabel className="text-base font-medium">4. Foretrekker du å jobbe:</FormLabel>
             <FormControl>
               <RadioGroup
                 onValueChange={field.onChange}
@@ -207,7 +206,7 @@ const InterestsAndSkills = ({ form }) => {
           render={() => (
             <FormItem>
               <FormLabel className="text-base font-medium">
-                Hva er du god på? (Velg opptil 3)
+                5. Hva er du god på? (Velg opptil 3)
               </FormLabel>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
                 {[
@@ -256,7 +255,7 @@ const InterestsAndSkills = ({ form }) => {
           render={() => (
             <FormItem>
               <FormLabel className="text-base font-medium">
-                Hva ønsker du å bli bedre på? (Velg opptil 3)
+                6. Hva ønsker du å bli bedre på? (Velg opptil 3)
               </FormLabel>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
                 {[

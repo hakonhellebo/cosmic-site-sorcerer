@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -16,7 +17,7 @@ const Introduction = ({
       <FormField control={form.control} name="highSchool.grade" render={({
       field
     }) => <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">Hvilket trinn går du på?</FormLabel>
+            <FormLabel className="text-base font-medium">1. Hvilket trinn går du på?</FormLabel>
             <FormControl>
               <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
@@ -52,7 +53,7 @@ const Introduction = ({
       <FormField control={form.control} name="highSchool.studyDirection" render={({
       field
     }) => <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">Hvilken studieretning tar du?</FormLabel>
+            <FormLabel className="text-base font-medium">2. Hvilken studieretning tar du?</FormLabel>
             <FormControl>
               <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
@@ -100,7 +101,7 @@ const Introduction = ({
       <FormField control={form.control} name="highSchool.averageGrade" render={({
       field
     }) => <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">Omtrent hva er karaktersnittet ditt nå?</FormLabel>
+            <FormLabel className="text-base font-medium">3. Omtrent hva er karaktersnittet ditt nå?</FormLabel>
             <FormControl>
               <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">

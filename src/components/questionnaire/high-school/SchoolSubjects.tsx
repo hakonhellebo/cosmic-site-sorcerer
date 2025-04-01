@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -22,7 +21,7 @@ const SchoolSubjects = ({ form }) => {
           render={() => (
             <FormItem>
               <FormLabel className="text-base font-medium">
-                Hvilke fag liker du best på skolen? (Velg opptil 3)
+                1. Hvilke fag liker du best på skolen? (Velg opptil 3)
               </FormLabel>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
                 {[
@@ -92,7 +91,7 @@ const SchoolSubjects = ({ form }) => {
           render={() => (
             <FormItem>
               <FormLabel className="text-base font-medium">
-                Hvilke fag synes du er mest utfordrende? (Velg opptil 3)
+                2. Hvilke fag synes du er mest utfordrende? (Velg opptil 3)
               </FormLabel>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
                 {[
@@ -162,7 +161,7 @@ const SchoolSubjects = ({ form }) => {
           render={() => (
             <FormItem>
               <FormLabel className="text-base font-medium">
-                Hvordan lærer du best? (Velg opptil 2)
+                3. Hvordan lærer du best? (Velg opptil 2)
               </FormLabel>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
                 {[
@@ -207,7 +206,7 @@ const SchoolSubjects = ({ form }) => {
           render={() => (
             <FormItem>
               <FormLabel className="text-base font-medium">
-                Hvilke digitale verktøy bruker du mest i skolearbeidet? (Velg opptil 2)
+                4. Hvilke digitale verktøy bruker du mest i skolearbeidet? (Velg opptil 2)
               </FormLabel>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
                 {[
@@ -250,7 +249,7 @@ const SchoolSubjects = ({ form }) => {
         name="highSchool.technologyComfort"
         render={({ field }) => (
           <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">Hvor komfortabel er du med å bruke teknologi i skolearbeidet?</FormLabel>
+            <FormLabel className="text-base font-medium">5. Hvor komfortabel er du med å bruke teknologi i skolearbeidet?</FormLabel>
             <FormControl>
               <RadioGroup
                 onValueChange={field.onChange}
@@ -296,7 +295,7 @@ const SchoolSubjects = ({ form }) => {
           render={() => (
             <FormItem>
               <FormLabel className="text-base font-medium">
-                Hva synes du er mest utfordrende med skolearbeidet ditt? (Velg opptil 2)
+                6. Hva synes du er mest utfordrende med skolearbeidet ditt? (Velg opptil 2)
               </FormLabel>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
                 {[
