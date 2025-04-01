@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Check, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -16,12 +16,18 @@ const RecommendedEducation: React.FC<RecommendedEducationProps> = ({
   nextSteps,
   showAllRecommendations = false 
 }) => {
+  const [showMore, setShowMore] = useState(false);
+  const displayedRecommendations = showMore ? recommendations : recommendations.slice(0, 3);
+  
   return (
     <div className="animate-fade-up">
       <h3 className="text-2xl font-semibold mb-6">Anbefalte utdanninger</h3>
       <div className="grid grid-cols-1 gap-4 mb-8">
-        {recommendations.map((edu, idx) => (
-          <div key={idx} className="bg-card border rounded-lg p-5 hover:shadow-md transition-shadow">
+        {displayedRecommendations.map((edu, idx) => (
+          <div 
+            key={idx} 
+            className="bg-card border rounded-lg p-5 hover:shadow-md transition-shadow"
+          >
             <div className="flex flex-wrap justify-between items-start gap-2 mb-3">
               <h4 className="font-semibold text-lg">{edu.name}</h4>
               {edu.link && (
@@ -68,10 +74,14 @@ const RecommendedEducation: React.FC<RecommendedEducationProps> = ({
         ))}
       </div>
       
-      {showAllRecommendations && (
+      {showAllRecommendations && recommendations.length > 3 && (
         <div className="flex justify-center mb-8">
-          <Button variant="outline" className="flex items-center gap-2">
-            <span>Vis flere utdanningsmuligheter</span>
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={() => setShowMore(!showMore)}
+          >
+            <span>{showMore ? 'Vis færre utdanningsmuligheter' : 'Vis flere utdanningsmuligheter'}</span>
             <ExternalLink className="h-4 w-4" />
           </Button>
         </div>

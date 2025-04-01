@@ -1,4 +1,3 @@
-
 // Datamodell for utdanningsanbefalinger
 export interface EducationRecommendation {
   name: string;
@@ -271,6 +270,46 @@ export const educationDatabase: {
     requirements: 'Generell studiekompetanse med realfag',
     description: 'Femårig profesjonsstudium som gir kompetanse innen dyrehelse og behandling.',
     link: 'https://www.nmbu.no/studier/studietilbud/femaarige/veterinaermedisin'
+  },
+  {
+    dimensions: ['Analytisk', 'Ambisjon'],
+    program: 'Bachelor i finans',
+    institutions: 'Norges Handelshøyskole (NHH)',
+    requirements: 'Generell studiekompetanse med Matematikk R1 eller S1+S2',
+    description: 'Treårig bachelorprogram som gir innsikt i kapitalmarkeder, investeringsanalyse og risikostyring.',
+    link: 'https://www.nhh.no/studier/bachelor-i-okonomi-og-administrasjon/'
+  },
+  {
+    dimensions: ['Analytisk', 'Ambisjon'],
+    program: 'Bachelor i finans',
+    institutions: 'BI Norwegian Business School',
+    requirements: 'Generell studiekompetanse',
+    description: 'Treårig bachelorprogram med fokus på finansielle instrumenter, porteføljeforvaltning og risikostyring.',
+    link: 'https://www.bi.no/studier-og-kurs/bachelor/finans/'
+  },
+  {
+    dimensions: ['Analytisk', 'Ambisjon'],
+    program: 'Bachelor i finans',
+    institutions: 'Universitetet i Stavanger (UiS)',
+    requirements: 'Generell studiekompetanse med Matematikk R1 eller S1+S2',
+    description: 'Bachelorgrad som fokuserer på finansielle markeder, bedriftsøkonomi og finansiell strategi.',
+    link: 'https://www.uis.no/nb/studietilbud/okonomi-og-ledelse/oekonomi-og-administrasjon-bachelorgradsstudium'
+  },
+  {
+    dimensions: ['Analytisk', 'Ambisjon'],
+    program: 'Bachelor i shipping management',
+    institutions: 'NTNU, BI Norwegian Business School',
+    requirements: 'Generell studiekompetanse',
+    description: 'Treårig bachelorprogram som gir innsikt i rederidrift, skipsoperasjoner og maritim økonomi.',
+    link: 'https://www.ntnu.no/studier/mtshm'
+  },
+  {
+    dimensions: ['Analytisk', 'Ambisjon'], 
+    program: 'Master i regnskap og revisjon',
+    institutions: 'Norges Handelshøyskole (NHH), BI, NTNU',
+    requirements: 'Bachelorgrad med økonomisk-administrativ retning',
+    description: 'Toårig masterprogram som gir teoretisk kompetanse for å bli statsautorisert revisor.',
+    link: 'https://www.nhh.no/studier/master-i-regnskap-og-revisjon/'
   }
 ];
 
@@ -281,10 +320,28 @@ export function matchEducationPrograms(userDimensions: string[], count: number =
     return program.dimensions.some(dim => userDimensions.includes(dim));
   });
   
-  // Sorter basert på antall matchende dimensjoner
+  // Sorter basert på antall matchende dimensjoner og prioriter presise matcher
   const sortedPrograms = matchedPrograms.sort((a, b) => {
     const aMatches = a.dimensions.filter(dim => userDimensions.includes(dim)).length;
     const bMatches = b.dimensions.filter(dim => userDimensions.includes(dim)).length;
+    
+    // Hvis begge programmer har samme antall matcher, prioriter de som har dimensjonene "Analytisk" og "Ambisjon"
+    if (aMatches === bMatches) {
+      // Sjekk om programmet har både "Analytisk" og "Ambisjon" som dimensjoner
+      const aHasAnalytiskAmbisjon = 
+        a.dimensions.includes('Analytisk') && 
+        a.dimensions.includes('Ambisjon');
+      
+      const bHasAnalytiskAmbisjon = 
+        b.dimensions.includes('Analytisk') && 
+        b.dimensions.includes('Ambisjon');
+      
+      // Hvis A har begge dimensjoner og B ikke har det, A kommer først
+      if (aHasAnalytiskAmbisjon && !bHasAnalytiskAmbisjon) return -1;
+      // Hvis B har begge dimensjoner og A ikke har det, B kommer først
+      if (!aHasAnalytiskAmbisjon && bHasAnalytiskAmbisjon) return 1;
+    }
+    
     return bMatches - aMatches; // Sorter synkende etter antall matcher
   });
   
@@ -305,4 +362,3 @@ export function matchEducationPrograms(userDimensions: string[], count: number =
     };
   });
 }
-

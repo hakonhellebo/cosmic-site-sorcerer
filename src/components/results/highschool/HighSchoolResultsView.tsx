@@ -85,9 +85,9 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
   // Få dimensjonsnavn fra dimensjonsobjektene
   const topDimensions = dimensions.map(dim => dim.name);
   
-  // Match utdanningsprogrammer basert på dimensjoner
+  // Match utdanningsprogrammer basert på dimensjoner - vis flere anbefalinger
   const educationRecommendations = useMemo(() => {
-    return matchEducationPrograms(topDimensions, 3);
+    return matchEducationPrograms(topDimensions, 8);
   }, [topDimensions]);
   
   console.log("Education recommendations:", educationRecommendations);
