@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { User, LogOut } from 'lucide-react';
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { supabase } from '@/lib/supabase';
+import { getCurrentUser, signOut } from '@/lib/supabase';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,26 +41,31 @@ const Navigation: React.FC = () => {
     
     const checkSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const user = await getCurrentUser();
         
-        if (session) {
-          const { user } = session;
-          const userMeta = user.user_metadata;
+        if (user) {
+          const userMeta = user.user_metadata || {};
           
-          setCurrentUser({
+          const userData = {
             id: user.id,
             email: user.email,
-            firstName: userMeta.firstName || userMeta.name?.split(' ')[0] || '',
+            firstName: userMeta.firstName || userMeta.name?.split(' ')[0] || user.email?.split('@')[0] || '',
             lastName: userMeta.lastName || 
               (userMeta.name?.split(' ').length > 1 ? userMeta.name?.split(' ').slice(1).join(' ') : ''),
             userType: userMeta.userType || '',
+            avatar: userMeta.avatar_url || userMeta.picture || null,
             isVerified: true
-          });
-        } else {
-          const storedUser = localStorage.getItem('currentUser');
-          if (storedUser) {
-            setCurrentUser(JSON.parse(storedUser));
-          }
+          };
+          
+          setCurrentUser(userData);
+          localStorage.setItem('currentUser', JSON.stringify(userData));
+          localStorage.setItem('userData', JSON.stringify({
+            email: user.email,
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            userType: userMeta.userType || '',
+            isVerified: true
+          }));
         }
       } catch (error) {
         console.error("Error checking session:", error);
@@ -77,7 +83,12 @@ const Navigation: React.FC = () => {
   
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
+      const { error } = await signOut();
+      
+      if (error) {
+        toast.error(`Kunne ikke logge ut: ${error.message}`);
+        return;
+      }
       
       localStorage.removeItem('currentUser');
       localStorage.removeItem('userData');

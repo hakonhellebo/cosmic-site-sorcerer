@@ -17,3 +17,33 @@ export const supabase = createClient(
   supabaseUrl,
   supabaseAnonKey
 );
+
+// Helper function for Google sign-in
+export const signInWithGoogle = async () => {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${window.location.origin}/dashboard`,
+    }
+  });
+  
+  return { data, error };
+};
+
+// Helper function to get the current session
+export const getCurrentSession = async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  return session;
+};
+
+// Helper function to check auth state
+export const getCurrentUser = async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
+};
+
+// Helper function for sign-out
+export const signOut = async () => {
+  const { error } = await supabase.auth.signOut();
+  return { error };
+};

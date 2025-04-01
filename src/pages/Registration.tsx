@@ -1,126 +1,36 @@
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from "sonner";
+
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from "sonner";
 import Layout from '@/components/Layout';
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { Eye, EyeOff } from "lucide-react";
-import { supabase } from '@/lib/supabase';
-
-type FormData = {
-  name: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-  terms: boolean;
-  userType: 'high-school' | 'university' | 'worker' | '';
-};
+import { signInWithGoogle } from '@/lib/supabase';
 
 const Registration: React.FC = () => {
   const navigate = useNavigate();
-  const [userType, setUserType] = useState<'high-school' | 'university' | 'worker' | ''>('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const form = useForm<FormData>({
-    defaultValues: {
-      name: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-      terms: false,
-      userType: '',
-    },
-  });
+  const [isLoading, setIsLoading] = React.useState(false);
 
-  const onSubmit = async (data: FormData) => {
-    // Validate passwords match
-    if (data.password !== data.confirmPassword) {
-      toast.error("Passordene samsvarer ikke");
-      return;
-    }
-
-    setIsSubmitting(true);
-    
+  const handleGoogleSignUp = async () => {
     try {
-      // Register the user with Supabase
-      const { data: authData, error } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          data: {
-            name: data.name,
-            firstName: data.name.split(' ')[0],
-            lastName: data.name.split(' ').length > 1 ? data.name.split(' ').slice(1).join(' ') : '',
-            userType: data.userType,
-          },
-          emailRedirectTo: `${window.location.origin}/email-confirmed`
-        }
-      });
+      setIsLoading(true);
+      const { error } = await signInWithGoogle();
       
       if (error) {
-        toast.error("Registrering feilet: " + error.message);
-        return;
+        toast.error(`Registrering feilet: ${error.message}`);
       }
-      
-      // Save basic user info in localStorage
-      const nameParts = data.name.split(' ');
-      const firstName = nameParts[0];
-      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
-      
-      const userData = {
-        email: data.email,
-        firstName,
-        lastName,
-        userType: data.userType,
-        isVerified: false
-      };
-      
-      localStorage.setItem('userData', JSON.stringify(userData));
-      
-      toast.success("Registrering påbegynt!", {
-        description: "Vennligst sjekk din e-post for å bekrefte kontoen."
-      });
-      
-      navigate('/verification-pending');
+      // No need to navigate here as the OAuth redirect will handle that
     } catch (error) {
-      console.error("Registration error:", error);
+      console.error("Google registration error:", error);
       toast.error("En feil har oppstått. Vennligst prøv igjen.");
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
-  };
-
-  const handleUserTypeChange = (value: 'high-school' | 'university' | 'worker') => {
-    setUserType(value);
-    form.setValue('userType', value);
-  };
-
-  const toggleShowPassword = () => {
-    setShowPassword(!showPassword);
-  };
-
-  const toggleShowConfirmPassword = () => {
-    setShowConfirmPassword(!showConfirmPassword);
   };
 
   return (
     <Layout>
       <div className="container mx-auto px-4 py-24 md:py-32">
-        <div className="mx-auto max-w-lg">
+        <div className="mx-auto max-w-md">
           <div className="mb-8 text-center">
             <h1 className="mb-2 text-3xl font-bold">Kom i gang med EdPath</h1>
             <p className="text-muted-foreground">
@@ -128,165 +38,41 @@ const Registration: React.FC = () => {
             </p>
           </div>
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Navn</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Skriv ditt navn" required {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>E-post</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="din.epost@example.com" required {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Passord</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input 
-                          type={showPassword ? "text" : "password"} 
-                          placeholder="Velg et passord" 
-                          required
-                          minLength={6}
-                          {...field} 
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-0 top-0 h-full px-3 py-2"
-                          onClick={toggleShowPassword}
-                        >
-                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </Button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Bekreft passord</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input 
-                          type={showConfirmPassword ? "text" : "password"} 
-                          placeholder="Gjenta passord" 
-                          required
-                          {...field} 
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-0 top-0 h-full px-3 py-2"
-                          onClick={toggleShowConfirmPassword}
-                        >
-                          {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </Button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="space-y-3">
-                <FormLabel>Jeg er:</FormLabel>
-                <RadioGroup 
-                  value={userType} 
-                  onValueChange={(value: 'high-school' | 'university' | 'worker') => handleUserTypeChange(value)}
-                  className="grid grid-cols-1 md:grid-cols-3 gap-4"
+          <div className="space-y-6">
+            <Button 
+              type="button" 
+              onClick={handleGoogleSignUp} 
+              className="w-full rounded-full flex items-center justify-center gap-2" 
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                "Registrerer..."
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24">
+                    <path fill="#4285F4" fillRule="evenodd" d="M20.64 12.2045C20.64 11.566 20.5827 10.9502 20.4764 10.3545H12V13.4455H16.8436C16.635 14.7364 15.9009 15.8118 14.7436 16.5273V18.8363H17.6564C19.4582 17.1409 20.64 14.9045 20.64 12.2045Z" clipRule="evenodd"/>
+                    <path fill="#34A853" fillRule="evenodd" d="M12 21C14.43 21 16.4673 20.1941 17.6564 18.8364L14.7436 16.5273C13.9673 17.0364 13.0118 17.3364 12 17.3364C9.39545 17.3364 7.19091 15.6027 6.40455 13.2H3.38182V15.5727C4.56364 18.69 8.05909 21 12 21Z" clipRule="evenodd"/>
+                    <path fill="#FBBC05" fillRule="evenodd" d="M6.40455 13.1999C6.20455 12.5999 6.09091 11.9599 6.09091 11.2999C6.09091 10.6399 6.20455 9.99994 6.40455 9.39994V7.02722H3.38182C2.70455 8.27267 2.3 9.69767 2.3 11.2999C2.3 12.9022 2.70455 14.3272 3.38182 15.5727L6.40455 13.1999Z" clipRule="evenodd"/>
+                    <path fill="#EA4335" fillRule="evenodd" d="M12 6.06363C13.3082 6.06363 14.4891 6.49999 15.4018 7.36817L18 4.76999C16.4673 3.35454 14.4282 2.49999 12 2.49999C8.05909 2.49999 4.56364 4.80999 3.38182 7.92726L6.40455 10.2999C7.19091 7.89726 9.39545 6.06363 12 6.06363Z" clipRule="evenodd"/>
+                  </svg>
+                  Registrer med Google
+                </>
+              )}
+            </Button>
+            
+            <div className="text-center mt-4">
+              <p className="text-sm text-muted-foreground">
+                Har du allerede en bruker? {" "}
+                <button 
+                  type="button" 
+                  className="text-primary font-medium hover:underline"
+                  onClick={() => navigate("/login")}
                 >
-                  {[
-                    { id: 'high-school', label: 'Videregående elev', value: 'high-school' },
-                    { id: 'university', label: 'Bachelor/Master student', value: 'university' },
-                    { id: 'worker', label: 'Yrkesaktiv', value: 'worker' }
-                  ].map((option) => (
-                    <div 
-                      key={option.id}
-                      className={`p-4 border rounded-md cursor-pointer transition-all ${userType === option.value ? 'border-primary bg-primary/5' : 'hover:bg-secondary/50'}`}
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem 
-                          value={option.value} 
-                          id={option.id}
-                        />
-                        <Label htmlFor={option.id} className="cursor-pointer">{option.label}</Label>
-                      </div>
-                    </div>
-                  ))}
-                </RadioGroup>
-              </div>
-
-              <FormField
-                control={form.control}
-                name="terms"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        required
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>
-                        Jeg godtar vilkårene og betingelsene for bruk av tjenesten
-                      </FormLabel>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <Button type="submit" className="w-full rounded-full" disabled={isSubmitting}>
-                {isSubmitting ? "Registrerer..." : "Registrer deg"}
-              </Button>
-              
-              <div className="text-center mt-4">
-                <p className="text-sm text-muted-foreground">
-                  Har du allerede en bruker? {" "}
-                  <button 
-                    type="button" 
-                    className="text-primary font-medium hover:underline"
-                    onClick={() => navigate("/login")}
-                  >
-                    Logg inn her
-                  </button>
-                </p>
-              </div>
-            </form>
-          </Form>
+                  Logg inn her
+                </button>
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </Layout>
