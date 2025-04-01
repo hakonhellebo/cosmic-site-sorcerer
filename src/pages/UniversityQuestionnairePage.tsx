@@ -133,10 +133,8 @@ const UniversityQuestionnairePage: React.FC = () => {
         description: "Takk for dine svar. Vi har laget en personlig karriereprofil til deg."
       });
       
-      // Replace immediate navigation with navigation to results page
-      setTimeout(() => {
-        navigate('/results');
-      }, 300);
+      // Navigate directly to results page, don't use setTimeout
+      navigate('/results');
     } catch (error) {
       console.error("Error saving form data:", error);
       toast.error("Det oppstod en feil", {

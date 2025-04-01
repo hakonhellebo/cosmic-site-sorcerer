@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from "sonner";
@@ -53,12 +52,10 @@ const WorkerQuestionnairePage: React.FC = () => {
   const [formErrors, setFormErrors] = useState<string | null>(null);
   
   useEffect(() => {
-    // Retrieve user data from localStorage
     const savedUserData = localStorage.getItem('userData');
     if (savedUserData) {
       setUserData(JSON.parse(savedUserData));
     } else {
-      // Only redirect if we don't have userData and we're not coming from dashboard
       if (!window.location.pathname.includes('dashboard')) {
         toast.error("Ingen brukerdata funnet", {
           description: "Vennligst registrer deg først"
@@ -68,7 +65,6 @@ const WorkerQuestionnairePage: React.FC = () => {
     }
   }, [navigate]);
 
-  // Initialize the form without default selected values
   const form = useForm<QuestionnaireFormData>({
     defaultValues: {
       worker: {
@@ -111,24 +107,18 @@ const WorkerQuestionnairePage: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      // Combine user data with questionnaire answers
       const combinedData = {
         ...userData,
         questionnaire: data
       };
       
-      // Save results to localStorage
       localStorage.setItem('userFullData', JSON.stringify(combinedData));
       
       toast.success("Spørreskjema fullført!", {
         description: "Takk for dine svar. Vi har laget en personlig karriereprofil til deg."
       });
       
-      // Give a small delay to ensure toast is shown and data is saved
-      setTimeout(() => {
-        // Navigate to front page
-        window.location.href = '/';
-      }, 300);
+      navigate('/results');
     } catch (error) {
       console.error("Error saving form data:", error);
       toast.error("Det oppstod en feil", {
@@ -158,7 +148,6 @@ const WorkerQuestionnairePage: React.FC = () => {
     let isValid = true;
     let errorMessage = "";
     
-    // Required fields for each page
     const requiredFields: Record<number, Array<keyof QuestionnaireFormData['worker']>> = {
       1: ['educationLevel', 'preparedness'],
       2: ['currentJob', 'firstJobMethod', 'timeToJob'],
@@ -167,7 +156,6 @@ const WorkerQuestionnairePage: React.FC = () => {
     
     const currentPageFields = requiredFields[page];
     
-    // Check if required fields for the current page are filled
     currentPageFields.forEach(field => {
       const value = form.getValues(`worker.${field}`);
       if (!value) {
@@ -176,7 +164,6 @@ const WorkerQuestionnairePage: React.FC = () => {
       }
     });
     
-    // For page 3, check if at least one job importance is selected
     if (page === 3) {
       const jobImportance = form.getValues('worker.jobImportance');
       const hasSelection = Object.values(jobImportance).some(value => value === true);
@@ -200,7 +187,6 @@ const WorkerQuestionnairePage: React.FC = () => {
         nextPage();
       }
     } else {
-      // Final validation before submission
       if (validateCurrentPage()) {
         form.handleSubmit(onSubmit)();
       }

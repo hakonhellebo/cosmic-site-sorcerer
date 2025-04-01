@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
@@ -12,8 +11,9 @@ const HighSchoolQuestionnairePage = () => {
   const navigate = useNavigate();
   const [formProgress, setFormProgress] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = 6; // Updated to 6 pages
-  
+  const totalPages = 6;
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const form = useForm({
     defaultValues: {
       highSchool: {
@@ -69,8 +69,8 @@ const HighSchoolQuestionnairePage = () => {
 
   const onSubmit = (data) => {
     console.log('High School Questionnaire Data:', data);
-    
-    // Validate that selections are made where required
+    setIsSubmitting(true);
+
     const isFavoriteCoursesValid = Object.values(data.highSchool.favoriteCourses || {}).filter(Boolean).length > 0;
     const isDifficultCoursesValid = Object.values(data.highSchool.difficultCourses || {}).filter(Boolean).length > 0;
     const isEducationPrioritiesValid = Object.values(data.highSchool.educationPriorities || {}).filter(Boolean).length > 0;
@@ -79,7 +79,6 @@ const HighSchoolQuestionnairePage = () => {
     const isGoodSkillsValid = Object.values(data.highSchool.goodSkills || {}).filter(Boolean).length > 0;
     const isImproveSkillsValid = Object.values(data.highSchool.improveSkills || {}).filter(Boolean).length > 0;
     
-    // Validate page 3 and 4 fields
     const isBestSubjectsValid = Object.values(data.highSchool.bestSubjects || {}).filter(Boolean).length > 0;
     const isChallengingSubjectsValid = Object.values(data.highSchool.challengingSubjects || {}).filter(Boolean).length > 0;
     const isLearningStyleValid = Object.values(data.highSchool.learningStyle || {}).filter(Boolean).length > 0;
@@ -87,7 +86,6 @@ const HighSchoolQuestionnairePage = () => {
     const isSchoolChallengesValid = Object.values(data.highSchool.schoolChallenges || {}).filter(Boolean).length > 0;
     const isMissingSkillsValid = Object.values(data.highSchool.missingSkills || {}).filter(Boolean).length > 0;
     
-    // Validate page 5 and 6 fields
     const isInterestingIndustriesValid = Object.values(data.highSchool.interestingIndustries || {}).filter(Boolean).length > 0;
     const isDesiredRolesValid = Object.values(data.highSchool.desiredRoles || {}).filter(Boolean).length > 0;
     const isWorkEnvironmentPreferencesValid = Object.values(data.highSchool.workEnvironmentPreferences || {}).filter(Boolean).length > 0;
@@ -101,7 +99,6 @@ const HighSchoolQuestionnairePage = () => {
         !isInterestingIndustriesValid || !isDesiredRolesValid || !isWorkEnvironmentPreferencesValid ||
         !isJobChallengesValid || !isCareerSupportNeedsValid) {
       
-      // Set errors for page 1 and 2 fields
       if (!isFavoriteCoursesValid) {
         form.setError('highSchool.favoriteCourses', {
           type: 'manual',
@@ -151,7 +148,6 @@ const HighSchoolQuestionnairePage = () => {
         });
       }
       
-      // Set errors for page 3 and 4 fields
       if (!isBestSubjectsValid) {
         form.setError('highSchool.bestSubjects', {
           type: 'manual',
@@ -194,7 +190,6 @@ const HighSchoolQuestionnairePage = () => {
         });
       }
       
-      // Set errors for page 5 and 6 fields
       if (!isInterestingIndustriesValid) {
         form.setError('highSchool.interestingIndustries', {
           type: 'manual',
@@ -237,19 +232,19 @@ const HighSchoolQuestionnairePage = () => {
       return;
     }
     
-    // Save questionnaire data in localStorage
     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-    localStorage.setItem('userData', JSON.stringify({
+    const combinedData = {
       ...userData,
-      highSchool: data.highSchool
-    }));
+      questionnaire: { highSchool: data.highSchool }
+    };
+    
+    localStorage.setItem('userFullData', JSON.stringify(combinedData));
     
     toast.success("Spørreskjema fullført!", {
-      description: "Takk for dine svar."
+      description: "Takk for dine svar. Vi har laget en personlig karriereprofil til deg."
     });
     
-    // Navigate to index page directly
-    navigate('/');
+    navigate('/results');
   };
 
   const nextPage = () => {
