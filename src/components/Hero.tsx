@@ -15,11 +15,11 @@ const Hero: React.FC = () => {
       />
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-3xl text-center">
-          <div className="mb-6 flex justify-center">
+          <div className="mb-8 flex justify-center">
             <img 
               src="/lovable-uploads/f050a877-f3e5-4f63-a4e6-cb133ca66f39.png" 
               alt="EdPath Logo" 
-              className="h-32 w-auto opacity-0 animate-stagger-1 mix-blend-multiply" 
+              className="h-48 w-auto opacity-0 animate-stagger-1 mix-blend-multiply" 
             />
           </div>
           <span className="opacity-0 animate-stagger-2 inline-block mb-3 rounded-full bg-secondary px-3 py-1 text-xs font-medium">

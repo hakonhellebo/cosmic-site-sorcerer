@@ -117,7 +117,7 @@ const Navigation: React.FC = () => {
           <img 
             src="/lovable-uploads/f050a877-f3e5-4f63-a4e6-cb133ca66f39.png" 
             alt="EdPath Logo" 
-            className="h-20 w-auto mix-blend-multiply" 
+            className="h-24 w-auto mix-blend-multiply" 
           />
         </Link>
         

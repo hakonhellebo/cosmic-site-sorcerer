@@ -4,6 +4,7 @@ import ResultCard from './ResultCard';
 import { getFormattedValue } from '@/utils/resultFormatters';
 import { Badge } from "@/components/ui/badge";
 import { Check, Briefcase } from "lucide-react";
+import DimensionRanking from './DimensionRanking';
 
 interface WorkerResultsViewProps {
   userData: any;
@@ -108,6 +109,9 @@ export const WorkerResultsView: React.FC<WorkerResultsViewProps> = ({ userData }
           </div>
         </div>
       </div>
+      
+      {/* Dimension Ranking */}
+      <DimensionRanking userData={userData} questionnaire="worker" />
       
       {/* Worker info cards */}
       {workerInfoCards.map((card, index) => (
