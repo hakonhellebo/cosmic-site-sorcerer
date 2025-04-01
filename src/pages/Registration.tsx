@@ -16,10 +16,14 @@ const Registration: React.FC = () => {
       const { error } = await signInWithGoogle();
       
       if (error) {
-        toast.error(`Registrering feilet: ${error.message}`);
+        if (error.message?.includes('provider is not enabled')) {
+          toast.error("Google-pålogging er ikke aktivert. Vennligst aktiver Google-pålogging i Supabase-dashbordet.");
+        } else {
+          toast.error(`Registrering feilet: ${error.message}`);
+        }
       }
       // No need to navigate here as the OAuth redirect will handle that
-    } catch (error) {
+    } catch (error: any) {
       console.error("Google registration error:", error);
       toast.error("En feil har oppstått. Vennligst prøv igjen.");
     } finally {

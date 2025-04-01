@@ -20,14 +20,24 @@ export const supabase = createClient(
 
 // Helper function for Google sign-in
 export const signInWithGoogle = async () => {
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: `${window.location.origin}/dashboard`,
-    }
-  });
-  
-  return { data, error };
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+      }
+    });
+    
+    return { data, error };
+  } catch (error) {
+    console.error("Google sign-in error:", error);
+    return { 
+      data: null, 
+      error: {
+        message: "Kunne ikke logge inn med Google. Vennligst sjekk at Google-pålogging er aktivert."
+      } 
+    };
+  }
 };
 
 // Helper function to get the current session
