@@ -27,11 +27,303 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
   
   // Determine if bachelor or master student
   const isBachelorStudent = universityData.level?.toLowerCase().includes('bachelor');
+
+  // Calculate dimension scores based on university questionnaire answers
+  const calculateDimensionScores = () => {
+    const scores = {
+      teknologi: 0,
+      analytisk: 0,
+      kreativitet: 0,
+      struktur: 0,
+      ambisjon: 0,
+      sosialitet: 0,
+      helseinteresse: 0,
+      bærekraft: 0,
+      praktisk: 0,
+      selvstendighet: 0
+    };
+
+    // Interest fields (question 6)
+    if (universityData.interests) {
+      if (universityData.interests.technology) scores.teknologi += 3;
+      if (universityData.interests.economy) scores.analytisk += 3;
+      if (universityData.interests.socialScience) scores.bærekraft += 2;
+      if (universityData.interests.humanities) scores.kreativitet += 2;
+      if (universityData.interests.healthPsychology) scores.helseinteresse += 3;
+      if (universityData.interests.environmentSustainability) scores.bærekraft += 3;
+      if (universityData.interests.artDesign) scores.kreativitet += 3;
+    }
+
+    // Strengths (question 7)
+    if (universityData.strengths) {
+      if (universityData.strengths.criticalThinking) scores.analytisk += 2;
+      if (universityData.strengths.projectManagement) scores.struktur += 2;
+      if (universityData.strengths.technologicalUnderstanding) scores.teknologi += 2;
+      if (universityData.strengths.humanUnderstanding) scores.helseinteresse += 2;
+      if (universityData.strengths.creativeProblemSolving) scores.kreativitet += 2;
+      if (universityData.strengths.collaborationLeadership) scores.sosialitet += 2;
+      if (universityData.strengths.empathyCommunication) scores.sosialitet += 2;
+    }
+
+    // Weaknesses (question 8) - not used in scoring
+
+    // Learning style (question 8) - favorite tasks
+    if (universityData.learningStyle) {
+      if (universityData.learningStyle.analytical) scores.analytisk += 3;
+      if (universityData.learningStyle.creative) scores.kreativitet += 3;
+      if (universityData.learningStyle.practical) scores.praktisk += 3;
+      if (universityData.learningStyle.projectBased) scores.struktur += 2;
+      if (universityData.learningStyle.leadingOrganizing) scores.ambisjon += 2;
+      if (universityData.learningStyle.guidingHelping) scores.sosialitet += 2;
+    }
+
+    // Collaboration style (question 9)
+    if (universityData.collaboration === 'independent') scores.selvstendighet += 3;
+    else if (universityData.collaboration === 'team') scores.sosialitet += 3;
+    else if (universityData.collaboration === 'both') scores.struktur += 2;
+
+    // AI comfort level (question 10)
+    if (universityData.aiUsage === 'very-comfortable') scores.teknologi += 3;
+    else if (universityData.aiUsage === 'comfortable') scores.teknologi += 2;
+    else if (universityData.aiUsage === 'slightly-comfortable') scores.teknologi += 1;
+
+    // Internship experience (questions 12-13)
+    if (universityData.internship === 'yes') scores.praktisk += 2;
+    
+    if (universityData.internshipValue === 'very-useful') scores.praktisk += 3;
+    else if (universityData.internshipValue === 'somewhat-useful') scores.praktisk += 2;
+    else if (universityData.internshipValue === 'not-very-useful') scores.praktisk += 1;
+
+    // Study reason (question 14)
+    if (universityData.studyReason === 'job-security') scores.ambisjon += 2;
+    else if (universityData.studyReason === 'good-earnings') scores.ambisjon += 3;
+    else if (universityData.studyReason === 'make-difference') scores.bærekraft += 3;
+    else if (universityData.studyReason === 'passion') scores.kreativitet += 3;
+
+    // Salary importance (question 15)
+    if (universityData.salaryImportance === 'very-important') scores.ambisjon += 3;
+    else if (universityData.salaryImportance === 'somewhat-important') scores.ambisjon += 2;
+    else if (universityData.salaryImportance === 'not-very-important') scores.ambisjon += 1;
+
+    // Impact importance (question 16)
+    if (universityData.impactImportance === 'very-important') scores.bærekraft += 3;
+    else if (universityData.impactImportance === 'somewhat-important') scores.bærekraft += 2;
+    else if (universityData.impactImportance === 'not-very-important') scores.bærekraft += 1;
+
+    // Job priorities (question 22)
+    if (universityData.jobPriorities) {
+      if (universityData.jobPriorities.competition) scores.ambisjon += 2;
+      if (universityData.jobPriorities.inexperience) scores.praktisk += 2;
+      if (universityData.jobPriorities.highRequirements) scores.struktur += 2;
+    }
+
+    // International importance (question 18)
+    if (universityData.internationalImportance === 'very-important') scores.selvstendighet += 3;
+    else if (universityData.internationalImportance === 'somewhat-important') scores.selvstendighet += 2;
+    else if (universityData.internationalImportance === 'not-very-important') scores.selvstendighet += 1;
+
+    // Entrepreneurship (question 19)
+    if (universityData.entrepreneurship === 'yes') scores.selvstendighet += 3;
+    else if (universityData.entrepreneurship === 'maybe') scores.selvstendighet += 2;
+    else if (universityData.entrepreneurship === 'no') scores.struktur += 1;
+
+    // Future role (question 20-21)
+    if (universityData.futureRole === 'leadership') scores.ambisjon += 3;
+    else if (universityData.futureRole === 'specialist') scores.analytisk += 3;
+    else if (universityData.futureRole === 'entrepreneur') scores.selvstendighet += 3;
+
+    // Employer factors (question 22)
+    if (universityData.futureEmployerFactors) {
+      if (universityData.futureEmployerFactors.highSalary) scores.ambisjon += 2;
+      if (universityData.futureEmployerFactors.goodEnvironment) scores.sosialitet += 2;
+      if (universityData.futureEmployerFactors.careerDevelopment) scores.ambisjon += 2;
+      if (universityData.futureEmployerFactors.stability) scores.struktur += 2;
+      if (universityData.futureEmployerFactors.innovation) scores.kreativitet += 2;
+    }
+
+    // Preferred company (question 23)
+    if (universityData.preferredCompanyType === 'startup') scores.selvstendighet += 3;
+    else if (universityData.preferredCompanyType === 'small-medium') scores.sosialitet += 2;
+    else if (universityData.preferredCompanyType === 'large-corporate') scores.struktur += 2;
+    else if (universityData.preferredCompanyType === 'public-sector') scores.struktur += 2;
+    else if (universityData.preferredCompanyType === 'non-profit') scores.bærekraft += 2;
+
+    // Technology importance (question 24)
+    if (universityData.technologyImportance === 'very-important') scores.teknologi += 3;
+    else if (universityData.technologyImportance === 'somewhat-important') scores.teknologi += 2;
+    else if (universityData.technologyImportance === 'not-very-important') scores.teknologi += 1;
+
+    // Work-life balance (question 25)
+    if (universityData.workLifeBalance === 'work-first') scores.ambisjon += 3;
+    else if (universityData.workLifeBalance === 'balanced') scores.struktur += 3;
+    else if (universityData.workLifeBalance === 'life-first') scores.selvstendighet += 2;
+
+    // Remote work importance (question 26)
+    if (universityData.remoteWorkImportance === 'very-important') scores.selvstendighet += 3;
+    else if (universityData.remoteWorkImportance === 'somewhat-important') scores.selvstendighet += 2;
+    else if (universityData.remoteWorkImportance === 'not-very-important') scores.struktur += 1;
+
+    // Travel importance (question 27)
+    if (universityData.travelImportance === 'very-important') scores.selvstendighet += 3;
+    else if (universityData.travelImportance === 'somewhat-important') scores.selvstendighet += 2;
+    else if (universityData.travelImportance === 'not-very-important') scores.struktur += 1;
+
+    // Satisfaction factors (question 28)
+    if (universityData.satisfactionFactors) {
+      if (universityData.satisfactionFactors.meaningfulWork) scores.bærekraft += 2;
+      if (universityData.satisfactionFactors.highSalary) scores.ambisjon += 2;
+      if (universityData.satisfactionFactors.careerDevelopment) scores.ambisjon += 2;
+      if (universityData.satisfactionFactors.flexibility) scores.selvstendighet += 2;
+      if (universityData.satisfactionFactors.innovation) scores.kreativitet += 2;
+      if (universityData.satisfactionFactors.stability) scores.struktur += 2;
+    }
+
+    // Employer values (question 29)
+    if (universityData.employerValuesImportance === 'very-important') scores.bærekraft += 3;
+    else if (universityData.employerValuesImportance === 'somewhat-important') scores.bærekraft += 2;
+    else if (universityData.employerValuesImportance === 'not-very-important') scores.bærekraft += 1;
+
+    // Work environment (question 30)
+    if (universityData.preferredWorkEnvironment === 'structured') scores.struktur += 3;
+    else if (universityData.preferredWorkEnvironment === 'creative') scores.kreativitet += 3;
+    else if (universityData.preferredWorkEnvironment === 'social') scores.sosialitet += 3;
+    else if (universityData.preferredWorkEnvironment === 'independent') scores.selvstendighet += 3;
+
+    // People vs tech (question 31)
+    if (universityData.peopleTech === 'people') scores.sosialitet += 3;
+    else if (universityData.peopleTech === 'tech') scores.teknologi += 3;
+    else if (universityData.peopleTech === 'both') scores.struktur += 2;
+
+    // Project preference (question 32)
+    if (universityData.projectPreference === 'short') scores.praktisk += 2;
+    else if (universityData.projectPreference === 'long') scores.struktur += 2;
+    else if (universityData.projectPreference === 'combination') scores.struktur += 1.5;
+
+    // Uncertainty reaction (question 33)
+    if (universityData.uncertaintyReaction === 'enjoy') scores.selvstendighet += 3;
+    else if (universityData.uncertaintyReaction === 'handle-ok') scores.selvstendighet += 2;
+    else if (universityData.uncertaintyReaction === 'challenging') scores.struktur += 1;
+    else if (universityData.uncertaintyReaction === 'dislike') scores.struktur += 0;
+
+    // Career path importance (question 34)
+    if (universityData.careerPathImportance === 'very-important') scores.struktur += 3;
+    else if (universityData.careerPathImportance === 'somewhat-important') scores.struktur += 2;
+    else if (universityData.careerPathImportance === 'not-very-important') scores.struktur += 1;
+    else if (universityData.careerPathImportance === 'not-important') scores.selvstendighet += 0;
+
+    // Study choice reason (question 36)
+    if (universityData.studyChoiceReason === 'interests') scores.kreativitet += 2;
+    else if (universityData.studyChoiceReason === 'salary-prospects') scores.ambisjon += 3;
+    else if (universityData.studyChoiceReason === 'prestige') scores.ambisjon += 2;
+    else if (universityData.studyChoiceReason === 'family-influence') scores.struktur += 1;
+    else if (universityData.studyChoiceReason === 'safe-choice') scores.struktur += 2;
+
+    // Post study plan (question 37)
+    if (universityData.postStudyPlan === 'private-sector') scores.ambisjon += 2;
+    else if (universityData.postStudyPlan === 'public-sector') scores.struktur += 2;
+    else if (universityData.postStudyPlan === 'entrepreneur') scores.selvstendighet += 3;
+    else if (universityData.postStudyPlan === 'travel-break') scores.selvstendighet += 2;
+    else if (universityData.postStudyPlan === 'further-studies') scores.analytisk += 2;
+
+    // Industry contact (question 38)
+    if (universityData.industryContact === 'yes-lectures') scores.sosialitet += 2;
+    else if (universityData.industryContact === 'yes-network') scores.sosialitet += 3;
+    else if (universityData.industryContact === 'no-but-want') scores.sosialitet += 0.5;
+    else if (universityData.industryContact === 'no-not-considered') scores.struktur += 0.5;
+
+    // Study missing (question 39)
+    if (universityData.studyMissing) {
+      if (universityData.studyMissing.practicalExperience) scores.praktisk += 2;
+      if (universityData.studyMissing.relevantCourses) scores.analytisk += 2;
+      if (universityData.studyMissing.betterGuidance) scores.sosialitet += 2;
+      if (universityData.studyMissing.industryNetwork) scores.sosialitet += 2;
+      if (universityData.studyMissing.flexibility) scores.selvstendighet += 2;
+      if (universityData.studyMissing.clearStrengthsLink) scores.struktur += 2;
+    }
+
+    // Setback reaction (question 40)
+    if (universityData.setbackReaction === 'seek-help') scores.sosialitet += 2;
+    else if (universityData.setbackReaction === 'try-myself') scores.selvstendighet += 2;
+    else if (universityData.setbackReaction === 'procrastinate') scores.struktur += 1;
+    else if (universityData.setbackReaction === 'lose-motivation') scores.struktur += 0.5;
+    else if (universityData.setbackReaction === 'solve-structure') scores.struktur += 2;
+
+    // Current grades (question 43)
+    if (universityData.currentGrades === 'high') scores.ambisjon += 3;
+    else if (universityData.currentGrades === 'good') scores.ambisjon += 2;
+    else if (universityData.currentGrades === 'average') scores.ambisjon += 1;
+    else if (universityData.currentGrades === 'low') scores.struktur += 0.5;
+
+    // Best subjects (question 44)
+    if (universityData.bestSubjects) {
+      if (universityData.bestSubjects.technology) scores.teknologi += 2;
+      if (universityData.bestSubjects.finance) scores.analytisk += 2;
+      if (universityData.bestSubjects.socialScience) scores.bærekraft += 2;
+      if (universityData.bestSubjects.humanities) scores.kreativitet += 2;
+      if (universityData.bestSubjects.healthPsychology) scores.helseinteresse += 2;
+      if (universityData.bestSubjects.artDesign) scores.kreativitet += 2;
+    }
+
+    // Work experience (question 45-51)
+    if (universityData.hadJob === 'yes') scores.praktisk += 2;
+
+    // Job count (question 46)
+    if (universityData.jobCount === '1') scores.ambisjon += 1;
+    else if (universityData.jobCount === '2-3') scores.ambisjon += 2;
+    else if (universityData.jobCount === '4+') scores.ambisjon += 3;
+
+    // Job types (question 47)
+    if (universityData.jobTypes) {
+      if (universityData.jobTypes.retail) scores.sosialitet += 2;
+      if (universityData.jobTypes.healthcare) scores.helseinteresse += 2;
+      if (universityData.jobTypes.technology) scores.teknologi += 2;
+      if (universityData.jobTypes.office) scores.struktur += 2;
+      if (universityData.jobTypes.teaching) scores.sosialitet += 2;
+      if (universityData.jobTypes.creative) scores.kreativitet += 2;
+      if (universityData.jobTypes.logistics) scores.praktisk += 2;
+    }
+
+    // Industries (question 48)
+    if (universityData.industries) {
+      if (universityData.industries.retail) scores.praktisk += 2;
+      if (universityData.industries.technology) scores.teknologi += 2;
+      if (universityData.industries.healthcare) scores.helseinteresse += 2;
+      if (universityData.industries.education) scores.sosialitet += 2;
+      if (universityData.industries.consulting) scores.analytisk += 2;
+      if (universityData.industries.government) scores.struktur += 2;
+      if (universityData.industries.media) scores.kreativitet += 2;
+    }
+
+    // Job learning (question 51)
+    if (universityData.jobLearning) {
+      if (universityData.jobLearning.collaboration) scores.sosialitet += 2;
+      if (universityData.jobLearning.structure) scores.struktur += 2;
+      if (universityData.jobLearning.customerService) scores.sosialitet += 2;
+      if (universityData.jobLearning.technical) scores.teknologi += 2;
+      if (universityData.jobLearning.leadership) scores.ambisjon += 2;
+      if (universityData.jobLearning.communication) scores.sosialitet += 2;
+    }
+
+    // Ensure minimum scores
+    Object.keys(scores).forEach(key => {
+      scores[key as keyof typeof scores] = Math.max(1, scores[key as keyof typeof scores]);
+    });
+
+    return scores;
+  };
+
+  // Calculate dimension scores
+  const dimensionScores = calculateDimensionScores();
+  
+  // Get top 3 dimensions
+  const topDimensions = Object.entries(dimensionScores)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([dimension]) => dimension);
   
   // Extract top dimensions from answers for education recommendations
-  // This would be populated based on the actual dimensions data
-  const topDimensions = ["Analytisk", "Teknologi", "Kreativitet"]; 
-
+  // Using actual calculated dimensions now
+  
   // Create basic info cards
   const basicInfo = [
     {
@@ -144,7 +436,7 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
         </div>
       </div>
       
-      {/* Dimension Ranking */}
+      {/* Dimension Ranking - Now properly populated with university data */}
       <DimensionRanking userData={userData} questionnaire="university" />
       
       {/* Result cards for basic info */}
