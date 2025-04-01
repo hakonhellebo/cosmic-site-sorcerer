@@ -44,14 +44,44 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
   console.log("Filtered workTasks:", workTasks);
   
   // Calculate dimensions based on the questionnaire data
-  const dimensions = useMemo(() => 
-    calculateHighSchoolDimensions(highSchoolData), 
-    [highSchoolData]
-  );
+  const dimensions = useMemo(() => {
+    // Fallback for older data format (compatibilitetssjekk)
+    if (highSchoolData.strengths && !highSchoolData.goodSkills) {
+      // Convert strengths to compatible format with dimension calculator
+      const convertedData = {
+        ...highSchoolData,
+        // Map strengths to goodSkills for compatibility
+        goodSkills: {
+          logicalThinking: highSchoolData.strengths.analytisk === true,
+          creativity: highSchoolData.strengths.kreativ === true,
+          collaboration: highSchoolData.strengths.samarbeidsvillig === true,
+          communication: highSchoolData.strengths.kommunikativ === true,
+          leadership: highSchoolData.strengths.lederskap === true,
+          problemSolving: highSchoolData.strengths.problemlosning === true,
+          technicalUnderstanding: highSchoolData.strengths.teknisk === true
+        },
+        // Map interests to compatible format if needed
+        interests: {
+          ...highSchoolData.interests,
+          technology: highSchoolData.interests.teknologi === true,
+          artDesign: highSchoolData.interests.kreativitet === true,
+          sports: highSchoolData.interests.idrett === true,
+          economyFinance: highSchoolData.interests.okonomi === true,
+          travelCulture: highSchoolData.interests.reise === true,
+          healthCare: highSchoolData.interests.helse === true,
+          environmentSustainability: highSchoolData.interests.miljo === true
+        }
+      };
+      console.log("Using converted data format for dimension calculation:", convertedData);
+      return calculateHighSchoolDimensions(convertedData);
+    }
+    
+    return calculateHighSchoolDimensions(highSchoolData);
+  }, [highSchoolData]);
   
   console.log("Top 3 Calculated dimensions:", dimensions);
   
-  // Extract favorite and difficult subjects - only count explicit true values
+  // Extract favorite and difficult courses - only count explicit true values
   const favoriteCourses = Object.keys(highSchoolData.favoriteCourses || {})
     .filter(key => highSchoolData.favoriteCourses[key] === true);
   

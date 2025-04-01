@@ -43,6 +43,7 @@ export const calculateHighSchoolDimensions = (highSchoolData: any): Dimension[] 
   
   // Update scores based on interests - only count explicit true values
   if (highSchoolData.interests) {
+    // Logikk for nytt format
     if (highSchoolData.interests.technology === true) {
       scores.teknologi += 5;
       console.log("Added 5 to teknologi from interests.technology");
@@ -70,6 +71,47 @@ export const calculateHighSchoolDimensions = (highSchoolData: any): Dimension[] 
     if (highSchoolData.interests.environmentSustainability === true) {
       scores.bærekraft += 5;
       console.log("Added 5 to bærekraft from interests.environmentSustainability");
+    }
+    
+    // Logikk for gammelt format (norske nøkler)
+    if (highSchoolData.interests.teknologi === true) {
+      scores.teknologi += 5;
+      console.log("Added 5 to teknologi from interests.teknologi");
+    }
+    if (highSchoolData.interests.kreativitet === true) {
+      scores.kreativitet += 5;
+      console.log("Added 5 to kreativitet from interests.kreativitet");
+    }
+    if (highSchoolData.interests.idrett === true) {
+      scores.praktisk += 3;
+      console.log("Added 3 to praktisk from interests.idrett");
+    }
+    if (highSchoolData.interests.okonomi === true) {
+      scores.analytisk += 4;
+      console.log("Added 4 to analytisk from interests.okonomi");
+    }
+    if (highSchoolData.interests.reise === true) {
+      scores.sosialitet += 3;
+      console.log("Added 3 to sosialitet from interests.reise");
+    }
+    if (highSchoolData.interests.helse === true) {
+      scores.helseinteresse += 5;
+      console.log("Added 5 to helseinteresse from interests.helse");
+    }
+    if (highSchoolData.interests.miljo === true) {
+      scores.bærekraft += 5;
+      console.log("Added 5 to bærekraft from interests.miljo");
+    }
+    
+    // Spesialbehandling for eldre format med norske nøkler
+    if (highSchoolData.interests.realfag === true) {
+      scores.analytisk += 4;
+      console.log("Added 4 to analytisk from interests.realfag");
+    }
+    if (highSchoolData.interests.samfunnsfag === true) {
+      scores.analytisk += 2;
+      scores.sosialitet += 2;
+      console.log("Added 2 to analytisk and 2 to sosialitet from interests.samfunnsfag");
     }
   }
   
@@ -103,6 +145,39 @@ export const calculateHighSchoolDimensions = (highSchoolData: any): Dimension[] 
     if (highSchoolData.goodSkills.problemSolving === true) {
       scores.analytisk += 3;
       console.log("Added 3 to analytisk from goodSkills.problemSolving");
+    }
+  }
+  
+  // Håndtering av eldre format med strengths
+  if (highSchoolData.strengths) {
+    if (highSchoolData.strengths.analytisk === true) {
+      scores.analytisk += 5;
+      console.log("Added 5 to analytisk from strengths.analytisk");
+    }
+    if (highSchoolData.strengths.kreativ === true) {
+      scores.kreativitet += 5;
+      console.log("Added 5 to kreativitet from strengths.kreativ");
+    }
+    if (highSchoolData.strengths.samarbeidsvillig === true) {
+      scores.sosialitet += 5;
+      console.log("Added 5 to sosialitet from strengths.samarbeidsvillig");
+    }
+    if (highSchoolData.strengths.kommunikativ === true) {
+      scores.sosialitet += 4;
+      console.log("Added 4 to sosialitet from strengths.kommunikativ");
+    }
+    if (highSchoolData.strengths.lederskap === true) {
+      scores.ambisjon += 4;
+      scores.sosialitet += 2;
+      console.log("Added 4 to ambisjon and 2 to sosialitet from strengths.lederskap");
+    }
+    if (highSchoolData.strengths.problemlosning === true) {
+      scores.analytisk += 3;
+      console.log("Added 3 to analytisk from strengths.problemlosning");
+    }
+    if (highSchoolData.strengths.teknisk === true) {
+      scores.teknologi += 5;
+      console.log("Added 5 to teknologi from strengths.teknisk");
     }
   }
   
@@ -249,9 +324,97 @@ export const calculateHighSchoolDimensions = (highSchoolData: any): Dimension[] 
     }
   }
   
-  // Ensure minimum score of 1 for all dimensions
+  // Legg til ekstra poeng basert på favorittfag (nye felter)
+  if (highSchoolData.favoriteCourses) {
+    if (highSchoolData.favoriteCourses.mathematics === true) {
+      scores.analytisk += 3;
+      console.log("Added 3 to analytisk from favoriteCourses.mathematics");
+    }
+    if (highSchoolData.favoriteCourses.science === true) {
+      scores.analytisk += 2;
+      scores.teknologi += 1;
+      console.log("Added 2 to analytisk and 1 to teknologi from favoriteCourses.science");
+    }
+    if (highSchoolData.favoriteCourses.languages === true) {
+      scores.kreativitet += 2;
+      scores.sosialitet += 1;
+      console.log("Added 2 to kreativitet and 1 to sosialitet from favoriteCourses.languages");
+    }
+    if (highSchoolData.favoriteCourses.socialStudies === true) {
+      scores.sosialitet += 2;
+      scores.analytisk += 1;
+      console.log("Added 2 to sosialitet and 1 to analytisk from favoriteCourses.socialStudies");
+    }
+    if (highSchoolData.favoriteCourses.arts === true) {
+      scores.kreativitet += 3;
+      console.log("Added 3 to kreativitet from favoriteCourses.arts");
+    }
+    if (highSchoolData.favoriteCourses.physicalEd === true) {
+      scores.praktisk += 3;
+      console.log("Added 3 to praktisk from favoriteCourses.physicalEd");
+    }
+    if (highSchoolData.favoriteCourses.technology === true) {
+      scores.teknologi += 3;
+      console.log("Added 3 to teknologi from favoriteCourses.technology");
+    }
+    
+    // Norske navn - eldre format
+    if (highSchoolData.favoriteCourses.matematikk === true) {
+      scores.analytisk += 3;
+      console.log("Added 3 to analytisk from favoriteCourses.matematikk");
+    }
+    if (highSchoolData.favoriteCourses.naturfag === true) {
+      scores.analytisk += 2;
+      scores.teknologi += 1;
+      console.log("Added 2 to analytisk and 1 to teknologi from favoriteCourses.naturfag");
+    }
+    if (highSchoolData.favoriteCourses.samfunnsfag === true) {
+      scores.sosialitet += 2;
+      scores.analytisk += 1;
+      console.log("Added 2 to sosialitet and 1 to analytisk from favoriteCourses.samfunnsfag");
+    }
+  }
+  
+  // Sjekk på eldre format med favoriteSubjects
+  if (highSchoolData.favoriteSubjects) {
+    if (highSchoolData.favoriteSubjects.matematikk === true) {
+      scores.analytisk += 3;
+      console.log("Added 3 to analytisk from favoriteSubjects.matematikk");
+    }
+    if (highSchoolData.favoriteSubjects.naturfag === true) {
+      scores.analytisk += 2;
+      scores.teknologi += 1;
+      console.log("Added 2 to analytisk and 1 to teknologi from favoriteSubjects.naturfag");
+    }
+    if (highSchoolData.favoriteSubjects.samfunnsfag === true) {
+      scores.sosialitet += 2;
+      scores.analytisk += 1;
+      console.log("Added 2 to sosialitet and 1 to analytisk from favoriteSubjects.samfunnsfag");
+    }
+  }
+  
+  // Sjekk på industries i eldre format
+  if (highSchoolData.industries) {
+    if (highSchoolData.industries.it === true || highSchoolData.industries.teknologi === true) {
+      scores.teknologi += 4;
+      console.log("Added 4 to teknologi from industries.it/teknologi");
+    }
+    if (highSchoolData.industries.helse === true) {
+      scores.helseinteresse += 4;
+      console.log("Added 4 to helseinteresse from industries.helse");
+    }
+    if (highSchoolData.industries.kreativ === true) {
+      scores.kreativitet += 4;
+      console.log("Added 4 to kreativitet from industries.kreativ");
+    }
+  }
+  
+  // Ensure minimum score for each dimension for presentation purposes
   Object.keys(scores).forEach(key => {
-    scores[key as keyof typeof scores] = Math.max(1, scores[key as keyof typeof scores]);
+    if (scores[key as keyof DimensionScores] === 0) {
+      scores[key as keyof DimensionScores] = 1;
+      console.log(`Set minimum score 1 for ${key}`);
+    }
   });
   
   // Log the final scores before sorting
