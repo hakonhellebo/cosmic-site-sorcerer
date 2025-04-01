@@ -1,31 +1,24 @@
-
 import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-
-const Introduction = ({ form }) => {
-  return (
-    <div className="space-y-6">
+const Introduction = ({
+  form
+}) => {
+  return <div className="space-y-6">
       <h2 className="text-2xl font-bold">Introduksjon og bakgrunn</h2>
       <p className="text-muted-foreground mb-6">
         Fortell oss litt om deg selv for at vi kan forstå din situasjon.
       </p>
 
       {/* Current Grade */}
-      <FormField
-        control={form.control}
-        name="highSchool.grade"
-        render={({ field }) => (
-          <FormItem className="space-y-3">
+      <FormField control={form.control} name="highSchool.grade" render={({
+      field
+    }) => <FormItem className="space-y-3">
             <FormLabel className="text-base font-medium">Hvilket trinn går du på?</FormLabel>
             <FormControl>
-              <RadioGroup
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                className="flex flex-col space-y-1"
-              >
+              <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
                   <FormControl>
                     <RadioGroupItem value="10th-grade" />
@@ -53,23 +46,15 @@ const Introduction = ({ form }) => {
               </RadioGroup>
             </FormControl>
             <FormMessage />
-          </FormItem>
-        )}
-      />
+          </FormItem>} />
 
       {/* Study Direction */}
-      <FormField
-        control={form.control}
-        name="highSchool.studyDirection"
-        render={({ field }) => (
-          <FormItem className="space-y-3">
+      <FormField control={form.control} name="highSchool.studyDirection" render={({
+      field
+    }) => <FormItem className="space-y-3">
             <FormLabel className="text-base font-medium">Hvilken studieretning tar du?</FormLabel>
             <FormControl>
-              <RadioGroup
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                className="flex flex-col space-y-1"
-              >
+              <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
                   <FormControl>
                     <RadioGroupItem value="general-studies" />
@@ -109,23 +94,15 @@ const Introduction = ({ form }) => {
               </RadioGroup>
             </FormControl>
             <FormMessage />
-          </FormItem>
-        )}
-      />
+          </FormItem>} />
 
       {/* Average Grade */}
-      <FormField
-        control={form.control}
-        name="highSchool.averageGrade"
-        render={({ field }) => (
-          <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">Hva er omtrent snittet ditt?</FormLabel>
+      <FormField control={form.control} name="highSchool.averageGrade" render={({
+      field
+    }) => <FormItem className="space-y-3">
+            <FormLabel className="text-base font-medium">Omtrent hva er karaktersnittet ditt nå?</FormLabel>
             <FormControl>
-              <RadioGroup
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                className="flex flex-col space-y-1"
-              >
+              <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
                   <FormControl>
                     <RadioGroupItem value="5-6" />
@@ -159,11 +136,7 @@ const Introduction = ({ form }) => {
               </RadioGroup>
             </FormControl>
             <FormMessage />
-          </FormItem>
-        )}
-      />
-    </div>
-  );
+          </FormItem>} />
+    </div>;
 };
-
 export default Introduction;
