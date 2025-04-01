@@ -47,7 +47,8 @@ const Registration: React.FC = () => {
 
       if (data.user) {
         toast.success("Du er nå registrert og logget inn");
-        navigate('/dashboard');
+        // Redirect to user type selection instead of dashboard
+        navigate('/user-type-selection');
       }
     } catch (error: any) {
       console.error("Registration error:", error);

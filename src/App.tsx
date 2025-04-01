@@ -9,6 +9,7 @@ import Registration from "./pages/Registration";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
+import UserTypeSelection from "./pages/UserTypeSelection";
 import UniversityQuestionnairePage from "./pages/UniversityQuestionnairePage";
 import WorkerQuestionnairePage from "./pages/WorkerQuestionnairePage";
 import HighSchoolQuestionnairePage from "./pages/HighSchoolQuestionnairePage";
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/registrer" element={<Registration />} />
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/user-type-selection" element={<UserTypeSelection />} />
           <Route path="/university-questionnaire" element={<UniversityQuestionnairePage />} />
           <Route path="/worker-questionnaire" element={<WorkerQuestionnairePage />} />
           <Route path="/high-school-questionnaire" element={<HighSchoolQuestionnairePage />} />
