@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -22,7 +23,9 @@ const HighSchoolQuestionnairePage = () => {
         studyDirection: '',
         averageGrade: '',
         favoriteCourses: {},
+        favoriteCoursesOther: '',
         difficultCourses: {},
+        difficultCoursesOther: '',
         educationPriorities: {},
         // Page 2 - Interests and skills
         interests: {},
@@ -265,7 +268,7 @@ const HighSchoolQuestionnairePage = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-12 md:py-16">
+      <div className="container mx-auto px-4 pt-24 pb-12">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
             <div className="flex justify-between items-center mb-2">
