@@ -67,6 +67,21 @@ const simplifyProgramTitle = (title: string): string => {
   return title.length > 10 ? title.substring(0, 10) + "..." : title;
 };
 
+// Helper function to clean up match text
+const cleanMatchText = (matchText: string, programName: string): string => {
+  let cleanText = matchText.toLowerCase()
+    .replace("denne utdanningen passer godt med din", "")
+    .replace("denne utdanningen passer for din", "")
+    .replace(programName.toLowerCase(), "")
+    .replace("bachelor i", "")
+    .replace("master i", "")
+    .replace("  ", " ")
+    .trim();
+  
+  // Remove any leftover "og " or "med " at the start after replacements
+  return cleanText.replace(/^(og|med)\s+/, "").trim();
+};
+
 const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({ 
   recommendations, 
   showAllOpportunities = false 
@@ -112,7 +127,7 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
             
             {tab.field.match && (
               <div className="mb-6 p-4 bg-muted/30 rounded-lg">
-                <p className="italic">Disse karrieremulighetene passer godt for personer med {tab.originalTitle.toLowerCase()} og {tab.field.match.toLowerCase().replace("denne utdanningen passer godt med din", "").replace("denne utdanningen passer for din", "").trim()}. Se aktuelle stillinger og relevante bedrifter under.</p>
+                <p className="italic">Disse karrieremulighetene passer godt for personer med {tab.originalTitle.toLowerCase()} og {cleanMatchText(tab.field.match, tab.originalTitle)}. Se aktuelle stillinger og relevante bedrifter under.</p>
               </div>
             )}
             
