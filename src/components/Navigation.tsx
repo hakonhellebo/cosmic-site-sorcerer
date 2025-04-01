@@ -115,9 +115,9 @@ const Navigation: React.FC = () => {
       <div className="container mx-auto flex items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2">
           <img 
-            src="/lovable-uploads/f050a877-f3e5-4f63-a4e6-cb133ca66f39.png" 
+            src="/lovable-uploads/7e0fff54-a7d0-402f-9762-aaabb01acfe1.png" 
             alt="EdPath Logo" 
-            className="h-24 w-auto mix-blend-multiply" 
+            className="h-16 w-auto" 
           />
         </Link>
         

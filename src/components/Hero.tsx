@@ -17,9 +17,9 @@ const Hero: React.FC = () => {
         <div className="mx-auto max-w-3xl text-center">
           <div className="mb-8 flex justify-center">
             <img 
-              src="/lovable-uploads/f050a877-f3e5-4f63-a4e6-cb133ca66f39.png" 
+              src="/lovable-uploads/7e0fff54-a7d0-402f-9762-aaabb01acfe1.png" 
               alt="EdPath Logo" 
-              className="h-48 w-auto opacity-0 animate-stagger-1 mix-blend-multiply" 
+              className="h-32 w-auto opacity-0 animate-stagger-1" 
             />
           </div>
           <span className="opacity-0 animate-stagger-2 inline-block mb-3 rounded-full bg-secondary px-3 py-1 text-xs font-medium">
