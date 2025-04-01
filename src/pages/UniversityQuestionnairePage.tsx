@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import UniversityQuestionnaire from '@/components/UniversityQuestionnaire';
 import Layout from '@/components/Layout';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { Form } from '@/components/ui/form';
 
 const UniversityQuestionnairePage: React.FC = () => {
   const navigate = useNavigate();
@@ -92,15 +94,17 @@ const UniversityQuestionnairePage: React.FC = () => {
         <h1 className="text-3xl font-bold mb-6">Spørreskjema for studenter</h1>
         <p className="mb-8 text-gray-600">Side {page} av 7</p>
         
-        <form>
-          <UniversityQuestionnaire 
-            form={form}
-            page={page}
-            onPrevious={handlePreviousPage}
-            onSubmit={page === 7 ? handleSubmitQuestionnaire : handleNextPage}
-            isSubmitting={isSubmitting}
-          />
-        </form>
+        <Form {...form}>
+          <form>
+            <UniversityQuestionnaire 
+              form={form}
+              page={page}
+              onPrevious={handlePreviousPage}
+              onSubmit={page === 7 ? handleSubmitQuestionnaire : handleNextPage}
+              isSubmitting={isSubmitting}
+            />
+          </form>
+        </Form>
       </div>
     </Layout>
   );
