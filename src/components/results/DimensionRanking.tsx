@@ -201,7 +201,6 @@ const DimensionRanking: React.FC<DimensionRankingProps> = ({ userData, questionn
               />
               <Bar 
                 dataKey="score" 
-                nameKey="label"
                 radius={[0, 4, 4, 0]}
               >
                 {dimensionScores.map((entry) => (
