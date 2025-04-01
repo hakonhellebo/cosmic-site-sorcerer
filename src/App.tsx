@@ -17,6 +17,7 @@ import ResultsPage from "./pages/ResultsPage";
 import HighSchoolResultsPage from "./pages/HighSchoolResultsPage";
 import UniversityResultsPage from "./pages/UniversityResultsPage";
 import WorkerResultsPage from "./pages/WorkerResultsPage";
+import Statistics from "./pages/Statistics";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const App = () => (
           <Route path="/results/high-school" element={<HighSchoolResultsPage />} />
           <Route path="/results/university" element={<UniversityResultsPage />} />
           <Route path="/results/worker" element={<WorkerResultsPage />} />
+          <Route path="/statistikk" element={<Statistics />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </TooltipProvider>
