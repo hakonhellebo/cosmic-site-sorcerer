@@ -14,12 +14,12 @@ const UniversityQuestionnairePage: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [formProgress, setFormProgress] = useState<number>(0);
-  const totalPages = 7; // Updated total page count
+  const totalPages = 7; 
   
   const form = useForm({
     defaultValues: {
       university: {
-        // Page 1 - Basic education info
+        // Page 1 - Personal Information
         studyField: "",
         institution: "",
         otherInstitution: "",
@@ -27,7 +27,7 @@ const UniversityQuestionnairePage: React.FC = () => {
         changedField: "",
         certaintylevel: "",
         
-        // Page 2 - Skills and interests
+        // Page 2 - Skills and Competencies
         interests: {},
         strengths: {},
         weaknesses: {},
@@ -37,9 +37,35 @@ const UniversityQuestionnairePage: React.FC = () => {
         internship: "",
         internshipValue: "",
         
-        // Page 3 - Background (from existing)
+        // Page 3 - Motivation and Ambitions
+        studyReason: "",
+        salaryImportance: "",
+        impactImportance: "",
+        jobPriorities: {},
+        jobChallenges: {},
+        internationalImportance: "",
+        entrepreneurship: "",
         
-        // Page 4 - Career decisions (new)
+        // Page 4 - Career Expectations
+        futureRole: "",
+        futureEmployerFactors: {},
+        preferredCompanyType: "",
+        technologyImportance: "",
+        workLifeBalance: "",
+        remoteWorkImportance: "",
+        travelImportance: "",
+        satisfactionFactors: {},
+        employerValuesImportance: "",
+        
+        // Page 5 - Preferences and Work Style
+        peopleTech: "",
+        projectPreference: "",
+        uncertaintyReaction: "",
+        careerPathImportance: "",
+        dreamJob: "",
+        preferredWorkEnvironment: "",
+        
+        // Page 6 - Reflection and Transition
         studyChoiceReason: "",
         studyChoiceReasonOther: "",
         postStudyPlan: "",
@@ -49,9 +75,7 @@ const UniversityQuestionnairePage: React.FC = () => {
         successMeaning: "",
         successMeaningOther: "",
         
-        // Page 5 - Career development (from existing)
-        
-        // Page 6 - Grades and work experience (new)
+        // Page 7 - Grades and Work Experience
         highSchoolGrades: "",
         currentGrades: "",
         bestSubjects: {},
@@ -62,9 +86,7 @@ const UniversityQuestionnairePage: React.FC = () => {
         companies: "",
         jobTitles: "",
         jobLearning: {},
-        jobLearningOther: "",
-        
-        // Page 7 - Future industries and planning (from existing)
+        jobLearningOther: ""
       }
     }
   });
@@ -81,7 +103,6 @@ const UniversityQuestionnairePage: React.FC = () => {
   }, [page]);
 
   const handleNextPage = () => {
-    // Simple validation could be added here if needed
     setPage(current => Math.min(current + 1, totalPages)); 
     window.scrollTo(0, 0);
   };

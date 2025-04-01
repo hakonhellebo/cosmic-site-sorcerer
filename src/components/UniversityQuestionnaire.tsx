@@ -1,46 +1,54 @@
 
 import React from 'react';
 import NavigationButtons from '@/components/questionnaire/NavigationButtons';
-import UniversityEducationQuestionnaire from '@/components/UniversityEducationQuestionnaire';
-import UniversitySkillsQuestionnaire from '@/components/UniversitySkillsQuestionnaire';
-import CareerDevelopment from '@/components/questionnaire/CareerDevelopment';
-import EducationBackground from '@/components/questionnaire/EducationBackground';
-import FutureIndustries from '@/components/questionnaire/FutureIndustries';
-import CareerPlanning from '@/components/questionnaire/CareerPlanning';
-import CareerDecisions from '@/components/questionnaire/university/CareerDecisions';
+import PersonalInfo from '@/components/questionnaire/university/PersonalInfo';
+import SkillsAndCompetencies from '@/components/questionnaire/university/SkillsAndCompetencies';
+import MotivationAndAmbitions from '@/components/questionnaire/university/MotivationAndAmbitions';
+import CareerExpectations from '@/components/questionnaire/university/CareerExpectations';
+import PreferencesAndWorkStyle from '@/components/questionnaire/university/PreferencesAndWorkStyle';
+import ReflectionAndTransition from '@/components/questionnaire/university/ReflectionAndTransition';
 import GradesAndWorkExperience from '@/components/questionnaire/university/GradesAndWorkExperience';
 
 const UniversityQuestionnaire = ({ form, page, onPrevious, onSubmit, isSubmitting }) => {
-  // Page 1 - Basic Education info
+  // Page 1 - Personal Information
   if (page === 1) {
     return (
       <div className="space-y-6">
-        <UniversityEducationQuestionnaire 
-          form={form} 
-          onSubmit={onSubmit} 
+        <PersonalInfo form={form} />
+        
+        <NavigationButtons
+          page={page}
+          onPrevious={onPrevious}
+          onSubmit={onSubmit}
+          isSubmitting={isSubmitting}
+          isLastPage={false}
         />
       </div>
     );
   }
 
-  // Page 2 - Skills and strengths
+  // Page 2 - Skills and Competencies
   if (page === 2) {
     return (
       <div className="space-y-6">
-        <UniversitySkillsQuestionnaire 
-          form={form} 
-          onNext={onSubmit}
-          onPrev={onPrevious}
+        <SkillsAndCompetencies form={form} />
+        
+        <NavigationButtons
+          page={page}
+          onPrevious={onPrevious}
+          onSubmit={onSubmit}
+          isSubmitting={isSubmitting}
+          isLastPage={false}
         />
       </div>
     );
   }
 
-  // Page 3 - Education Background
+  // Page 3 - Motivation and Ambitions
   if (page === 3) {
     return (
       <div className="space-y-6">
-        <EducationBackground form={form} />
+        <MotivationAndAmbitions form={form} />
         
         <NavigationButtons
           page={page}
@@ -53,11 +61,11 @@ const UniversityQuestionnaire = ({ form, page, onPrevious, onSubmit, isSubmittin
     );
   }
 
-  // Page 4 - Career Decisions (NEW)
+  // Page 4 - Career Expectations
   if (page === 4) {
     return (
       <div className="space-y-6">
-        <CareerDecisions form={form} />
+        <CareerExpectations form={form} />
         
         <NavigationButtons
           page={page}
@@ -70,11 +78,11 @@ const UniversityQuestionnaire = ({ form, page, onPrevious, onSubmit, isSubmittin
     );
   }
 
-  // Page 5 - Career Development
+  // Page 5 - Preferences and Work Style
   if (page === 5) {
     return (
       <div className="space-y-6">
-        <CareerDevelopment form={form} />
+        <PreferencesAndWorkStyle form={form} />
         
         <NavigationButtons
           page={page}
@@ -87,11 +95,11 @@ const UniversityQuestionnaire = ({ form, page, onPrevious, onSubmit, isSubmittin
     );
   }
 
-  // Page 6 - Grades and Work Experience (NEW)
+  // Page 6 - Reflection and Transition
   if (page === 6) {
     return (
       <div className="space-y-6">
-        <GradesAndWorkExperience form={form} />
+        <ReflectionAndTransition form={form} />
         
         <NavigationButtons
           page={page}
@@ -104,15 +112,11 @@ const UniversityQuestionnaire = ({ form, page, onPrevious, onSubmit, isSubmittin
     );
   }
 
-  // Page 7 - Future Industries and Career Planning
+  // Page 7 - Grades and Work Experience
   if (page === 7) {
     return (
       <div className="space-y-6">
-        <div className="mb-8">
-          <FutureIndustries form={form} />
-        </div>
-        
-        <CareerPlanning form={form} />
+        <GradesAndWorkExperience form={form} />
         
         <NavigationButtons
           page={page}

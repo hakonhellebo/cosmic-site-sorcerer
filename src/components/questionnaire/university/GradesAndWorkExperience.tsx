@@ -22,7 +22,7 @@ const GradesAndWorkExperience: React.FC<GradesAndWorkExperienceProps> = ({
 }) => {
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Karakterer og arbeidserfaring</h2>
+      <h2 className="text-2xl font-bold">8. Karakterer og arbeidserfaring</h2>
       <p className="text-muted-foreground mb-6">Fortell oss om dine akademiske prestasjoner og arbeidserfaringer</p>
       
       <FormField
