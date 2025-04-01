@@ -63,12 +63,10 @@ const RecommendedEducation: React.FC<RecommendedEducationProps> = ({
                 <AccordionTrigger className="text-sm py-2">Vis mer informasjon</AccordionTrigger>
                 <AccordionContent>
                   <div className="space-y-2 pt-2">
-                    {edu.institutions && (
-                      <div>
-                        <span className="font-medium text-sm">Tilbys ved:</span> 
-                        <span className="text-sm"> {edu.institution}</span>
-                      </div>
-                    )}
+                    <div>
+                      <span className="font-medium text-sm">Tilbys ved:</span> 
+                      <span className="text-sm"> {edu.institution}</span>
+                    </div>
                     {edu.requirements && (
                       <div>
                         <span className="font-medium text-sm">Opptakskrav:</span> 
