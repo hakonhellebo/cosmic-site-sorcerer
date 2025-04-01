@@ -1,4 +1,3 @@
-
 import React from 'react';
 import ResultCard from './ResultCard';
 import { getFormattedValue } from '@/utils/resultFormatters';
@@ -523,45 +522,38 @@ const ResultsGenerator: React.FC<ResultsGeneratorProps> = ({ userData, userType 
   else {
     const resultSections = [];
     
-    if (questionnaire.university) {
-      // University questionnaire results
-      resultSections.push(
-        {
-          title: "Din utdanningsprofil",
-          icon: "education",
-          items: [
-            { label: "Studiefelt", value: questionnaire.university.studyField },
-            { label: "Institusjon", value: questionnaire.university.institution === 'other' ? 
-              questionnaire.university.otherInstitution : questionnaire.university.institution },
-            { label: "Utdanningsnivå", value: questionnaire.university.level },
-            { label: "Sikkerhetsnivå på karrierevalg", value: getFormattedValue(questionnaire.university.certaintylevel) }
-          ]
-        }
-      );
-    } else if (questionnaire.highSchool) {
-      // High school questionnaire results
+    if (questionnaire.highSchool) {
       resultSections.push({
         title: "Din utdanningsprofil",
         icon: "education",
         items: [
-          { label: "Skole", value: questionnaire.highSchool.school },
-          { label: "Studieretning", value: questionnaire.highSchool.program },
-          { label: "Årstrinn", value: questionnaire.highSchool.grade }
+          { label: "Skole", value: questionnaire.highSchool.school || "Ikke angitt" },
+          { label: "Studieretning", value: questionnaire.highSchool.program || "Ikke angitt" },
+          { label: "Årstrinn", value: questionnaire.highSchool.grade || "Ikke angitt" }
+        ]
+      });
+    } else if (questionnaire.university) {
+      resultSections.push({
+        title: "Din utdanningsprofil",
+        icon: "education",
+        items: [
+          { label: "Studiefelt", value: questionnaire.university.studyField || "Ikke angitt" },
+          { label: "Institusjon", value: questionnaire.university.institution === 'other' ? 
+            questionnaire.university.otherInstitution : questionnaire.university.institution || "Ikke angitt" },
+          { label: "Utdanningsnivå", value: questionnaire.university.level || "Ikke angitt" },
+          { label: "Sikkerhetsnivå på karrierevalg", value: getFormattedValue(questionnaire.university.certaintylevel) || "Ikke angitt" }
         ]
       });
     } else if (questionnaire.worker) {
-      // Worker questionnaire results
-      resultSections.push(
-        {
-          title: "Din jobb og erfaring",
-          icon: "work",
-          items: [
-            { label: "Nåværende stilling", value: questionnaire.worker.currentRole },
-            { label: "Bransje", value: questionnaire.worker.industry },
-            { label: "Erfaring", value: questionnaire.worker.experience + " år" }
-          ]
-        }
-      );
+      resultSections.push({
+        title: "Din jobb og erfaring",
+        icon: "work",
+        items: [
+          { label: "Nåværende stilling", value: questionnaire.worker.currentRole || "Ikke angitt" },
+          { label: "Bransje", value: questionnaire.worker.industry || "Ikke angitt" },
+          { label: "Erfaring", value: questionnaire.worker.experience ? questionnaire.worker.experience + " år" : "Ikke angitt" }
+        ]
+      });
     }
 
     // Add a default section if no questionnaire data is available
