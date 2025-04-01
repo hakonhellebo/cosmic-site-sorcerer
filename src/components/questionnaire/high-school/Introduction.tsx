@@ -28,6 +28,12 @@ const Introduction = ({ form }) => {
               >
                 <FormItem className="flex items-center space-x-3 space-y-0">
                   <FormControl>
+                    <RadioGroupItem value="10th-grade" />
+                  </FormControl>
+                  <FormLabel className="font-normal">10. klasse</FormLabel>
+                </FormItem>
+                <FormItem className="flex items-center space-x-3 space-y-0">
+                  <FormControl>
                     <RadioGroupItem value="vg1" />
                   </FormControl>
                   <FormLabel className="font-normal">VG1</FormLabel>
