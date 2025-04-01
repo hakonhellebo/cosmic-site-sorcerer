@@ -1,6 +1,5 @@
 
 import React from 'react';
-import ResultCard from './ResultCard';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Check, ExternalLink } from "lucide-react";
