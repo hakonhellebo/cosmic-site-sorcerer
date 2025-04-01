@@ -16,7 +16,7 @@ const CareerPlanning = ({
       <FormField control={form.control} name="highSchool.workLocation" render={({
       field
     }) => <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">30. Hvis du kunne valgt et arbeidssted, hvor ville det vært?</FormLabel>
+            <FormLabel className="text-base font-medium">31. Hvis du kunne valgt et arbeidssted, hvor ville det vært?</FormLabel>
             <FormControl>
               <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
@@ -63,7 +63,7 @@ const CareerPlanning = ({
       {/* Job Challenges */}
       <div className="space-y-4">
         <FormField control={form.control} name="highSchool.jobChallenges" render={() => <FormItem>
-              <FormLabel className="text-base font-medium">31. Hva tror du kommer til å være den største utfordringen når du skal finne jobb? (Velg opptil 2)</FormLabel>
+              <FormLabel className="text-base font-medium">32. Hva tror du kommer til å være den største utfordringen når du skal finne jobb? (Velg opptil 2)</FormLabel>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
                 {[{
             id: "fewJobs",
@@ -101,7 +101,7 @@ const CareerPlanning = ({
       {/* Career Support Needs */}
       <div className="space-y-4">
         <FormField control={form.control} name="highSchool.careerSupportNeeds" render={() => <FormItem>
-              <FormLabel className="text-base font-medium">32. Hva ville gjort det enklere for deg å velge karriere? (Velg opptil 2)</FormLabel>
+              <FormLabel className="text-base font-medium">33. Hva ville gjort det enklere for deg å velge karriere? (Velg opptil 2)</FormLabel>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
                 {[{
             id: "careerInsight",
@@ -137,7 +137,7 @@ const CareerPlanning = ({
       <FormField control={form.control} name="highSchool.educationMotivation" render={({
       field
     }) => <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">33. Hva motiverer deg mest til å fullføre utdanningen din?</FormLabel>
+            <FormLabel className="text-base font-medium">34. Hva motiverer deg mest til å fullføre utdanningen din?</FormLabel>
             <FormControl>
               <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
@@ -179,7 +179,7 @@ const CareerPlanning = ({
       <FormField control={form.control} name="highSchool.aiJobMarketImpact" render={({
       field
     }) => <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">34. Hvordan tror du AI og automatisering vil påvirke jobbmarkedet i fremtiden?</FormLabel>
+            <FormLabel className="text-base font-medium">35. Hvordan tror du AI og automatisering vil påvirke jobbmarkedet i fremtiden?</FormLabel>
             <FormControl>
               <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
@@ -209,7 +209,7 @@ const CareerPlanning = ({
       <FormField control={form.control} name="highSchool.industryMentorInterest" render={({
       field
     }) => <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">35. Hvis du fikk muligheten til å snakke med en erfaren person i bransjen du vurderer – ville du gjort det?</FormLabel>
+            <FormLabel className="text-base font-medium">36. Hvis du fikk muligheten til å snakke med en erfaren person i bransjen du vurderer – ville du gjort det?</FormLabel>
             <FormControl>
               <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
