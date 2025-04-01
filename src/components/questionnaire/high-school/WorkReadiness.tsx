@@ -19,7 +19,7 @@ const WorkReadiness = ({ form }) => {
         name="highSchool.workIndependently"
         render={({ field }) => (
           <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">Hvordan vil du vurdere din egen evne til å jobbe selvstendig?</FormLabel>
+            <FormLabel className="text-base font-medium">16. Hvordan vil du vurdere din egen evne til å jobbe selvstendig?</FormLabel>
             <FormControl>
               <RadioGroup
                 onValueChange={field.onChange}
@@ -63,7 +63,7 @@ const WorkReadiness = ({ form }) => {
         name="highSchool.preparedness"
         render={({ field }) => (
           <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">Hvor godt forberedt føler du deg på videre utdanning eller arbeid?</FormLabel>
+            <FormLabel className="text-base font-medium">17. Hvor godt forberedt føler du deg på videre utdanning eller arbeid?</FormLabel>
             <FormControl>
               <RadioGroup
                 onValueChange={field.onChange}
@@ -107,7 +107,7 @@ const WorkReadiness = ({ form }) => {
         name="highSchool.collaboration"
         render={({ field }) => (
           <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">Hvor ofte samarbeider du med andre på skolen?</FormLabel>
+            <FormLabel className="text-base font-medium">18. Hvor ofte samarbeider du med andre på skolen?</FormLabel>
             <FormControl>
               <RadioGroup
                 onValueChange={field.onChange}
@@ -151,7 +151,7 @@ const WorkReadiness = ({ form }) => {
         name="highSchool.aiUsage"
         render={({ field }) => (
           <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">Hvor ofte bruker du AI (f.eks. ChatGPT) i skolearbeidet?</FormLabel>
+            <FormLabel className="text-base font-medium">19. Hvor ofte bruker du AI (f.eks. ChatGPT) i skolearbeidet?</FormLabel>
             <FormControl>
               <RadioGroup
                 onValueChange={field.onChange}
@@ -203,7 +203,7 @@ const WorkReadiness = ({ form }) => {
           render={() => (
             <FormItem>
               <FormLabel className="text-base font-medium">
-                Hvilke ferdigheter føler du at du mangler for å lykkes på videregående eller i arbeidslivet? (Velg opptil 2)
+                20. Hvilke ferdigheter føler du at du mangler for å lykkes på videregående eller i arbeidslivet? (Velg opptil 2)
               </FormLabel>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
                 {[
@@ -247,7 +247,7 @@ const WorkReadiness = ({ form }) => {
         name="highSchool.studyTime"
         render={({ field }) => (
           <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">Hvor mye tid bruker du på skolearbeid utenom skoletiden?</FormLabel>
+            <FormLabel className="text-base font-medium">21. Hvor mye tid bruker du på skolearbeid utenom skoletiden?</FormLabel>
             <FormControl>
               <RadioGroup
                 onValueChange={field.onChange}
@@ -291,7 +291,7 @@ const WorkReadiness = ({ form }) => {
         name="highSchool.workExperience"
         render={({ field }) => (
           <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">Har du hatt praksis eller arbeidserfaring gjennom skolen?</FormLabel>
+            <FormLabel className="text-base font-medium">22. Har du hatt praksis eller arbeidserfaring gjennom skolen?</FormLabel>
             <FormControl>
               <RadioGroup
                 onValueChange={field.onChange}
@@ -323,7 +323,7 @@ const WorkReadiness = ({ form }) => {
         name="highSchool.workExperienceValue"
         render={({ field }) => (
           <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">Hvis du har hatt praksis eller arbeidserfaring – hvor nyttig var det for deg?</FormLabel>
+            <FormLabel className="text-base font-medium">23. Hvis du har hatt praksis eller arbeidserfaring – hvor nyttig var det for deg?</FormLabel>
             <FormControl>
               <RadioGroup
                 onValueChange={field.onChange}
