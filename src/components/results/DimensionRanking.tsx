@@ -77,9 +77,6 @@ const dimensionMeta = {
 
 const DimensionRanking: React.FC<DimensionRankingProps> = ({ userData, questionnaire }) => {
   const dimensionScores = useMemo(() => {
-    // Mock/fixed data as an example
-    // In a real implementation, this would calculate scores from the questionnaire data
-    
     // Initialize all dimensions with score 0
     const scores: Record<string, number> = {
       helseinteresse: 0,
@@ -94,20 +91,145 @@ const DimensionRanking: React.FC<DimensionRankingProps> = ({ userData, questionn
       sosialitet: 0
     };
     
-    // This function would normally process all the questionnaire data
-    // and calculate the scores for each dimension
+    // If no user data, return default scores
+    if (!userData || !questionnaire || !userData.questionnaire?.[questionnaire]) {
+      return Object.entries(scores)
+        .map(([dimension, score]) => ({
+          dimension,
+          score,
+          ...dimensionMeta[dimension as keyof typeof dimensionMeta]
+        }))
+        .sort((a, b) => b.score - a.score);
+    }
     
-    // For now, let's use some example scores
-    scores.teknologi = 15;
-    scores.analytisk = 12;
-    scores.kreativitet = 10;
-    scores.selvstendighet = 8;
-    scores.struktur = 7;
-    scores.ambisjon = 9;
-    scores.helseinteresse = 6;
-    scores.sosialitet = 11;
-    scores.praktisk = 5;
-    scores.bærekraft = 3;
+    const questionnaireData = userData.questionnaire[questionnaire];
+    
+    // Process data from high school questionnaire
+    if (questionnaire === 'highSchool') {
+      const data = questionnaireData;
+      
+      // Calculate scores based on interests
+      if (data.interests) {
+        if (data.interests.technology === true) scores.teknologi += 5;
+        if (data.interests.artDesign === true) scores.kreativitet += 5;
+        if (data.interests.sports === true) scores.praktisk += 3;
+        if (data.interests.economyFinance === true) scores.analytisk += 4;
+        if (data.interests.travelCulture === true) scores.sosialitet += 3;
+        if (data.interests.healthCare === true) scores.helseinteresse += 5;
+        if (data.interests.environmentSustainability === true) scores.bærekraft += 5;
+      }
+      
+      // Calculate scores based on work tasks
+      if (data.workTasks) {
+        if (data.workTasks.numbers === true) scores.analytisk += 4;
+        if (data.workTasks.practical === true) scores.praktisk += 5;
+        if (data.workTasks.writing === true) scores.kreativitet += 2;
+        if (data.workTasks.leadership === true) {
+          scores.ambisjon += 5;
+          scores.sosialitet += 3;
+        }
+        if (data.workTasks.creative === true) scores.kreativitet += 5;
+        if (data.workTasks.supportive === true) {
+          scores.sosialitet += 4;
+          scores.helseinteresse += 2;
+        }
+      }
+      
+      // Calculate scores based on good skills
+      if (data.goodSkills) {
+        if (data.goodSkills.communication === true) scores.sosialitet += 4;
+        if (data.goodSkills.logicalThinking === true) scores.analytisk += 5;
+        if (data.goodSkills.creativity === true) scores.kreativitet += 5;
+        if (data.goodSkills.technicalUnderstanding === true) scores.teknologi += 5;
+        if (data.goodSkills.leadership === true) {
+          scores.ambisjon += 4;
+          scores.sosialitet += 2;
+        }
+        if (data.goodSkills.collaboration === true) scores.sosialitet += 5;
+        if (data.goodSkills.problemSolving === true) scores.analytisk += 3;
+      }
+      
+      // Calculate scores based on work environment preference
+      if (data.workEnvironment === 'competitive') {
+        scores.ambisjon += 4;
+        scores.selvstendighet += 3;
+      } else if (data.workEnvironment === 'collaborative') {
+        scores.sosialitet += 4;
+      }
+      
+      // Calculate scores based on work preference
+      if (data.workPreference === 'alone') {
+        scores.selvstendighet += 5;
+      } else if (data.workPreference === 'team') {
+        scores.sosialitet += 5;
+      }
+      
+      // Calculate scores based on educational priorities
+      if (data.educationPriorities) {
+        if (data.educationPriorities.salary === true) scores.ambisjon += 3;
+        if (data.educationPriorities.flexibility === true) scores.selvstendighet += 3;
+        if (data.educationPriorities.meaning === true) {
+          scores.helseinteresse += 2;
+          scores.bærekraft += 2;
+        }
+      }
+      
+      // Calculate scores based on interesting industries
+      if (data.interestingIndustries) {
+        if (data.interestingIndustries.technology === true) scores.teknologi += 4;
+        if (data.interestingIndustries.healthcare === true) scores.helseinteresse += 4;
+        if (data.interestingIndustries.finance === true) {
+          scores.analytisk += 3;
+          scores.ambisjon += 2;
+        }
+        if (data.interestingIndustries.creative === true) scores.kreativitet += 4;
+        if (data.interestingIndustries.education === true) scores.sosialitet += 3;
+        if (data.interestingIndustries.environment === true) scores.bærekraft += 4;
+        if (data.interestingIndustries.research === true) scores.analytisk += 3;
+      }
+      
+      // Calculate scores based on desired roles
+      if (data.desiredRoles) {
+        if (data.desiredRoles.leader === true) {
+          scores.ambisjon += 4;
+          scores.sosialitet += 2;
+        }
+        if (data.desiredRoles.specialist === true) scores.analytisk += 3;
+        if (data.desiredRoles.creative === true) scores.kreativitet += 4;
+        if (data.desiredRoles.technical === true) scores.teknologi += 4;
+        if (data.desiredRoles.entrepreneur === true) {
+          scores.ambisjon += 4;
+          scores.selvstendighet += 3;
+        }
+        if (data.desiredRoles.researcher === true) scores.analytisk += 4;
+      }
+      
+      // Calculate scores based on work environment preferences
+      if (data.workEnvironmentPreferences) {
+        if (data.workEnvironmentPreferences.flexibility === true) scores.selvstendighet += 3;
+        if (data.workEnvironmentPreferences.social === true) scores.sosialitet += 4;
+        if (data.workEnvironmentPreferences.structure === true) scores.struktur += 5;
+        if (data.workEnvironmentPreferences.career === true) scores.ambisjon += 3;
+        if (data.workEnvironmentPreferences.innovation === true) {
+          scores.kreativitet += 3;
+          scores.teknologi += 2;
+        }
+      }
+      
+      // Additional scoring based on future work vision
+      if (data.futureWorkVision === 'creative') scores.kreativitet += 3;
+      else if (data.futureWorkVision === 'secure') scores.struktur += 3;
+      else if (data.futureWorkVision === 'leading') scores.ambisjon += 3;
+      else if (data.futureWorkVision === 'helping') {
+        scores.helseinteresse += 3;
+        scores.sosialitet += 2;
+      }
+    }
+    
+    // Ensure minimum score of 1 for all dimensions
+    Object.keys(scores).forEach(key => {
+      if (scores[key] < 1) scores[key] = 1;
+    });
     
     // Convert to array and sort by score (highest first)
     return Object.entries(scores)
@@ -259,8 +381,19 @@ const DimensionRanking: React.FC<DimensionRankingProps> = ({ userData, questionn
           Disse kan gi innsikt i hvilke typer karrierer og arbeidsmiljøer som vil passe deg best.
         </p>
         <p>
-          For eksempel, med høy score i <strong className="font-semibold">Teknologi</strong> og <strong className="font-semibold">Analytisk</strong> tenkning 
-          kan du trives i roller som krever teknisk problemløsning og logisk analyse.
+          For eksempel, med høy score i <strong className="font-semibold">{topDimensions[0]?.label}</strong> og <strong className="font-semibold">{topDimensions[1]?.label}</strong> 
+          kan du trives i roller som {
+            topDimensions[0]?.dimension === 'teknologi' ? 'krever teknisk problemløsning og innovasjon' : 
+            topDimensions[0]?.dimension === 'analytisk' ? 'krever analytisk tenkning og strukturert problemløsning' :
+            topDimensions[0]?.dimension === 'kreativitet' ? 'gir rom for kreativ utfoldelse og nytenking' :
+            topDimensions[0]?.dimension === 'sosialitet' ? 'involverer mye kontakt med mennesker' :
+            topDimensions[0]?.dimension === 'ambisjon' ? 'gir muligheter for å klatre på karrierestigen' :
+            topDimensions[0]?.dimension === 'helseinteresse' ? 'lar deg hjelpe andre med helse og velvære' :
+            topDimensions[0]?.dimension === 'bærekraft' ? 'bidrar til miljø og bærekraftig utvikling' :
+            topDimensions[0]?.dimension === 'struktur' ? 'krever god organisering og planlegging' :
+            topDimensions[0]?.dimension === 'praktisk' ? 'involverer praktisk arbeid og konkrete oppgaver' :
+            'utvikler dine styrker og interesser'
+          }.
         </p>
       </div>
     </div>

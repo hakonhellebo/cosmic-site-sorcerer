@@ -19,13 +19,20 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
   
   // Extract interests, strengths, and subjects
   const interests = Object.keys(highSchoolData.interests || {})
-    .filter(key => highSchoolData.interests[key]);
+    .filter(key => highSchoolData.interests[key] === true);
   
-  const strengths = Object.keys(highSchoolData.strengths || {})
-    .filter(key => highSchoolData.strengths[key]);
+  const goodSkills = Object.keys(highSchoolData.goodSkills || {})
+    .filter(key => highSchoolData.goodSkills[key] === true);
   
-  const subjects = Object.keys(highSchoolData.favoriteSubjects || {})
-    .filter(key => highSchoolData.favoriteSubjects[key]);
+  const workTasks = Object.keys(highSchoolData.workTasks || {})
+    .filter(key => highSchoolData.workTasks[key] === true);
+  
+  // Extract favorite and difficult subjects
+  const favoriteCourses = Object.keys(highSchoolData.favoriteCourses || {})
+    .filter(key => highSchoolData.favoriteCourses[key] === true);
+  
+  const difficultCourses = Object.keys(highSchoolData.difficultCourses || {})
+    .filter(key => highSchoolData.difficultCourses[key] === true);
   
   // Create basic info cards
   const basicInfoCards = [
@@ -33,36 +40,86 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
       title: "Din skoleprofil",
       icon: "education",
       items: [
-        { label: "Skole", value: highSchoolData.school },
-        { label: "Studieretning", value: highSchoolData.program },
-        { label: "Årstrinn", value: highSchoolData.grade }
+        { label: "Årstrinn", value: highSchoolData.grade === 'vg1' ? 'VG1' : 
+                                    highSchoolData.grade === 'vg2' ? 'VG2' : 
+                                    highSchoolData.grade === 'vg3' ? 'VG3' : 'Ikke spesifisert' },
+        { label: "Studieretning", value: highSchoolData.studyDirection === 'general-studies' ? 'Studiespesialisering' :
+                                        highSchoolData.studyDirection === 'vocational' ? 'Yrkesfag' : 'Ikke spesifisert' },
+        { label: "Karaktersnitt", value: highSchoolData.averageGrade || 'Ikke spesifisert' }
       ]
     },
     {
-      title: "Dine styrker og fag",
+      title: "Dine fag og preferanser",
       icon: "award",
       items: [
         { 
           label: "Favorittfag", 
-          value: subjects.length > 0 ? subjects.join(', ') : "Ingen valgt"
+          value: favoriteCourses.length > 0 ? 
+            favoriteCourses.map(course => 
+              course === 'mathematics' ? 'Matematikk' :
+              course === 'norwegian' ? 'Norsk' :
+              course === 'english' ? 'Engelsk' :
+              course === 'socialStudies' ? 'Samfunnsfag' :
+              course === 'science' ? 'Naturfag' :
+              course === 'physEd' ? 'Gym' :
+              course === 'artsCrafts' ? 'Kunst og håndverk' :
+              course === 'foreignLanguage' ? 'Fremmedspråk' :
+              course === 'other' ? highSchoolData.favoriteCoursesOther : course
+            ).join(', ') : 
+            "Ingen valgt"
         },
         { 
-          label: "Styrker", 
-          value: strengths.length > 0 ? strengths.join(', ') : "Ingen valgt" 
+          label: "Utfordrende fag", 
+          value: difficultCourses.length > 0 ? 
+            difficultCourses.map(course => 
+              course === 'mathematics' ? 'Matematikk' :
+              course === 'norwegian' ? 'Norsk' :
+              course === 'english' ? 'Engelsk' :
+              course === 'socialStudies' ? 'Samfunnsfag' :
+              course === 'science' ? 'Naturfag' :
+              course === 'physEd' ? 'Gym' :
+              course === 'artsCrafts' ? 'Kunst og håndverk' :
+              course === 'foreignLanguage' ? 'Fremmedspråk' :
+              course === 'other' ? highSchoolData.difficultCoursesOther : course
+            ).join(', ') : 
+            "Ingen valgt"
         },
         { 
-          label: "Selvstudie", 
-          value: getFormattedValue(highSchoolData.selfStudy)
+          label: "Arbeidspreferanse", 
+          value: highSchoolData.workPreference === 'alone' ? 'Jobbe alene' : 
+                 highSchoolData.workPreference === 'team' ? 'Jobbe i team' : 
+                 'Kombinasjon av alene og i team'
         }
       ]
     }
   ];
   
-  // Define recommended education options
+  // Define recommended education options based on interests, skills and tasks
   const educationRecommendations = [
-    { name: "Ingeniørvitenskap", institution: "NTNU", match: "Analytisk og problemløsning" },
-    { name: "Psykologi", institution: "UiO", match: "Sosial og helseinteressert" },
-    { name: "Grafisk design", institution: "Kunsthøgskolen", match: "Kreativ og visuell" }
+    { 
+      name: interests.includes('technology') || goodSkills.includes('technicalUnderstanding') ? 
+            "Informatikk" : "Økonomi",
+      institution: "NTNU / UiO", 
+      match: interests.includes('technology') ? 
+             "Passer med din teknologiinteresse og analytiske evner" : 
+             "Passer med din interesse for økonomi og analytiske evner"
+    },
+    { 
+      name: interests.includes('economyFinance') ? 
+            "Økonomi og administrasjon" : "Psykologi",
+      institution: "NHH / BI / UiO", 
+      match: interests.includes('economyFinance') ? 
+             "Passer med din interesse for økonomi og finans" :
+             "Passer med dine sosiale og analytiske evner"
+    },
+    { 
+      name: workTasks.includes('leadership') ? 
+            "Ledelse og organisasjon" : "Datavitenskap",
+      institution: "BI / UiO", 
+      match: workTasks.includes('leadership') ? 
+             "Passer med dine lederegenskaper og analytiske evner" :
+             "Passer med din tekniske forståelse og problemløsningsevner"
+    }
   ];
   
   // Define next steps
@@ -90,15 +147,34 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-md">
               <h4 className="font-medium">Interesser</h4>
-              <p className="text-sm">{interests.length > 0 ? interests.join(', ') : "Ingen valgt"}</p>
+              <p className="text-sm">{interests.length > 0 ? 
+                interests.map(interest => 
+                  interest === 'technology' ? 'Teknologi' :
+                  interest === 'artDesign' ? 'Kunst og design' :
+                  interest === 'sports' ? 'Sport' :
+                  interest === 'economyFinance' ? 'Økonomi og finans' :
+                  interest === 'travelCulture' ? 'Reise og kultur' :
+                  interest === 'healthCare' ? 'Helse og omsorg' :
+                  interest === 'environmentSustainability' ? 'Miljø og bærekraft' :
+                  interest
+                ).join(', ') : "Ingen valgt"}
+              </p>
             </div>
             <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-md">
               <h4 className="font-medium">Læringsstil</h4>
               <p className="text-sm">
                 {highSchoolData.learningStyle ? 
                   Object.keys(highSchoolData.learningStyle)
-                    .filter(key => highSchoolData.learningStyle[key])
-                    .join(', ') : 
+                    .filter(key => highSchoolData.learningStyle[key] === true)
+                    .map(style => 
+                      style === 'reading' ? 'Lesing' :
+                      style === 'listening' ? 'Lytting' :
+                      style === 'practical' ? 'Praktisk' :
+                      style === 'discussing' ? 'Diskusjon' :
+                      style === 'watching' ? 'Observasjon' :
+                      style === 'unknown' ? 'Vet ikke' :
+                      style
+                    ).join(', ') : 
                   "Ikke spesifisert"}
               </p>
             </div>
@@ -114,7 +190,7 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
         </div>
       </div>
       
-      {/* Dimension Ranking */}
+      {/* Dimension Ranking - Now passing actual user data */}
       <DimensionRanking userData={userData} questionnaire="highSchool" />
       
       {/* Basic info cards */}
