@@ -14,7 +14,7 @@ const UniversityQuestionnairePage: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [formProgress, setFormProgress] = useState<number>(0);
-  const totalPages = 7; 
+  const totalPages = 7; // Confirm we have 7 pages
   
   const form = useForm({
     defaultValues: {
