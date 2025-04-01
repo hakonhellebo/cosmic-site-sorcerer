@@ -19,7 +19,7 @@ const Hero: React.FC = () => {
             <img 
               src="/lovable-uploads/f050a877-f3e5-4f63-a4e6-cb133ca66f39.png" 
               alt="EdPath Logo" 
-              className="h-20 w-auto opacity-0 animate-stagger-1" 
+              className="h-20 w-auto opacity-0 animate-stagger-1 mix-blend-multiply" 
             />
           </div>
           <span className="opacity-0 animate-stagger-2 inline-block mb-3 rounded-full bg-secondary px-3 py-1 text-xs font-medium">
