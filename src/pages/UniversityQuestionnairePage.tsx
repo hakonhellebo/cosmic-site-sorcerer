@@ -6,23 +6,65 @@ import Layout from '@/components/Layout';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Form } from '@/components/ui/form';
+import { Progress } from "@/components/ui/progress";
 
 const UniversityQuestionnairePage: React.FC = () => {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [page, setPage] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [formProgress, setFormProgress] = useState<number>(0);
+  const totalPages = 7; // Updated total page count
   
   const form = useForm({
     defaultValues: {
       university: {
+        // Page 1 - Basic education info
         studyField: "",
         institution: "",
         otherInstitution: "",
         level: "",
         changedField: "",
         certaintylevel: "",
-        // ... other fields will be filled as the user progresses
+        
+        // Page 2 - Skills and interests
+        interests: {},
+        strengths: {},
+        weaknesses: {},
+        learningStyle: {},
+        collaboration: "",
+        aiUsage: "",
+        internship: "",
+        internshipValue: "",
+        
+        // Page 3 - Background (from existing)
+        
+        // Page 4 - Career decisions (new)
+        studyChoiceReason: "",
+        studyChoiceReasonOther: "",
+        postStudyPlan: "",
+        industryContact: "",
+        studyMissing: {},
+        setbackReaction: "",
+        successMeaning: "",
+        successMeaningOther: "",
+        
+        // Page 5 - Career development (from existing)
+        
+        // Page 6 - Grades and work experience (new)
+        highSchoolGrades: "",
+        currentGrades: "",
+        bestSubjects: {},
+        hadJob: "",
+        jobCount: "",
+        jobTypes: {},
+        industries: {},
+        companies: "",
+        jobTitles: "",
+        jobLearning: {},
+        jobLearningOther: "",
+        
+        // Page 7 - Future industries and planning (from existing)
       }
     }
   });
@@ -33,15 +75,20 @@ const UniversityQuestionnairePage: React.FC = () => {
     if (storedUser) {
       setCurrentUser(JSON.parse(storedUser));
     }
-  }, []);
+    
+    // Update progress whenever page changes
+    setFormProgress((page / totalPages) * 100);
+  }, [page]);
 
   const handleNextPage = () => {
     // Simple validation could be added here if needed
-    setPage(current => Math.min(current + 1, 7)); // 7 is the max page
+    setPage(current => Math.min(current + 1, totalPages)); 
+    window.scrollTo(0, 0);
   };
 
   const handlePreviousPage = () => {
-    setPage(current => Math.max(current - 1, 1)); // 1 is the min page
+    setPage(current => Math.max(current - 1, 1));
+    window.scrollTo(0, 0);
   };
 
   const handleSubmitQuestionnaire = async () => {
@@ -92,20 +139,30 @@ const UniversityQuestionnairePage: React.FC = () => {
     <Layout>
       <div className="container mx-auto px-4 pt-24 pb-12">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-6">Spørreskjema for studenter</h1>
-          <p className="mb-8 text-gray-600">Side {page} av 7</p>
+          <div className="mb-8">
+            <div className="flex justify-between items-center mb-2">
+              <h1 className="text-3xl font-bold">Spørreskjema for studenter</h1>
+              <span className="text-sm font-medium">{page} av {totalPages}</span>
+            </div>
+            <p className="text-muted-foreground mb-4">
+              Hjelp oss å forstå din bakgrunn, interesser og mål slik at vi kan gi deg bedre veiledning.
+            </p>
+            <Progress value={formProgress} className="h-2" />
+          </div>
           
-          <Form {...form}>
-            <form>
-              <UniversityQuestionnaire 
-                form={form}
-                page={page}
-                onPrevious={handlePreviousPage}
-                onSubmit={page === 7 ? handleSubmitQuestionnaire : handleNextPage}
-                isSubmitting={isSubmitting}
-              />
-            </form>
-          </Form>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <Form {...form}>
+              <form>
+                <UniversityQuestionnaire 
+                  form={form}
+                  page={page}
+                  onPrevious={handlePreviousPage}
+                  onSubmit={page === totalPages ? handleSubmitQuestionnaire : handleNextPage}
+                  isSubmitting={isSubmitting}
+                />
+              </form>
+            </Form>
+          </div>
         </div>
       </div>
     </Layout>
