@@ -28,7 +28,7 @@ const WorkerQuestionnaire: React.FC<WorkerQuestionnaireProps> = ({
       case 1:
         return (
           <div className="space-y-6">
-            <EducationBackground form={form} includeEducationProgram={true} />
+            <EducationBackground form={form} />
             <NavigationButtons 
               page={page} 
               onPrevious={onPrevious} 

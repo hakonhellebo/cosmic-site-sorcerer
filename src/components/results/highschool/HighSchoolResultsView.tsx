@@ -4,6 +4,7 @@ import ResultCard from '../ResultCard';
 import DimensionRanking from '../DimensionRanking';
 import HighSchoolIntro from './HighSchoolIntro';
 import RecommendedEducation from './RecommendedEducation';
+import CareerOpportunities from './CareerOpportunities';
 import { calculateHighSchoolDimensions } from '@/utils/dimensionCalculator';
 import { matchEducationPrograms } from '@/utils/educationData';
 import { 
@@ -182,6 +183,13 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
         nextSteps={nextSteps}
         showAllRecommendations={true}
       />
+      
+      {/* Career Opportunities based on education recommendations */}
+      <CareerOpportunities 
+        recommendations={educationRecommendations}
+        showAllOpportunities={true}
+      />
     </div>
   );
 };
+
