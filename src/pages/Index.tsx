@@ -8,7 +8,7 @@ import HowItWorks from '@/components/HowItWorks';
 import Testimonials from '@/components/Testimonials';
 import { Button } from '@/components/ui/button';
 import { toast } from "sonner";
-import { GraduationCap, BookOpen, Briefcase } from "lucide-react";
+import { GraduationCap, BookOpen, Briefcase, ArrowRight } from "lucide-react";
 
 const Index: React.FC = () => {
   
@@ -115,6 +115,59 @@ const Index: React.FC = () => {
   return (
     <Layout>
       <Hero />
+      
+      {/* Direct Questionnaire Access Buttons */}
+      <div className="container mx-auto my-12 px-4">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold mb-2">Kom i gang med din karrierereise</h2>
+          <p className="text-muted-foreground">Gå direkte til spørreskjemaet som passer din situasjon</p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <div className="bg-card border rounded-lg p-6 hover:shadow-md transition-all duration-200 flex flex-col">
+            <div className="flex items-center gap-2 mb-3">
+              <BookOpen className="h-6 w-6 text-primary" />
+              <h3 className="font-semibold text-lg">Elev</h3>
+            </div>
+            <p className="text-muted-foreground mb-6 flex-grow">For elever i videregående skole som ønsker veiledning om fremtidige utdannings- og karrierevalg</p>
+            <Link to="/high-school-questionnaire" className="w-full">
+              <Button className="w-full flex items-center justify-between">
+                Til spørreskjema
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </Link>
+          </div>
+          
+          <div className="bg-card border rounded-lg p-6 hover:shadow-md transition-all duration-200 flex flex-col">
+            <div className="flex items-center gap-2 mb-3">
+              <GraduationCap className="h-6 w-6 text-primary" />
+              <h3 className="font-semibold text-lg">Student</h3>
+            </div>
+            <p className="text-muted-foreground mb-6 flex-grow">For studenter ved universitet eller høyskole som ønsker karriereveiledning basert på studier</p>
+            <Link to="/university-questionnaire" className="w-full">
+              <Button className="w-full flex items-center justify-between">
+                Til spørreskjema
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </Link>
+          </div>
+          
+          <div className="bg-card border rounded-lg p-6 hover:shadow-md transition-all duration-200 flex flex-col">
+            <div className="flex items-center gap-2 mb-3">
+              <Briefcase className="h-6 w-6 text-primary" />
+              <h3 className="font-semibold text-lg">Yrkesaktiv</h3>
+            </div>
+            <p className="text-muted-foreground mb-6 flex-grow">For deg som er i arbeidslivet og ønsker veiledning om videre karriereutvikling</p>
+            <Link to="/worker-questionnaire" className="w-full">
+              <Button className="w-full flex items-center justify-between">
+                Til spørreskjema
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+      
       <Features />
       <div className="container mx-auto my-8 px-4">
         <div className="bg-muted/50 p-6 rounded-lg">
