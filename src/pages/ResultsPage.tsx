@@ -15,6 +15,7 @@ const ResultsPage: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   
   useEffect(() => {
+    console.log("ResultsPage: Loading user data");
     // Check if user is logged in
     const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
@@ -33,10 +34,13 @@ const ResultsPage: React.FC = () => {
         if (parsedData.questionnaire) {
           if (parsedData.questionnaire.highSchool) {
             setUserType('highSchool');
+            console.log("User type set to highSchool based on questionnaire data");
           } else if (parsedData.questionnaire.university) {
             setUserType('university');
+            console.log("User type set to university based on questionnaire data");
           } else if (parsedData.questionnaire.worker) {
             setUserType('worker');
+            console.log("User type set to worker based on questionnaire data");
           }
         }
         
@@ -49,6 +53,7 @@ const ResultsPage: React.FC = () => {
     
     if (savedFullData) {
       const parsedData = JSON.parse(savedFullData);
+      console.log("Loading general user data:", parsedData);
       setUserData(parsedData);
       
       // If user is logged in, save this data to their profile
@@ -60,10 +65,13 @@ const ResultsPage: React.FC = () => {
       if (parsedData.questionnaire) {
         if (parsedData.questionnaire.highSchool) {
           setUserType('highSchool');
+          console.log("User type set to highSchool based on questionnaire data");
         } else if (parsedData.questionnaire.university) {
           setUserType('university');
+          console.log("User type set to university based on questionnaire data");
         } else if (parsedData.questionnaire.worker) {
           setUserType('worker');
+          console.log("User type set to worker based on questionnaire data");
         }
       }
     } else {
