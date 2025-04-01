@@ -22,6 +22,7 @@ const Navigation: React.FC = () => {
 
   const navItems = [
     { name: 'Hjem', href: '/' },
+    { name: 'Statistikk', href: '/statistikk' },
     { name: 'Hvordan det fungerer', href: '#how-it-works' },
     { name: 'Fordeler', href: '#features' },
     { name: 'Tilbakemeldinger', href: '#testimonials' },
@@ -125,7 +126,7 @@ const Navigation: React.FC = () => {
           <ul className="flex space-x-8">
             {navItems.map((item) => (
               <li key={item.name}>
-                {item.name === 'Hjem' ? (
+                {item.href.startsWith('/') ? (
                   <Link 
                     to={item.href} 
                     className="link-hover text-sm font-medium"
@@ -207,7 +208,7 @@ const Navigation: React.FC = () => {
               <ul className="flex flex-col space-y-4">
                 {navItems.map((item) => (
                   <li key={item.name}>
-                    {item.name === 'Hjem' ? (
+                    {item.href.startsWith('/') ? (
                       <Link 
                         to={item.href} 
                         className="block py-2 text-sm font-medium"
