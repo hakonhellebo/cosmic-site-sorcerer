@@ -16,7 +16,7 @@ const WorkReadiness = ({
       <FormField control={form.control} name="highSchool.workIndependently" render={({
       field
     }) => <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">18. Hvordan vil du vurdere din egen evne til å jobbe selvstendig?</FormLabel>
+            <FormLabel className="text-base font-medium">17. Hvordan vil du vurdere din egen evne til å jobbe selvstendig?</FormLabel>
             <FormControl>
               <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
@@ -52,7 +52,7 @@ const WorkReadiness = ({
       <FormField control={form.control} name="highSchool.preparedness" render={({
       field
     }) => <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">19. Hvor godt forberedt føler du deg på videre utdanning eller arbeid?</FormLabel>
+            <FormLabel className="text-base font-medium">18. Hvor godt forberedt føler du deg på videre utdanning eller arbeid?</FormLabel>
             <FormControl>
               <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
@@ -88,7 +88,7 @@ const WorkReadiness = ({
       <FormField control={form.control} name="highSchool.collaboration" render={({
       field
     }) => <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">20. Hvor ofte samarbeider du med andre på skolen?</FormLabel>
+            <FormLabel className="text-base font-medium">19. Hvor ofte samarbeider du med andre på skolen?</FormLabel>
             <FormControl>
               <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
@@ -165,7 +165,7 @@ const WorkReadiness = ({
       {/* Missing Skills */}
       <div className="space-y-4">
         <FormField control={form.control} name="highSchool.missingSkills" render={() => <FormItem>
-              <FormLabel className="text-base font-medium">22. Hvilke ferdigheter føler du at du mangler for å lykkes på videregående eller i arbeidslivet? (Velg opptil 2)</FormLabel>
+              <FormLabel className="text-base font-medium">21. Hvilke ferdigheter føler du at du mangler for å lykkes på videregående eller i arbeidslivet? (Velg opptil 2)</FormLabel>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
                 {[{
             id: "problemSolving",
@@ -207,7 +207,7 @@ const WorkReadiness = ({
       <FormField control={form.control} name="highSchool.studyTime" render={({
       field
     }) => <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">23. Hvor mye tid bruker du på skolearbeid utenom skoletiden?</FormLabel>
+            <FormLabel className="text-base font-medium">22. Hvor mye tid bruker du på skolearbeid utenom skoletiden?</FormLabel>
             <FormControl>
               <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
@@ -243,7 +243,7 @@ const WorkReadiness = ({
       <FormField control={form.control} name="highSchool.workExperience" render={({
       field
     }) => <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">24. Har du hatt praksis eller arbeidserfaring gjennom skolen?</FormLabel>
+            <FormLabel className="text-base font-medium">23. Har du hatt praksis eller arbeidserfaring gjennom skolen?</FormLabel>
             <FormControl>
               <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
@@ -267,7 +267,7 @@ const WorkReadiness = ({
       <FormField control={form.control} name="highSchool.workExperienceValue" render={({
       field
     }) => <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">25. Hvis du har hatt praksis eller arbeidserfaring – hvor nyttig var det for deg?</FormLabel>
+            <FormLabel className="text-base font-medium">24. Hvis du har hatt praksis eller arbeidserfaring – hvor nyttig var det for deg?</FormLabel>
             <FormControl>
               <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
