@@ -196,6 +196,42 @@ const DEFAULT_CAREER_DATA: Record<string, CareerField> = {
       { name: "Friskis&Svettis", website: "https://www.friskissvettis.no" }
     ],
     match: "Fysioterapi passer godt med din interesse for helse og praktisk arbeid med mennesker."
+  },
+  "Finans": {
+    educationProgram: "Finans",
+    jobs: [
+      { title: "Finansanalytiker", description: "Analyserer økonomiske data og markedstrender for å gi investeringsråd." },
+      { title: "Økonomikonsulent", description: "Gir råd om økonomiske spørsmål og finansiell planlegging." },
+      { title: "Investeringsrådgiver", description: "Veileder kunder om investeringsmuligheter og risikostyring." },
+      { title: "Fondsforvalter", description: "Forvalter investeringsfond og tar beslutninger om kjøp og salg av verdipapirer." },
+      { title: "Risikokonsulent", description: "Analyserer finansiell risiko og utvikler strategier for risikostyring." }
+    ],
+    companies: [
+      { name: "DNB", website: "https://www.dnb.no" },
+      { name: "ABG Sundal Collier", website: "https://www.abgsc.com" },
+      { name: "Pareto Securities", website: "https://www.paretosec.com" },
+      { name: "Carnegie", website: "https://www.carnegie.no" },
+      { name: "Nordea Asset Management", website: "https://www.nordea.no/asset-management" }
+    ],
+    match: "Finansutdanning er ideell for din interesse for økonomiske analyser og finansmarkeder."
+  },
+  "Regnskap og revisjon": {
+    educationProgram: "Regnskap og revisjon",
+    jobs: [
+      { title: "Revisor", description: "Kontrollerer og godkjenner regnskapene til bedrifter og organisasjoner." },
+      { title: "Regnskapsrådgiver", description: "Gir råd om regnskapsføring og økonomistyring." },
+      { title: "Regnskapssjef", description: "Leder regnskapsavdelingen i en bedrift." },
+      { title: "Skatterådgiver", description: "Gir råd om skattemessige forhold for bedrifter og privatpersoner." },
+      { title: "Compliance-ansvarlig", description: "Sikrer at bedriften overholder lover og regler innen regnskap og finans." }
+    ],
+    companies: [
+      { name: "Deloitte", website: "https://www2.deloitte.com/no/" },
+      { name: "EY", website: "https://www.ey.com/no_no" },
+      { name: "PwC", website: "https://www.pwc.no" },
+      { name: "KPMG", website: "https://home.kpmg/no/nb/home.html" },
+      { name: "BDO", website: "https://www.bdo.no" }
+    ],
+    match: "Regnskap og revisjon passer for din nøyaktighet og analytiske tilnærming til tall og systemer."
   }
 };
 
@@ -205,15 +241,55 @@ export function getCareerRecommendations(educationPrograms: string[]): CareerFie
   }
 
   return educationPrograms.map(program => {
-    const matchingProgram = Object.keys(DEFAULT_CAREER_DATA).find(key => 
-      program.toLowerCase().includes(key.toLowerCase())
-    );
-
-    if (matchingProgram) {
-      return DEFAULT_CAREER_DATA[matchingProgram];
+    // Check for exact match first with name normalization
+    const normalizedProgram = program.toLowerCase().trim();
+    
+    // Check for special cases that need direct mapping
+    if (normalizedProgram.includes("finans") || normalizedProgram.includes("finansiell")) {
+      return DEFAULT_CAREER_DATA["Finans"];
+    }
+    
+    if (normalizedProgram.includes("regnskap") && normalizedProgram.includes("revisjon")) {
+      return DEFAULT_CAREER_DATA["Regnskap og revisjon"];
     }
 
-    // If no exact match, return a generic recommendation with 5 jobs and 5 companies
+    // Then check for partial matches in the dictionary keys
+    for (const key of Object.keys(DEFAULT_CAREER_DATA)) {
+      if (normalizedProgram.includes(key.toLowerCase())) {
+        return DEFAULT_CAREER_DATA[key];
+      }
+    }
+
+    // If no exact match, try to find the closest match based on keywords
+    const keywordMatches: Record<string, number> = {
+      "Medisin": normalizedProgram.includes("medisin") || normalizedProgram.includes("helse") ? 1 : 0,
+      "Psykologi": normalizedProgram.includes("psykolog") || normalizedProgram.includes("terapi") ? 1 : 0,
+      "Økonomi og administrasjon": normalizedProgram.includes("økonom") || normalizedProgram.includes("administrasjon") ? 1 : 0,
+      "Informatikk": normalizedProgram.includes("data") || normalizedProgram.includes("it") || normalizedProgram.includes("teknolog") ? 1 : 0,
+      "Ingeniør": normalizedProgram.includes("ingeniør") || normalizedProgram.includes("bygg") ? 1 : 0,
+      "Journalistikk": normalizedProgram.includes("journalistikk") || normalizedProgram.includes("media") ? 1 : 0,
+      "Fornybar energi": normalizedProgram.includes("energi") || normalizedProgram.includes("miljø") ? 1 : 0,
+      "Økonomi og ledelse": normalizedProgram.includes("leder") || normalizedProgram.includes("organisasjon") ? 1 : 0,
+      "Kunst og design": normalizedProgram.includes("kunst") || normalizedProgram.includes("design") ? 1 : 0,
+      "Fysioterapi": normalizedProgram.includes("fysio") || normalizedProgram.includes("terapi") ? 1 : 0
+    };
+
+    // Find the key with the highest match score
+    let bestMatch: string | null = null;
+    let highestScore = 0;
+    
+    Object.entries(keywordMatches).forEach(([key, score]) => {
+      if (score > highestScore) {
+        highestScore = score;
+        bestMatch = key;
+      }
+    });
+
+    if (bestMatch && highestScore > 0) {
+      return DEFAULT_CAREER_DATA[bestMatch];
+    }
+
+    // If no specific match, return a generic recommendation with the correct program name
     return {
       educationProgram: program,
       jobs: [

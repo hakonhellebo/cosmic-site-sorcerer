@@ -76,7 +76,7 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
               <div>
                 <h4 className="text-lg font-semibold mb-4">Stillinger</h4>
                 <Accordion type="multiple" className="w-full">
-                  {field.jobs.map((job, idx) => (
+                  {field.jobs.slice(0, 5).map((job, idx) => (
                     <AccordionItem key={idx} value={`job-${idx}`}>
                       <AccordionTrigger className="text-base font-medium hover:no-underline">
                         {job.title}
@@ -92,7 +92,7 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
               <div>
                 <h4 className="text-lg font-semibold mb-4">Relevante bedrifter</h4>
                 <ul className="space-y-3">
-                  {field.companies.map((company, idx) => (
+                  {field.companies.slice(0, 5).map((company, idx) => (
                     <li key={idx} className="flex items-center justify-between border-b pb-2">
                       <span>{company.name}</span>
                       <a 

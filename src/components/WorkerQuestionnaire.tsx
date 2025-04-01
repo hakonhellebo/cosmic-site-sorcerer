@@ -62,7 +62,7 @@ const WorkerQuestionnaire: React.FC<WorkerQuestionnaireProps> = ({
               onPrevious={onPrevious} 
               onSubmit={onSubmit} 
               isSubmitting={isSubmitting}
-              isLastPage={true}
+              isLastPage={false}
             />
           </div>
         );
