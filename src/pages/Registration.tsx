@@ -17,10 +17,13 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Eye, EyeOff } from "lucide-react";
 
 type FormData = {
   name: string;
   email: string;
+  password: string;
+  confirmPassword: string;
   terms: boolean;
   userType: 'high-school' | 'university' | 'worker' | '';
 };
@@ -28,26 +31,74 @@ type FormData = {
 const Registration: React.FC = () => {
   const navigate = useNavigate();
   const [userType, setUserType] = useState<'high-school' | 'university' | 'worker' | ''>('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const form = useForm<FormData>({
     defaultValues: {
       name: '',
       email: '',
+      password: '',
+      confirmPassword: '',
       terms: false,
       userType: '',
     },
   });
 
   const onSubmit = (data: FormData) => {
+    // Validate passwords match
+    if (data.password !== data.confirmPassword) {
+      toast.error("Passordene samsvarer ikke");
+      return;
+    }
+
     console.log(data);
+    
+    // Save user data in localStorage with password for authentication
+    const users = JSON.parse(localStorage.getItem('edpath_users') || '[]');
+    const existingUser = users.find((user: any) => user.email === data.email);
+    
+    if (existingUser) {
+      toast.error("En bruker med denne e-postadressen eksisterer allerede");
+      return;
+    }
+    
+    // Create the new user with firstName derived from name
+    const nameParts = data.name.split(' ');
+    const firstName = nameParts[0];
+    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+    
+    const newUser = {
+      id: Date.now().toString(),
+      email: data.email,
+      password: data.password, // In a real app, this should be hashed
+      firstName,
+      lastName,
+      userType: data.userType,
+      createdAt: new Date().toISOString(),
+    };
+    
+    users.push(newUser);
+    localStorage.setItem('edpath_users', JSON.stringify(users));
+    
+    // Store current user session
+    localStorage.setItem('currentUser', JSON.stringify(newUser));
+    
+    // Create basic userData for questionnaires
+    const userData = {
+      email: data.email,
+      firstName,
+      lastName,
+      userType: data.userType,
+    };
+    
+    localStorage.setItem('userData', JSON.stringify(userData));
+    
     toast.success("Registrering fullført!", {
       description: "Takk for din registrering. Vi vil nå stille deg noen spørsmål."
     });
     
-    // Lagre brukerdata i localStorage for å kunne bruke det i spørreskjemaene
-    localStorage.setItem('userData', JSON.stringify(data));
-    
-    // Navigere til riktig spørreskjema basert på brukertypen
+    // Navigate to the appropriate questionnaire based on user type
     if (data.userType === 'university') {
       navigate('/university-questionnaire');
     } else if (data.userType === 'high-school') {
@@ -62,6 +113,14 @@ const Registration: React.FC = () => {
   const handleUserTypeChange = (value: 'high-school' | 'university' | 'worker') => {
     setUserType(value);
     form.setValue('userType', value);
+  };
+
+  const toggleShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const toggleShowConfirmPassword = () => {
+    setShowConfirmPassword(!showConfirmPassword);
   };
 
   return (
@@ -99,6 +158,67 @@ const Registration: React.FC = () => {
                     <FormLabel>E-post</FormLabel>
                     <FormControl>
                       <Input type="email" placeholder="din.epost@example.com" required {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Passord</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input 
+                          type={showPassword ? "text" : "password"} 
+                          placeholder="Velg et passord" 
+                          required
+                          minLength={6}
+                          {...field} 
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 py-2"
+                          onClick={toggleShowPassword}
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Bekreft passord</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input 
+                          type={showConfirmPassword ? "text" : "password"} 
+                          placeholder="Gjenta passord" 
+                          required
+                          {...field} 
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 py-2"
+                          onClick={toggleShowConfirmPassword}
+                        >
+                          {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -158,6 +278,19 @@ const Registration: React.FC = () => {
               <Button type="submit" className="w-full rounded-full">
                 Registrer deg
               </Button>
+              
+              <div className="text-center mt-4">
+                <p className="text-sm text-muted-foreground">
+                  Har du allerede en bruker? {" "}
+                  <button 
+                    type="button" 
+                    className="text-primary font-medium hover:underline"
+                    onClick={() => navigate("/login")}
+                  >
+                    Logg inn her
+                  </button>
+                </p>
+              </div>
             </form>
           </Form>
         </div>

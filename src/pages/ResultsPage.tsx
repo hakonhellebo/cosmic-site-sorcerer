@@ -12,14 +12,49 @@ const ResultsPage: React.FC = () => {
   const navigate = useNavigate();
   const [userData, setUserData] = useState<any>(null);
   const [userType, setUserType] = useState<'highSchool' | 'university' | 'worker' | undefined>(undefined);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   
   useEffect(() => {
-    // Get the full user data including questionnaire answers
+    // Check if user is logged in
+    const storedUser = localStorage.getItem('currentUser');
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      setCurrentUser(user);
+      
+      // Try to load user-specific data first
+      const userSpecificData = localStorage.getItem(`userFullData_${user.id}`);
+      
+      if (userSpecificData) {
+        const parsedData = JSON.parse(userSpecificData);
+        setUserData(parsedData);
+        localStorage.setItem('userFullData', userSpecificData);
+        
+        // Determine user type based on questionnaire data
+        if (parsedData.questionnaire) {
+          if (parsedData.questionnaire.highSchool) {
+            setUserType('highSchool');
+          } else if (parsedData.questionnaire.university) {
+            setUserType('university');
+          } else if (parsedData.questionnaire.worker) {
+            setUserType('worker');
+          }
+        }
+        
+        return;
+      }
+    }
+    
+    // Fall back to general userFullData if no user-specific data found
     const savedFullData = localStorage.getItem('userFullData');
     
     if (savedFullData) {
       const parsedData = JSON.parse(savedFullData);
       setUserData(parsedData);
+      
+      // If user is logged in, save this data to their profile
+      if (currentUser) {
+        localStorage.setItem(`userFullData_${currentUser.id}`, savedFullData);
+      }
       
       // Determine user type based on questionnaire data
       if (parsedData.questionnaire) {
@@ -36,7 +71,7 @@ const ResultsPage: React.FC = () => {
         description: "Tips: Du kan laste inn testdata fra hovedsiden"
       });
     }
-  }, [navigate]);
+  }, [navigate, currentUser]);
   
   if (!userData) {
     return (
