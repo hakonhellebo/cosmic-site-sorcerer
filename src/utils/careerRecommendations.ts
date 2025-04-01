@@ -1,3 +1,4 @@
+
 interface Company {
   name: string;
   website: string;
@@ -15,7 +16,8 @@ interface CareerField {
   match?: string;
 }
 
-const DEFAULT_CAREER_DATA: Record<string, CareerField> = {
+// Complete database of career opportunities per education program
+const CAREER_DATA: Record<string, CareerField> = {
   "Medisin": {
     educationProgram: "Medisin",
     jobs: [
@@ -106,24 +108,6 @@ const DEFAULT_CAREER_DATA: Record<string, CareerField> = {
     ],
     match: "Ingeniørstudier matcher din analytiske evne og interesse for praktisk problemløsning."
   },
-  "Journalistikk": {
-    educationProgram: "Journalistikk",
-    jobs: [
-      { title: "Journalist", description: "Undersøker og rapporterer nyheter for ulike medier." },
-      { title: "Redaktør", description: "Har ansvar for innholdet i mediepublikasjoner." },
-      { title: "Innholdsprodusent", description: "Skaper innhold for ulike kommunikasjonskanaler." },
-      { title: "Kommunikasjonsrådgiver", description: "Gir råd om kommunikasjonsstrategier og mediekontakt." },
-      { title: "Pressesekretær", description: "Håndterer mediekontakt for organisasjoner og offentlige personer." }
-    ],
-    companies: [
-      { name: "NRK", website: "https://www.nrk.no" },
-      { name: "TV 2", website: "https://www.tv2.no" },
-      { name: "Aftenposten", website: "https://www.aftenposten.no" },
-      { name: "VG", website: "https://www.vg.no" },
-      { name: "Schibsted", website: "https://schibsted.com" }
-    ],
-    match: "Journalistikk passer godt med din kommunikasjonsevne og samfunnsinteresse."
-  },
   "Fornybar energi": {
     educationProgram: "Fornybar energi, ingeniørutdanning",
     jobs: [
@@ -160,60 +144,6 @@ const DEFAULT_CAREER_DATA: Record<string, CareerField> = {
     ],
     match: "Denne utdanningen passer godt med din organisatoriske evne og interesse for forretningsutvikling."
   },
-  "Kunst og design": {
-    educationProgram: "Kunst og design - mote og produksjon",
-    jobs: [
-      { title: "Klesdesigner", description: "Designer klær og tilbehør for mote- og tekstilindustrien." },
-      { title: "Mønsterkonstruktør", description: "Utvikler mønstre og maler for produksjon av klesplagg." },
-      { title: "Produksjonsleder i tekstilbransjen", description: "Leder produksjonsprosesser i tekstil- og moteindustrien." },
-      { title: "Materialspesialist", description: "Arbeider med utvikling og testing av tekstiler og materialer." },
-      { title: "Produktutvikler innen moteindustrien", description: "Utvikler nye produktlinjer og konsepter for motebransjen." }
-    ],
-    companies: [
-      { name: "Høyer", website: "https://www.hoyer.no" },
-      { name: "Holzweiler", website: "https://holzweiler.no" },
-      { name: "Helly Hansen", website: "https://www.hellyhansen.com" },
-      { name: "Varner-Gruppen", website: "https://varner.com" },
-      { name: "Bergans", website: "https://www.bergans.com" }
-    ],
-    match: "Denne utdanningen passer godt med din kreative evne og interesse for design og estetikk."
-  },
-  "Fysioterapi": {
-    educationProgram: "Fysioterapi",
-    jobs: [
-      { title: "Fysioterapeut i primærhelsetjenesten", description: "Behandler pasienter med muskel- og skjelettplager i kommunal helsetjeneste." },
-      { title: "Fysioterapeut ved sykehus", description: "Jobber med rehabilitering og behandling av pasienter på sykehus." },
-      { title: "Idrettsfysioterapeut", description: "Spesialiserer seg på behandling og forebygging av idrettsskader." },
-      { title: "Barnefysioterapeut", description: "Arbeider med motorisk utvikling og behandling av barn." },
-      { title: "Privatpraktiserende fysioterapeut", description: "Driver egen praksis og behandler ulike pasientgrupper." }
-    ],
-    companies: [
-      { name: "Oslo kommune", website: "https://www.oslo.kommune.no" },
-      { name: "Helse Bergen", website: "https://helse-bergen.no" },
-      { name: "Oslo Universitetssykehus", website: "https://oslo-universitetssykehus.no" },
-      { name: "Olympiatoppen", website: "https://www.olympiatoppen.no" },
-      { name: "Friskis&Svettis", website: "https://www.friskissvettis.no" }
-    ],
-    match: "Fysioterapi passer godt med din interesse for helse og praktisk arbeid med mennesker."
-  },
-  "Finans": {
-    educationProgram: "Finans",
-    jobs: [
-      { title: "Finansanalytiker", description: "Analyserer økonomiske data og markedstrender for å gi investeringsråd." },
-      { title: "Økonomikonsulent", description: "Gir råd om økonomiske spørsmål og finansiell planlegging." },
-      { title: "Investeringsrådgiver", description: "Veileder kunder om investeringsmuligheter og risikostyring." },
-      { title: "Fondsforvalter", description: "Forvalter investeringsfond og tar beslutninger om kjøp og salg av verdipapirer." },
-      { title: "Risikokonsulent", description: "Analyserer finansiell risiko og utvikler strategier for risikostyring." }
-    ],
-    companies: [
-      { name: "DNB", website: "https://www.dnb.no" },
-      { name: "ABG Sundal Collier", website: "https://www.abgsc.com" },
-      { name: "Pareto Securities", website: "https://www.paretosec.com" },
-      { name: "Carnegie", website: "https://www.carnegie.no" },
-      { name: "Nordea Asset Management", website: "https://www.nordea.no/asset-management" }
-    ],
-    match: "Finansutdanning er ideell for din interesse for økonomiske analyser og finansmarkeder."
-  },
   "Regnskap og revisjon": {
     educationProgram: "Regnskap og revisjon",
     jobs: [
@@ -249,55 +179,165 @@ const DEFAULT_CAREER_DATA: Record<string, CareerField> = {
       { name: "Wallenius Wilhelmsen", website: "https://www.walleniuswilhelmsen.com/" }
     ],
     match: "Bachelor i shipping management er ideell for deg som er interessert i maritim næring og internasjonal handel."
+  },
+  "Finans": {
+    educationProgram: "Finans",
+    jobs: [
+      { title: "Finansanalytiker", description: "Analyserer økonomiske data og markedstrender for å gi investeringsråd." },
+      { title: "Økonomikonsulent", description: "Gir råd om økonomiske spørsmål og finansiell planlegging." },
+      { title: "Investeringsrådgiver", description: "Veileder kunder om investeringsmuligheter og risikostyring." },
+      { title: "Fondsforvalter", description: "Forvalter investeringsfond og tar beslutninger om kjøp og salg av verdipapirer." },
+      { title: "Risikokonsulent", description: "Analyserer finansiell risiko og utvikler strategier for risikostyring." }
+    ],
+    companies: [
+      { name: "DNB", website: "https://www.dnb.no" },
+      { name: "ABG Sundal Collier", website: "https://www.abgsc.com" },
+      { name: "Pareto Securities", website: "https://www.paretosec.com" },
+      { name: "Carnegie", website: "https://www.carnegie.no" },
+      { name: "Nordea Asset Management", website: "https://www.nordea.no/asset-management" }
+    ],
+    match: "Finansutdanning er ideell for din interesse for økonomiske analyser og finansmarkeder."
+  },
+  "Bachelor i finans": {
+    educationProgram: "Bachelor i finans",
+    jobs: [
+      { title: "Finansanalytiker", description: "Analyserer økonomiske data og markedstrender for å gi investeringsråd." },
+      { title: "Økonomikonsulent", description: "Gir råd om økonomiske spørsmål og finansiell planlegging." },
+      { title: "Investeringsrådgiver", description: "Veileder kunder om investeringsmuligheter og risikostyring." },
+      { title: "Fondsforvalter", description: "Forvalter investeringsfond og tar beslutninger om kjøp og salg av verdipapirer." },
+      { title: "Risikokonsulent", description: "Analyserer finansiell risiko og utvikler strategier for risikostyring." }
+    ],
+    companies: [
+      { name: "DNB", website: "https://www.dnb.no" },
+      { name: "ABG Sundal Collier", website: "https://www.abgsc.com" },
+      { name: "Pareto Securities", website: "https://www.paretosec.com" },
+      { name: "Carnegie", website: "https://www.carnegie.no" },
+      { name: "Nordea Asset Management", website: "https://www.nordea.no/asset-management" }
+    ],
+    match: "Bachelor i finans gir deg muligheter innen finansanalyse, rådgivning og forvaltning."
+  },
+  "Master i finans": {
+    educationProgram: "Master i finans",
+    jobs: [
+      { title: "Finansanalytiker", description: "Analyserer økonomiske data og markedstrender for å gi investeringsråd." },
+      { title: "Økonomikonsulent", description: "Gir råd om økonomiske spørsmål og finansiell planlegging." },
+      { title: "Investeringsrådgiver", description: "Veileder kunder om investeringsmuligheter og risikostyring." },
+      { title: "Fondsforvalter", description: "Forvalter investeringsfond og tar beslutninger om kjøp og salg av verdipapirer." },
+      { title: "Risikokonsulent", description: "Analyserer finansiell risiko og utvikler strategier for risikostyring." }
+    ],
+    companies: [
+      { name: "DNB", website: "https://www.dnb.no" },
+      { name: "ABG Sundal Collier", website: "https://www.abgsc.com" },
+      { name: "Pareto Securities", website: "https://www.paretosec.com" },
+      { name: "Carnegie", website: "https://www.carnegie.no" },
+      { name: "Nordea Asset Management", website: "https://www.nordea.no/asset-management" }
+    ],
+    match: "En master i finans åpner for karrieremuligheter innen avansert finansanalyse og ledelse."
+  },
+  "Odontologi": {
+    educationProgram: "Odontologi (tannlege)",
+    jobs: [
+      { title: "Allmennpraktiserende tannlege", description: "Utfører generell tannbehandling for pasienter i alle aldre." },
+      { title: "Spesialist i kjeveortopedi", description: "Arbeider med tannregulering og behandling av bittfeil." },
+      { title: "Oral kirurg", description: "Utfører kompliserte tannekstraksjoner og andre kirurgiske inngrep i munnhulen." },
+      { title: "Tannlege i offentlig helseklinikk", description: "Jobber med forebyggende tannhelse i offentlig sektor." },
+      { title: "Forsker innen odontologi", description: "Arbeider med forskningsprosjekter for å utvikle nye behandlingsmetoder." }
+    ],
+    companies: [
+      { name: "Tannhelsetjenesten Oslo", website: "https://www.oslo.kommune.no/tannhelse/" },
+      { name: "Unilabs Tannrøntgen", website: "https://unilabs.no" },
+      { name: "Universitetet i Bergen", website: "https://www.uib.no" },
+      { name: "Oslo Tannlegesenter", website: "https://oslotannlegesenter.no" },
+      { name: "Tannlegeforeningen", website: "https://www.tannlegeforeningen.no" }
+    ],
+    match: "Odontologi er perfekt for deg som er interessert i kombinasjonen av helsearbeid og presisjonshåndverk."
   }
 };
 
+// Helper function to clean and normalize a program name for comparison
+function normalizeProgram(program: string): string {
+  return program
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, ' ')
+    .replace(/[^\w\s]/g, '');
+}
+
+// Enhanced mapping function to better match education programs to career opportunities
 export function getCareerRecommendations(educationPrograms: string[]): CareerField[] {
   if (!educationPrograms || educationPrograms.length === 0) {
     return [];
   }
 
   return educationPrograms.map(program => {
-    const normalizedProgram = program.toLowerCase().trim();
+    const normalizedProgram = normalizeProgram(program);
     
-    if (normalizedProgram === "bachelor i shipping management") {
-      return DEFAULT_CAREER_DATA["Bachelor i shipping management"];
+    // Direct matches (exact program names)
+    if (CAREER_DATA["Bachelor i shipping management"] && 
+        normalizedProgram === normalizeProgram("Bachelor i shipping management")) {
+      return CAREER_DATA["Bachelor i shipping management"];
     }
     
-    if (normalizedProgram.includes("finans") || normalizedProgram.includes("finansiell")) {
-      return DEFAULT_CAREER_DATA["Finans"];
+    if (CAREER_DATA["Bachelor i finans"] && 
+        normalizedProgram === normalizeProgram("Bachelor i finans")) {
+      return CAREER_DATA["Bachelor i finans"];
+    }
+    
+    if (CAREER_DATA["Master i finans"] && 
+        normalizedProgram === normalizeProgram("Master i finans")) {
+      return CAREER_DATA["Master i finans"];
+    }
+
+    // Keyword-based matches for specific fields
+    if (normalizedProgram.includes("finans") && !normalizedProgram.includes("shipping")) {
+      return CAREER_DATA["Finans"];
     }
     
     if (normalizedProgram.includes("regnskap") && normalizedProgram.includes("revisjon")) {
-      return DEFAULT_CAREER_DATA["Regnskap og revisjon"];
+      return CAREER_DATA["Regnskap og revisjon"];
+    }
+    
+    if (normalizedProgram.includes("odontologi") || normalizedProgram.includes("tannlege")) {
+      return CAREER_DATA["Odontologi"];
     }
 
-    for (const key of Object.keys(DEFAULT_CAREER_DATA)) {
-      if (normalizedProgram === key.toLowerCase()) {
-        return DEFAULT_CAREER_DATA[key];
+    if (normalizedProgram.includes("shipping") || normalizedProgram.includes("maritim")) {
+      return CAREER_DATA["Bachelor i shipping management"];
+    }
+
+    // General category matching based on keywords
+    for (const key of Object.keys(CAREER_DATA)) {
+      const normalizedKey = normalizeProgram(key);
+      if (normalizedProgram === normalizedKey) {
+        return CAREER_DATA[key];
       }
     }
     
-    for (const key of Object.keys(DEFAULT_CAREER_DATA)) {
-      if (normalizedProgram.includes(key.toLowerCase())) {
-        return DEFAULT_CAREER_DATA[key];
+    // Partial matches if no exact match found
+    for (const key of Object.keys(CAREER_DATA)) {
+      const normalizedKey = normalizeProgram(key);
+      if (normalizedProgram.includes(normalizedKey)) {
+        return CAREER_DATA[key];
       }
     }
 
+    // Keyword matching if no direct matches are found
     const keywordMatches: Record<string, number> = {
       "Medisin": normalizedProgram.includes("medisin") || normalizedProgram.includes("helse") ? 1 : 0,
       "Psykologi": normalizedProgram.includes("psykolog") || normalizedProgram.includes("terapi") ? 1 : 0,
       "Økonomi og administrasjon": normalizedProgram.includes("økonom") || normalizedProgram.includes("administrasjon") ? 1 : 0,
       "Informatikk": normalizedProgram.includes("data") || normalizedProgram.includes("it") || normalizedProgram.includes("teknolog") ? 1 : 0,
       "Ingeniør": normalizedProgram.includes("ingeniør") || normalizedProgram.includes("bygg") ? 1 : 0,
-      "Journalistikk": normalizedProgram.includes("journalistikk") || normalizedProgram.includes("media") ? 1 : 0,
       "Fornybar energi": normalizedProgram.includes("energi") || normalizedProgram.includes("miljø") ? 1 : 0,
       "Økonomi og ledelse": normalizedProgram.includes("leder") || normalizedProgram.includes("organisasjon") ? 1 : 0,
-      "Kunst og design": normalizedProgram.includes("kunst") || normalizedProgram.includes("design") ? 1 : 0,
-      "Fysioterapi": normalizedProgram.includes("fysio") || normalizedProgram.includes("terapi") ? 1 : 0,
-      "Bachelor i shipping management": normalizedProgram.includes("shipping") || normalizedProgram.includes("maritim") ? 1 : 0
+      "Bachelor i shipping management": normalizedProgram.includes("shipping") || normalizedProgram.includes("maritim") ? 1 : 0,
+      "Bachelor i finans": normalizedProgram.includes("finans") && normalizedProgram.includes("bachelor") ? 1 : 0,
+      "Master i finans": normalizedProgram.includes("finans") && normalizedProgram.includes("master") ? 1 : 0,
+      "Odontologi": normalizedProgram.includes("tann") || normalizedProgram.includes("odontologi") ? 1 : 0,
+      "Regnskap og revisjon": normalizedProgram.includes("regnskap") || normalizedProgram.includes("revisjon") ? 1 : 0
     };
 
+    // Find the best match based on keywords
     let bestMatch: string | null = null;
     let highestScore = 0;
     
@@ -309,9 +349,10 @@ export function getCareerRecommendations(educationPrograms: string[]): CareerFie
     });
 
     if (bestMatch && highestScore > 0) {
-      return DEFAULT_CAREER_DATA[bestMatch];
+      return CAREER_DATA[bestMatch];
     }
 
+    // Default generic field if no match found
     return {
       educationProgram: program,
       jobs: [
@@ -322,11 +363,11 @@ export function getCareerRecommendations(educationPrograms: string[]): CareerFie
         { title: "Faglærer", description: "Underviser andre i ditt spesialområde." }
       ],
       companies: [
-        { name: "FINN.no", website: "https://www.finn.no/job" },
-        { name: "NAV", website: "https://www.nav.no" },
-        { name: "Manpower", website: "https://www.manpower.no" },
-        { name: "Adecco", website: "https://www.adecco.no" },
-        { name: "Randstad", website: "https://www.randstad.no" }
+        { name: "Universiteter og høyskoler", website: "https://www.samordnaopptak.no" },
+        { name: "Forskningsinstitusjoner", website: "https://www.forskningsradet.no" },
+        { name: "Offentlige virksomheter", website: "https://www.nav.no" },
+        { name: "Konsulentselskaper", website: "https://www.finn.no/job" },
+        { name: "Bransjeorganisasjoner", website: "https://www.nho.no" }
       ],
       match: "Dette utdanningsprogrammet kan åpne for mange ulike karrieremuligheter."
     };
