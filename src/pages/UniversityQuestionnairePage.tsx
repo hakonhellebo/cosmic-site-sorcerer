@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import UniversityQuestionnaire from '@/components/UniversityQuestionnaire';
@@ -13,7 +14,7 @@ const UniversityQuestionnairePage: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [formProgress, setFormProgress] = useState<number>(0);
-  const totalPages = 8; // Updated to 8 pages
+  const totalPages = 8; // Total 8 pages
   
   const form = useForm({
     defaultValues: {
