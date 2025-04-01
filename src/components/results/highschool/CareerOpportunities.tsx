@@ -112,7 +112,7 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
             
             {tab.field.match && (
               <div className="mb-6 p-4 bg-muted/30 rounded-lg">
-                <p className="italic">{tab.field.match}</p>
+                <p className="italic">Disse karrieremulighetene passer godt for personer med {tab.originalTitle.toLowerCase()} og {tab.field.match.toLowerCase().replace("denne utdanningen passer godt med din", "").replace("denne utdanningen passer for din", "").trim()}. Se aktuelle stillinger og relevante bedrifter under.</p>
               </div>
             )}
             
