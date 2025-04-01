@@ -1,31 +1,24 @@
-
 import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-
-const WorkReadiness = ({ form }) => {
-  return (
-    <div className="space-y-6">
+const WorkReadiness = ({
+  form
+}) => {
+  return <div className="space-y-6">
       <h2 className="text-2xl font-bold">Arbeidsforberedelse og skolevaner</h2>
       <p className="text-muted-foreground mb-6">
         Fortell oss om dine vaner og din forberedelse til videre utdanning eller arbeid.
       </p>
 
       {/* Independent Work */}
-      <FormField
-        control={form.control}
-        name="highSchool.workIndependently"
-        render={({ field }) => (
-          <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">16. Hvordan vil du vurdere din egen evne til å jobbe selvstendig?</FormLabel>
+      <FormField control={form.control} name="highSchool.workIndependently" render={({
+      field
+    }) => <FormItem className="space-y-3">
+            <FormLabel className="text-base font-medium">18. Hvordan vil du vurdere din egen evne til å jobbe selvstendig?</FormLabel>
             <FormControl>
-              <RadioGroup
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                className="flex flex-col space-y-1"
-              >
+              <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
                   <FormControl>
                     <RadioGroupItem value="very-good" />
@@ -53,23 +46,15 @@ const WorkReadiness = ({ form }) => {
               </RadioGroup>
             </FormControl>
             <FormMessage />
-          </FormItem>
-        )}
-      />
+          </FormItem>} />
 
       {/* Education/work preparedness */}
-      <FormField
-        control={form.control}
-        name="highSchool.preparedness"
-        render={({ field }) => (
-          <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">17. Hvor godt forberedt føler du deg på videre utdanning eller arbeid?</FormLabel>
+      <FormField control={form.control} name="highSchool.preparedness" render={({
+      field
+    }) => <FormItem className="space-y-3">
+            <FormLabel className="text-base font-medium">19. Hvor godt forberedt føler du deg på videre utdanning eller arbeid?</FormLabel>
             <FormControl>
-              <RadioGroup
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                className="flex flex-col space-y-1"
-              >
+              <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
                   <FormControl>
                     <RadioGroupItem value="very-prepared" />
@@ -97,23 +82,15 @@ const WorkReadiness = ({ form }) => {
               </RadioGroup>
             </FormControl>
             <FormMessage />
-          </FormItem>
-        )}
-      />
+          </FormItem>} />
 
       {/* Collaboration Frequency */}
-      <FormField
-        control={form.control}
-        name="highSchool.collaboration"
-        render={({ field }) => (
-          <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">18. Hvor ofte samarbeider du med andre på skolen?</FormLabel>
+      <FormField control={form.control} name="highSchool.collaboration" render={({
+      field
+    }) => <FormItem className="space-y-3">
+            <FormLabel className="text-base font-medium">20. Hvor ofte samarbeider du med andre på skolen?</FormLabel>
             <FormControl>
-              <RadioGroup
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                className="flex flex-col space-y-1"
-              >
+              <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
                   <FormControl>
                     <RadioGroupItem value="daily" />
@@ -141,23 +118,15 @@ const WorkReadiness = ({ form }) => {
               </RadioGroup>
             </FormControl>
             <FormMessage />
-          </FormItem>
-        )}
-      />
+          </FormItem>} />
 
       {/* AI Usage */}
-      <FormField
-        control={form.control}
-        name="highSchool.aiUsage"
-        render={({ field }) => (
-          <FormItem className="space-y-3">
+      <FormField control={form.control} name="highSchool.aiUsage" render={({
+      field
+    }) => <FormItem className="space-y-3">
             <FormLabel className="text-base font-medium">19. Hvor ofte bruker du AI (f.eks. ChatGPT) i skolearbeidet?</FormLabel>
             <FormControl>
-              <RadioGroup
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                className="flex flex-col space-y-1"
-              >
+              <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
                   <FormControl>
                     <RadioGroupItem value="daily" />
@@ -191,69 +160,56 @@ const WorkReadiness = ({ form }) => {
               </RadioGroup>
             </FormControl>
             <FormMessage />
-          </FormItem>
-        )}
-      />
+          </FormItem>} />
 
       {/* Missing Skills */}
       <div className="space-y-4">
-        <FormField
-          control={form.control}
-          name="highSchool.missingSkills"
-          render={() => (
-            <FormItem>
-              <FormLabel className="text-base font-medium">
-                20. Hvilke ferdigheter føler du at du mangler for å lykkes på videregående eller i arbeidslivet? (Velg opptil 2)
-              </FormLabel>
+        <FormField control={form.control} name="highSchool.missingSkills" render={() => <FormItem>
+              <FormLabel className="text-base font-medium">22. Hvilke ferdigheter føler du at du mangler for å lykkes på videregående eller i arbeidslivet? (Velg opptil 2)</FormLabel>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
-                {[
-                  { id: "problemSolving", label: "Problemløsning" },
-                  { id: "criticalThinking", label: "Kritisk tenkning" },
-                  { id: "creativity", label: "Kreativitet" },
-                  { id: "communication", label: "Kommunikasjon" },
-                  { id: "technology", label: "Teknologiforståelse" },
-                  { id: "selfManagement", label: "Selvledelse" },
-                  { id: "unknown", label: "Jeg vet ikke" },
-                ].map((item) => (
-                  <FormField
-                    key={item.id}
-                    control={form.control}
-                    name={`highSchool.missingSkills.${item.id}`}
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                {[{
+            id: "problemSolving",
+            label: "Problemløsning"
+          }, {
+            id: "criticalThinking",
+            label: "Kritisk tenkning"
+          }, {
+            id: "creativity",
+            label: "Kreativitet"
+          }, {
+            id: "communication",
+            label: "Kommunikasjon"
+          }, {
+            id: "technology",
+            label: "Teknologiforståelse"
+          }, {
+            id: "selfManagement",
+            label: "Selvledelse"
+          }, {
+            id: "unknown",
+            label: "Jeg vet ikke"
+          }].map(item => <FormField key={item.id} control={form.control} name={`highSchool.missingSkills.${item.id}`} render={({
+            field
+          }) => <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                         <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                         </FormControl>
                         <FormLabel className="font-normal">
                           {item.label}
                         </FormLabel>
-                      </FormItem>
-                    )}
-                  />
-                ))}
+                      </FormItem>} />)}
               </div>
               <FormMessage />
-            </FormItem>
-          )}
-        />
+            </FormItem>} />
       </div>
 
       {/* Study Time */}
-      <FormField
-        control={form.control}
-        name="highSchool.studyTime"
-        render={({ field }) => (
-          <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">21. Hvor mye tid bruker du på skolearbeid utenom skoletiden?</FormLabel>
+      <FormField control={form.control} name="highSchool.studyTime" render={({
+      field
+    }) => <FormItem className="space-y-3">
+            <FormLabel className="text-base font-medium">23. Hvor mye tid bruker du på skolearbeid utenom skoletiden?</FormLabel>
             <FormControl>
-              <RadioGroup
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                className="flex flex-col space-y-1"
-              >
+              <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
                   <FormControl>
                     <RadioGroupItem value="more-than-10" />
@@ -281,23 +237,15 @@ const WorkReadiness = ({ form }) => {
               </RadioGroup>
             </FormControl>
             <FormMessage />
-          </FormItem>
-        )}
-      />
+          </FormItem>} />
 
       {/* Work Experience */}
-      <FormField
-        control={form.control}
-        name="highSchool.workExperience"
-        render={({ field }) => (
-          <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">22. Har du hatt praksis eller arbeidserfaring gjennom skolen?</FormLabel>
+      <FormField control={form.control} name="highSchool.workExperience" render={({
+      field
+    }) => <FormItem className="space-y-3">
+            <FormLabel className="text-base font-medium">24. Har du hatt praksis eller arbeidserfaring gjennom skolen?</FormLabel>
             <FormControl>
-              <RadioGroup
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                className="flex flex-col space-y-1"
-              >
+              <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
                   <FormControl>
                     <RadioGroupItem value="yes" />
@@ -313,23 +261,15 @@ const WorkReadiness = ({ form }) => {
               </RadioGroup>
             </FormControl>
             <FormMessage />
-          </FormItem>
-        )}
-      />
+          </FormItem>} />
 
       {/* Work Experience Value */}
-      <FormField
-        control={form.control}
-        name="highSchool.workExperienceValue"
-        render={({ field }) => (
-          <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">23. Hvis du har hatt praksis eller arbeidserfaring – hvor nyttig var det for deg?</FormLabel>
+      <FormField control={form.control} name="highSchool.workExperienceValue" render={({
+      field
+    }) => <FormItem className="space-y-3">
+            <FormLabel className="text-base font-medium">25. Hvis du har hatt praksis eller arbeidserfaring – hvor nyttig var det for deg?</FormLabel>
             <FormControl>
-              <RadioGroup
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                className="flex flex-col space-y-1"
-              >
+              <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
                   <FormControl>
                     <RadioGroupItem value="very-useful" />
@@ -363,11 +303,7 @@ const WorkReadiness = ({ form }) => {
               </RadioGroup>
             </FormControl>
             <FormMessage />
-          </FormItem>
-        )}
-      />
-    </div>
-  );
+          </FormItem>} />
+    </div>;
 };
-
 export default WorkReadiness;
