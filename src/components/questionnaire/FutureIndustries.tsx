@@ -15,7 +15,7 @@ const FutureIndustries = ({
       {/* Interesting Industries */}
       <div className="space-y-4">
         <FormField control={form.control} name="highSchool.interestingIndustries" render={() => <FormItem>
-              <FormLabel className="text-base font-medium">24. Hvilke bransjer synes du virker mest spennende? (Velg opptil 3)</FormLabel>
+              <FormLabel className="text-base font-medium">25. Hvilke bransjer synes du virker mest spennende? (Velg opptil 3)</FormLabel>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
                 {[{
             id: "technology",
@@ -65,7 +65,7 @@ const FutureIndustries = ({
       {/* Desired Roles */}
       <div className="space-y-4">
         <FormField control={form.control} name="highSchool.desiredRoles" render={() => <FormItem>
-              <FormLabel className="text-base font-medium">25. Hvilke av disse jobbrollene kunne du sett for deg? (Velg opptil 3)</FormLabel>
+              <FormLabel className="text-base font-medium">26 Hvilke av disse jobbrollene kunne du sett for deg? (Velg opptil 3)</FormLabel>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
                 {[{
             id: "leader",
@@ -113,7 +113,7 @@ const FutureIndustries = ({
       <FormField control={form.control} name="highSchool.salaryImportance" render={({
       field
     }) => <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">26. Hvor viktig er det for deg å tjene godt?</FormLabel>
+            <FormLabel className="text-base font-medium">27. Hvor viktig er det for deg å tjene godt?</FormLabel>
             <FormControl>
               <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
@@ -149,7 +149,7 @@ const FutureIndustries = ({
       <FormField control={form.control} name="highSchool.socialImpactImportance" render={({
       field
     }) => <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">27. Hvor viktig er det for deg å gjøre en positiv forskjell i samfunnet?</FormLabel>
+            <FormLabel className="text-base font-medium">28. Hvor viktig er det for deg å gjøre en positiv forskjell i samfunnet?</FormLabel>
             <FormControl>
               <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
@@ -184,7 +184,7 @@ const FutureIndustries = ({
       {/* Work Environment Preferences */}
       <div className="space-y-4">
         <FormField control={form.control} name="highSchool.workEnvironmentPreferences" render={() => <FormItem>
-              <FormLabel className="text-base font-medium">28. Hva er viktigst for deg i et arbeidsmiljø? (Velg opptil 2)</FormLabel>
+              <FormLabel className="text-base font-medium">29. Hva er viktigst for deg i et arbeidsmiljø? (Velg opptil 2)</FormLabel>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
                 {[{
             id: "flexibility",
@@ -223,7 +223,7 @@ const FutureIndustries = ({
       <FormField control={form.control} name="highSchool.futureWorkVision" render={({
       field
     }) => <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">29. Hvordan ser du for deg arbeidshverdagen din om 10 år?</FormLabel>
+            <FormLabel className="text-base font-medium">30. Hvordan ser du for deg arbeidshverdagen din om 10 år?</FormLabel>
             <FormControl>
               <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
