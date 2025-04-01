@@ -5,6 +5,8 @@ import { getFormattedValue } from '@/utils/resultFormatters';
 import { Badge } from "@/components/ui/badge";
 import { Check, Briefcase } from "lucide-react";
 import DimensionRanking from './DimensionRanking';
+import CareerOpportunities from './worker/CareerOpportunities';
+import { getCareerRecommendations } from '@/utils/careerRecommendations';
 
 interface WorkerResultsViewProps {
   userData: any;
@@ -24,6 +26,14 @@ export const WorkerResultsView: React.FC<WorkerResultsViewProps> = ({ userData }
   const skills = Object.keys(workerData.skills || {})
     .filter(key => workerData.skills[key]);
   
+  // Get education data if available
+  const educationPrograms = workerData.educationBackground ? 
+    [workerData.educationBackground] : 
+    ["Økonomi og administrasjon"]; // Default if no education data is available
+  
+  // Get career recommendations based on education
+  const careerRecommendations = getCareerRecommendations(educationPrograms);
+  
   // Create worker info cards
   const workerInfoCards = [
     {
@@ -32,7 +42,8 @@ export const WorkerResultsView: React.FC<WorkerResultsViewProps> = ({ userData }
       items: [
         { label: "Nåværende stilling", value: workerData.currentRole },
         { label: "Bransje", value: workerData.industry },
-        { label: "Erfaring", value: workerData.experience + " år" }
+        { label: "Erfaring", value: workerData.experience + " år" },
+        { label: "Utdanningsbakgrunn", value: workerData.educationBackground || "Ikke spesifisert" }
       ]
     },
     {
@@ -138,6 +149,9 @@ export const WorkerResultsView: React.FC<WorkerResultsViewProps> = ({ userData }
           }
         ]}
       />
+      
+      {/* Career Opportunities - NEW SECTION */}
+      <CareerOpportunities careerFields={careerRecommendations} />
       
       {/* Development opportunities */}
       <div className="animate-fade-up">
