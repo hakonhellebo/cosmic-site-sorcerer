@@ -1,5 +1,6 @@
 
 import React, { useMemo } from 'react';
+import { Check } from 'lucide-react';
 import ResultCard from '../ResultCard';
 import DimensionRanking from '../DimensionRanking';
 import HighSchoolIntro from './HighSchoolIntro';
@@ -177,11 +178,11 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
         />
       ))}
       
-      {/* Initial recommended education options (top 3) */}
+      {/* All recommended education options in a single section */}
       <RecommendedEducation 
-        recommendations={educationRecommendations.slice(0, 3)} 
+        recommendations={educationRecommendations} 
         nextSteps={[]}
-        showAllRecommendations={false}
+        showAllRecommendations={true}
       />
       
       {/* Career Opportunities based on education recommendations */}
@@ -190,13 +191,18 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
         showAllOpportunities={true}
       />
       
-      {/* Show more education options and next steps */}
-      <RecommendedEducation 
-        recommendations={educationRecommendations.slice(3)} 
-        nextSteps={nextSteps}
-        showAllRecommendations={true}
-        hideTitle={false}
-      />
+      {/* Next steps - only shown at the bottom */}
+      <div className="bg-muted/10 p-6 rounded-lg border">
+        <h3 className="text-xl font-semibold mb-4">Neste steg</h3>
+        <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          {nextSteps.map((step, idx) => (
+            <li key={idx} className="flex items-start">
+              <Check className="h-5 w-5 mr-2 mt-0.5 text-primary flex-shrink-0" />
+              <span>{step}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 };
