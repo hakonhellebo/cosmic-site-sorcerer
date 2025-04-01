@@ -32,6 +32,41 @@ interface CareerOpportunitiesProps {
   showAllOpportunities?: boolean;
 }
 
+// Helper function to simplify education program titles
+const simplifyProgramTitle = (title: string): string => {
+  // Special cases
+  if (title.includes("finans")) return "Finans";
+  if (title.includes("shipping management")) return "Shipping";
+  if (title.includes("økonomi og administrasjon") || title.includes("Økonomi og administrasjon")) return "Økonomi";
+  if (title.includes("matematikk")) return "Matematikk";
+  if (title.includes("ingeniør")) return "Ingeniør";
+  if (title.includes("medisin")) return "Medisin";
+  if (title.includes("informatikk")) return "Informatikk";
+  if (title.includes("psykologi")) return "Psykologi";
+  if (title.includes("jus") || title.includes("rettsvitenskap")) return "Jus";
+  if (title.includes("fornybar energi")) return "Energi";
+  if (title.includes("odontologi")) return "Odontologi";
+  if (title.includes("regnskap og revisjon")) return "Regnskap";
+  if (title.includes("kunstig intelligens")) return "AI";
+  
+  // Generic fallbacks
+  if (title.includes("Bachelor i")) {
+    return title.replace("Bachelor i", "").trim();
+  }
+  if (title.includes("Master i")) {
+    return title.replace("Master i", "").trim();
+  }
+  
+  // For other cases, take the first part of the title until a space or dash
+  const firstWord = title.split(/[\s-]/)[0];
+  if (firstWord.length > 3) {
+    return firstWord;
+  }
+  
+  // If all else fails, return first 10 chars of the title
+  return title.length > 10 ? title.substring(0, 10) + "..." : title;
+};
+
 const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({ 
   recommendations, 
   showAllOpportunities = false 
@@ -41,33 +76,43 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
   
   // Limit to only 4 career fields
   const displayedCareerFields = careerFields.slice(0, 4);
+  
+  // Generate simplified IDs and titles for the tabs
+  const tabData = displayedCareerFields.map(field => ({
+    originalTitle: field.educationProgram,
+    simplifiedTitle: simplifyProgramTitle(field.educationProgram),
+    tabId: field.educationProgram.replace(/\s+/g, '-').toLowerCase(),
+    field: field
+  }));
 
   return (
     <div className="space-y-6 animate-fade-up">
       <h3 className="text-2xl font-semibold">Karrieremuligheter</h3>
       
-      <Tabs defaultValue={displayedCareerFields[0]?.educationProgram.replace(/\s+/g, '-').toLowerCase()} className="w-full">
+      <Tabs defaultValue={tabData[0]?.tabId} className="w-full">
         <TabsList className="mb-6 flex flex-wrap h-auto gap-2">
-          {displayedCareerFields.map((field) => (
+          {tabData.map((tab) => (
             <TabsTrigger 
-              key={field.educationProgram} 
-              value={field.educationProgram.replace(/\s+/g, '-').toLowerCase()}
+              key={tab.tabId} 
+              value={tab.tabId}
               className="px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-white"
             >
-              {field.educationProgram}
+              {tab.simplifiedTitle}
             </TabsTrigger>
           ))}
         </TabsList>
         
-        {displayedCareerFields.map((field) => (
+        {tabData.map((tab) => (
           <TabsContent 
-            key={field.educationProgram} 
-            value={field.educationProgram.replace(/\s+/g, '-').toLowerCase()}
+            key={tab.tabId} 
+            value={tab.tabId}
             className="border rounded-lg p-6"
           >
-            {field.match && (
+            <h4 className="text-lg font-semibold mb-2">{tab.originalTitle}</h4>
+            
+            {tab.field.match && (
               <div className="mb-6 p-4 bg-muted/30 rounded-lg">
-                <p className="italic">{field.match}</p>
+                <p className="italic">{tab.field.match}</p>
               </div>
             )}
             
@@ -75,7 +120,7 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
               <div>
                 <h4 className="text-lg font-semibold mb-4">Stillinger</h4>
                 <Accordion type="multiple" className="w-full">
-                  {field.jobs.slice(0, 5).map((job, idx) => (
+                  {tab.field.jobs.slice(0, 5).map((job, idx) => (
                     <AccordionItem key={idx} value={`job-${idx}`}>
                       <AccordionTrigger className="text-base font-medium hover:no-underline">
                         {job.title}
@@ -91,7 +136,7 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
               <div>
                 <h4 className="text-lg font-semibold mb-4">Relevante bedrifter</h4>
                 <ul className="space-y-3">
-                  {field.companies.slice(0, 5).map((company, idx) => (
+                  {tab.field.companies.slice(0, 5).map((company, idx) => (
                     <li key={idx} className="flex items-center justify-between border-b pb-2">
                       <span>{company.name}</span>
                       <a 
