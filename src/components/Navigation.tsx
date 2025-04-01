@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -108,7 +109,7 @@ const Navigation: React.FC = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                <DropdownMenuItem onClick={() => navigate('/results')}>
                   Dashboard
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate('/results')}>
@@ -185,7 +186,7 @@ const Navigation: React.FC = () => {
                   <>
                     <li>
                       <Link 
-                        to="/dashboard" 
+                        to="/results" 
                         className="block py-2 text-sm font-medium"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
