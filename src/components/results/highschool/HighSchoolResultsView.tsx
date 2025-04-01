@@ -5,6 +5,7 @@ import DimensionRanking from '../DimensionRanking';
 import HighSchoolIntro from './HighSchoolIntro';
 import RecommendedEducation from './RecommendedEducation';
 import { calculateHighSchoolDimensions } from '@/utils/dimensionCalculator';
+import { matchEducationPrograms } from '@/utils/educationData';
 import { 
   formatInterests, 
   formatCourses, 
@@ -81,6 +82,16 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
   
   console.log("Top 3 Calculated dimensions:", dimensions);
   
+  // Få dimensjonsnavn fra dimensjonsobjektene
+  const topDimensions = dimensions.map(dim => dim.name);
+  
+  // Match utdanningsprogrammer basert på dimensjoner
+  const educationRecommendations = useMemo(() => {
+    return matchEducationPrograms(topDimensions, 3);
+  }, [topDimensions]);
+  
+  console.log("Education recommendations:", educationRecommendations);
+  
   // Extract favorite and difficult courses - only count explicit true values
   const favoriteCourses = Object.keys(highSchoolData.favoriteCourses || {})
     .filter(key => highSchoolData.favoriteCourses[key] === true);
@@ -128,40 +139,13 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
     }
   ];
   
-  // Define recommended education options based on interests, skills and tasks
-  const educationRecommendations = [
-    { 
-      name: interests.includes('technology') || goodSkills.includes('technicalUnderstanding') ? 
-            "Informatikk" : "Økonomi",
-      institution: "NTNU / UiO", 
-      match: interests.includes('technology') ? 
-             "Passer med din teknologiinteresse og analytiske evner" : 
-             "Passer med din interesse for økonomi og analytiske evner"
-    },
-    { 
-      name: interests.includes('economyFinance') ? 
-            "Økonomi og administrasjon" : "Psykologi",
-      institution: "NHH / BI / UiO", 
-      match: interests.includes('economyFinance') ? 
-             "Passer med din interesse for økonomi og finans" :
-             "Passer med dine sosiale og analytiske evner"
-    },
-    { 
-      name: workTasks.includes('leadership') ? 
-            "Ledelse og organisasjon" : "Datavitenskap",
-      institution: "BI / UiO", 
-      match: workTasks.includes('leadership') ? 
-             "Passer med dine lederegenskaper og analytiske evner" :
-             "Passer med din tekniske forståelse og problemløsningsevner"
-    }
-  ];
-  
   // Define next steps
   const nextSteps = [
     "Snakk med rådgiver på skolen",
     "Utforsk utdanningsprogrammer på utdanning.no",
     "Besøk åpen dag hos aktuelle utdanningsinstitusjoner",
-    "Delta på karrieredager og møt potensielle arbeidsgivere"
+    "Delta på karrieredager og møt potensielle arbeidsgivere",
+    "Meld deg på fagforedrag om temaer som interesserer deg"
   ];
   
   // Format the data for components
@@ -179,7 +163,7 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
         workPreference={formattedWorkPreference}
       />
       
-      {/* Dimension Ranking - Now passing actual user data with debugging */}
+      {/* Dimension Ranking */}
       <DimensionRanking userData={userData} questionnaire="highSchool" />
       
       {/* Basic info cards */}
@@ -195,7 +179,8 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
       {/* Recommended education options */}
       <RecommendedEducation 
         recommendations={educationRecommendations} 
-        nextSteps={nextSteps} 
+        nextSteps={nextSteps}
+        showAllRecommendations={true}
       />
     </div>
   );
