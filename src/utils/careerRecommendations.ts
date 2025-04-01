@@ -1,4 +1,3 @@
-
 interface Company {
   name: string;
   website: string;
@@ -232,6 +231,24 @@ const DEFAULT_CAREER_DATA: Record<string, CareerField> = {
       { name: "BDO", website: "https://www.bdo.no" }
     ],
     match: "Regnskap og revisjon passer for din nøyaktighet og analytiske tilnærming til tall og systemer."
+  },
+  "Bachelor i shipping management": {
+    educationProgram: "Bachelor i shipping management",
+    jobs: [
+      { title: "Ship Broker", description: "Megler mellom rederier og befraktere for å leie eller selge skip." },
+      { title: "Shipping Manager", description: "Ansvarlig for drift og ledelse av shipping-operasjoner." },
+      { title: "Chartering Manager", description: "Håndterer avtaler om leie og befraktning av skip." },
+      { title: "Maritime Analyst", description: "Analyserer markedstrender og risiko i shippingmarkedet." },
+      { title: "Supply Chain Coordinator", description: "Koordinerer logistikk og forsyningskjeder innen sjøtransport." }
+    ],
+    companies: [
+      { name: "DNB Shipping", website: "https://www.dnb.no/bedrift/bransjer/shipping-offshore-logistics" },
+      { name: "Grieg Star", website: "https://griegstar.com/" },
+      { name: "Klaveness", website: "https://www.klaveness.com/" },
+      { name: "Wilhelmsen", website: "https://www.wilhelmsen.com/" },
+      { name: "Wallenius Wilhelmsen", website: "https://www.walleniuswilhelmsen.com/" }
+    ],
+    match: "Bachelor i shipping management er ideell for deg som er interessert i maritim næring og internasjonal handel."
   }
 };
 
@@ -241,10 +258,12 @@ export function getCareerRecommendations(educationPrograms: string[]): CareerFie
   }
 
   return educationPrograms.map(program => {
-    // Check for exact match first with name normalization
     const normalizedProgram = program.toLowerCase().trim();
     
-    // Check for special cases that need direct mapping
+    if (normalizedProgram === "bachelor i shipping management") {
+      return DEFAULT_CAREER_DATA["Bachelor i shipping management"];
+    }
+    
     if (normalizedProgram.includes("finans") || normalizedProgram.includes("finansiell")) {
       return DEFAULT_CAREER_DATA["Finans"];
     }
@@ -253,14 +272,18 @@ export function getCareerRecommendations(educationPrograms: string[]): CareerFie
       return DEFAULT_CAREER_DATA["Regnskap og revisjon"];
     }
 
-    // Then check for partial matches in the dictionary keys
+    for (const key of Object.keys(DEFAULT_CAREER_DATA)) {
+      if (normalizedProgram === key.toLowerCase()) {
+        return DEFAULT_CAREER_DATA[key];
+      }
+    }
+    
     for (const key of Object.keys(DEFAULT_CAREER_DATA)) {
       if (normalizedProgram.includes(key.toLowerCase())) {
         return DEFAULT_CAREER_DATA[key];
       }
     }
 
-    // If no exact match, try to find the closest match based on keywords
     const keywordMatches: Record<string, number> = {
       "Medisin": normalizedProgram.includes("medisin") || normalizedProgram.includes("helse") ? 1 : 0,
       "Psykologi": normalizedProgram.includes("psykolog") || normalizedProgram.includes("terapi") ? 1 : 0,
@@ -271,10 +294,10 @@ export function getCareerRecommendations(educationPrograms: string[]): CareerFie
       "Fornybar energi": normalizedProgram.includes("energi") || normalizedProgram.includes("miljø") ? 1 : 0,
       "Økonomi og ledelse": normalizedProgram.includes("leder") || normalizedProgram.includes("organisasjon") ? 1 : 0,
       "Kunst og design": normalizedProgram.includes("kunst") || normalizedProgram.includes("design") ? 1 : 0,
-      "Fysioterapi": normalizedProgram.includes("fysio") || normalizedProgram.includes("terapi") ? 1 : 0
+      "Fysioterapi": normalizedProgram.includes("fysio") || normalizedProgram.includes("terapi") ? 1 : 0,
+      "Bachelor i shipping management": normalizedProgram.includes("shipping") || normalizedProgram.includes("maritim") ? 1 : 0
     };
 
-    // Find the key with the highest match score
     let bestMatch: string | null = null;
     let highestScore = 0;
     
@@ -289,7 +312,6 @@ export function getCareerRecommendations(educationPrograms: string[]): CareerFie
       return DEFAULT_CAREER_DATA[bestMatch];
     }
 
-    // If no specific match, return a generic recommendation with the correct program name
     return {
       educationProgram: program,
       jobs: [
