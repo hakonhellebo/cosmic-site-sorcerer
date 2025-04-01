@@ -1,3 +1,4 @@
+
 // Datamodell for utdanningsanbefalinger
 export interface EducationRecommendation {
   name: string;
@@ -345,20 +346,41 @@ export function matchEducationPrograms(userDimensions: string[], count: number =
     return bMatches - aMatches; // Sorter synkende etter antall matcher
   });
   
-  // Returner top N programmer med formatert data
-  return sortedPrograms.slice(0, count).map(program => {
-    const matchingDimensions = program.dimensions.filter(dim => userDimensions.includes(dim));
+  // Grupper programmer etter navn for å unngå duplikater
+  const groupedPrograms: { [key: string]: any[] } = {};
+  
+  sortedPrograms.forEach(program => {
+    if (!groupedPrograms[program.program]) {
+      groupedPrograms[program.program] = [];
+    }
+    groupedPrograms[program.program].push(program);
+  });
+  
+  // Konverter grupperte programmer til anbefalinger
+  const recommendations: EducationRecommendation[] = [];
+  
+  for (const programName in groupedPrograms) {
+    const programs = groupedPrograms[programName];
+    const firstProgram = programs[0];
+    
+    // Kombiner alle institusjoner
+    const allInstitutions = programs.map(p => p.institutions).join(', ');
+    
+    const matchingDimensions = firstProgram.dimensions.filter(dim => userDimensions.includes(dim));
     const matchDescription = matchingDimensions.length > 1
       ? `Passer med dine dimensjoner: ${matchingDimensions.join(' og ')}`
       : `Passer med din ${matchingDimensions[0]}-dimensjon`;
     
-    return {
-      name: program.program,
-      institution: program.institutions,
+    recommendations.push({
+      name: programName,
+      institution: allInstitutions,
       match: matchDescription,
-      link: program.link,
-      requirements: program.requirements,
-      description: program.description
-    };
-  });
+      link: firstProgram.link,
+      requirements: firstProgram.requirements,
+      description: firstProgram.description
+    });
+  }
+  
+  // Returner top N programmer
+  return recommendations.slice(0, count);
 }

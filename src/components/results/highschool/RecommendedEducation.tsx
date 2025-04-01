@@ -19,6 +19,19 @@ const RecommendedEducation: React.FC<RecommendedEducationProps> = ({
   const [showMore, setShowMore] = useState(false);
   const displayedRecommendations = showMore ? recommendations : recommendations.slice(0, 3);
   
+  // Format institutions to display nicely
+  const formatInstitutions = (institutions: string) => {
+    // Split by commas and remove duplicates
+    const institutionList = [...new Set(institutions.split(', '))];
+    
+    if (institutionList.length <= 2) {
+      return institutions;
+    } else {
+      // If there are many institutions, show first two and a count
+      return `${institutionList[0]}, ${institutionList[1]} og ${institutionList.length - 2} flere`;
+    }
+  };
+  
   return (
     <div className="animate-fade-up">
       <h3 className="text-2xl font-semibold mb-6">Anbefalte utdanninger</h3>
@@ -43,13 +56,19 @@ const RecommendedEducation: React.FC<RecommendedEducationProps> = ({
               )}
             </div>
             
-            <p className="text-sm text-muted-foreground mb-3">{edu.institution}</p>
+            <p className="text-sm text-muted-foreground mb-3">{formatInstitutions(edu.institution)}</p>
             
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value={`item-${idx}`}>
                 <AccordionTrigger className="text-sm py-2">Vis mer informasjon</AccordionTrigger>
                 <AccordionContent>
                   <div className="space-y-2 pt-2">
+                    {edu.institutions && (
+                      <div>
+                        <span className="font-medium text-sm">Tilbys ved:</span> 
+                        <span className="text-sm"> {edu.institution}</span>
+                      </div>
+                    )}
                     {edu.requirements && (
                       <div>
                         <span className="font-medium text-sm">Opptakskrav:</span> 
