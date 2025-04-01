@@ -86,7 +86,7 @@ const HighSchoolQuestionnairePage = () => {
       description: "Takk for dine svar. Vi har laget en personlig karriereprofil til deg."
     });
     
-    navigate('/results');
+    navigate('/results/high-school');
   };
 
   const nextPage = () => {

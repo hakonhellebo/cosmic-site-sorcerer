@@ -34,17 +34,21 @@ const ResultsPage: React.FC = () => {
         if (parsedData.questionnaire) {
           if (parsedData.questionnaire.highSchool) {
             setUserType('highSchool');
-            console.log("User type set to highSchool based on questionnaire data");
+            // Redirect to specific page instead of showing generic results
+            navigate('/results/high-school');
+            return;
           } else if (parsedData.questionnaire.university) {
             setUserType('university');
-            console.log("User type set to university based on questionnaire data");
+            // Redirect to specific page
+            navigate('/results/university');
+            return;
           } else if (parsedData.questionnaire.worker) {
             setUserType('worker');
-            console.log("User type set to worker based on questionnaire data");
+            // Redirect to specific page
+            navigate('/results/worker');
+            return;
           }
         }
-        
-        return;
       }
     }
     
@@ -61,17 +65,20 @@ const ResultsPage: React.FC = () => {
         localStorage.setItem(`userFullData_${currentUser.id}`, savedFullData);
       }
       
-      // Determine user type based on questionnaire data
+      // Determine user type based on questionnaire data and redirect
       if (parsedData.questionnaire) {
         if (parsedData.questionnaire.highSchool) {
           setUserType('highSchool');
-          console.log("User type set to highSchool based on questionnaire data");
+          navigate('/results/high-school');
+          return;
         } else if (parsedData.questionnaire.university) {
           setUserType('university');
-          console.log("User type set to university based on questionnaire data");
+          navigate('/results/university');
+          return;
         } else if (parsedData.questionnaire.worker) {
           setUserType('worker');
-          console.log("User type set to worker based on questionnaire data");
+          navigate('/results/worker');
+          return;
         }
       }
     } else {
