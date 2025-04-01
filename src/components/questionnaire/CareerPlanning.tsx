@@ -1,31 +1,24 @@
-
 import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-
-const CareerPlanning = ({ form }) => {
-  return (
-    <div className="space-y-6">
+const CareerPlanning = ({
+  form
+}) => {
+  return <div className="space-y-6">
       <h2 className="text-2xl font-bold">Karriereplanlegging og motivasjon</h2>
       <p className="text-muted-foreground mb-6">
         Fortell oss om dine tanker rundt fremtidig karriere og hva som motiverer deg.
       </p>
 
       {/* Work Location */}
-      <FormField
-        control={form.control}
-        name="highSchool.workLocation"
-        render={({ field }) => (
-          <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">Hvis du kunne valgt et arbeidssted, hvor ville det vært?</FormLabel>
+      <FormField control={form.control} name="highSchool.workLocation" render={({
+      field
+    }) => <FormItem className="space-y-3">
+            <FormLabel className="text-base font-medium">30. Hvis du kunne valgt et arbeidssted, hvor ville det vært?</FormLabel>
             <FormControl>
-              <RadioGroup
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                className="flex flex-col space-y-1"
-              >
+              <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
                   <FormControl>
                     <RadioGroupItem value="norway" />
@@ -65,112 +58,88 @@ const CareerPlanning = ({ form }) => {
               </RadioGroup>
             </FormControl>
             <FormMessage />
-          </FormItem>
-        )}
-      />
+          </FormItem>} />
 
       {/* Job Challenges */}
       <div className="space-y-4">
-        <FormField
-          control={form.control}
-          name="highSchool.jobChallenges"
-          render={() => (
-            <FormItem>
-              <FormLabel className="text-base font-medium">
-                Hva tror du kommer til å være den største utfordringen når du skal finne jobb? (Velg opptil 2)
-              </FormLabel>
+        <FormField control={form.control} name="highSchool.jobChallenges" render={() => <FormItem>
+              <FormLabel className="text-base font-medium">31. Hva tror du kommer til å være den største utfordringen når du skal finne jobb? (Velg opptil 2)</FormLabel>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
-                {[
-                  { id: "fewJobs", label: "For få relevante jobber" },
-                  { id: "highRequirements", label: "Høye krav fra arbeidsgiver" },
-                  { id: "lackOfExperience", label: "Manglende erfaring" },
-                  { id: "competition", label: "Konkurranse med andre kandidater" },
-                  { id: "careerUncertainty", label: "Usikkerhet om hva jeg vil jobbe med" },
-                  { id: "unknown", label: "Vet ikke" },
-                ].map((item) => (
-                  <FormField
-                    key={item.id}
-                    control={form.control}
-                    name={`highSchool.jobChallenges.${item.id}`}
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                {[{
+            id: "fewJobs",
+            label: "For få relevante jobber"
+          }, {
+            id: "highRequirements",
+            label: "Høye krav fra arbeidsgiver"
+          }, {
+            id: "lackOfExperience",
+            label: "Manglende erfaring"
+          }, {
+            id: "competition",
+            label: "Konkurranse med andre kandidater"
+          }, {
+            id: "careerUncertainty",
+            label: "Usikkerhet om hva jeg vil jobbe med"
+          }, {
+            id: "unknown",
+            label: "Vet ikke"
+          }].map(item => <FormField key={item.id} control={form.control} name={`highSchool.jobChallenges.${item.id}`} render={({
+            field
+          }) => <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                         <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                         </FormControl>
                         <FormLabel className="font-normal">
                           {item.label}
                         </FormLabel>
-                      </FormItem>
-                    )}
-                  />
-                ))}
+                      </FormItem>} />)}
               </div>
               <FormMessage />
-            </FormItem>
-          )}
-        />
+            </FormItem>} />
       </div>
 
       {/* Career Support Needs */}
       <div className="space-y-4">
-        <FormField
-          control={form.control}
-          name="highSchool.careerSupportNeeds"
-          render={() => (
-            <FormItem>
-              <FormLabel className="text-base font-medium">
-                Hva ville gjort det enklere for deg å velge karriere? (Velg opptil 2)
-              </FormLabel>
+        <FormField control={form.control} name="highSchool.careerSupportNeeds" render={() => <FormItem>
+              <FormLabel className="text-base font-medium">32. Hva ville gjort det enklere for deg å velge karriere? (Velg opptil 2)</FormLabel>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
-                {[
-                  { id: "careerInsight", label: "Bedre innsikt i yrker og utdanninger" },
-                  { id: "workExperience", label: "Praksis og arbeidserfaring" },
-                  { id: "careerGuidance", label: "Karriereveiledning" },
-                  { id: "industryContacts", label: "Kontakt med folk i bransjen" },
-                  { id: "betterGrades", label: "Bedre karakterer" },
-                ].map((item) => (
-                  <FormField
-                    key={item.id}
-                    control={form.control}
-                    name={`highSchool.careerSupportNeeds.${item.id}`}
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                {[{
+            id: "careerInsight",
+            label: "Bedre innsikt i yrker og utdanninger"
+          }, {
+            id: "workExperience",
+            label: "Praksis og arbeidserfaring"
+          }, {
+            id: "careerGuidance",
+            label: "Karriereveiledning"
+          }, {
+            id: "industryContacts",
+            label: "Kontakt med folk i bransjen"
+          }, {
+            id: "betterGrades",
+            label: "Bedre karakterer"
+          }].map(item => <FormField key={item.id} control={form.control} name={`highSchool.careerSupportNeeds.${item.id}`} render={({
+            field
+          }) => <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                         <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                         </FormControl>
                         <FormLabel className="font-normal">
                           {item.label}
                         </FormLabel>
-                      </FormItem>
-                    )}
-                  />
-                ))}
+                      </FormItem>} />)}
               </div>
               <FormMessage />
-            </FormItem>
-          )}
-        />
+            </FormItem>} />
       </div>
 
       {/* Education Motivation */}
-      <FormField
-        control={form.control}
-        name="highSchool.educationMotivation"
-        render={({ field }) => (
-          <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">Hva motiverer deg mest til å fullføre utdanningen din?</FormLabel>
+      <FormField control={form.control} name="highSchool.educationMotivation" render={({
+      field
+    }) => <FormItem className="space-y-3">
+            <FormLabel className="text-base font-medium">33. Hva motiverer deg mest til å fullføre utdanningen din?</FormLabel>
             <FormControl>
-              <RadioGroup
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                className="flex flex-col space-y-1"
-              >
+              <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
                   <FormControl>
                     <RadioGroupItem value="secure-job" />
@@ -204,23 +173,15 @@ const CareerPlanning = ({ form }) => {
               </RadioGroup>
             </FormControl>
             <FormMessage />
-          </FormItem>
-        )}
-      />
+          </FormItem>} />
 
       {/* AI Job Market Impact */}
-      <FormField
-        control={form.control}
-        name="highSchool.aiJobMarketImpact"
-        render={({ field }) => (
-          <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">Hvordan tror du AI og automatisering vil påvirke jobbmarkedet i fremtiden?</FormLabel>
+      <FormField control={form.control} name="highSchool.aiJobMarketImpact" render={({
+      field
+    }) => <FormItem className="space-y-3">
+            <FormLabel className="text-base font-medium">34. Hvordan tror du AI og automatisering vil påvirke jobbmarkedet i fremtiden?</FormLabel>
             <FormControl>
-              <RadioGroup
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                className="flex flex-col space-y-1"
-              >
+              <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
                   <FormControl>
                     <RadioGroupItem value="create-jobs" />
@@ -242,23 +203,15 @@ const CareerPlanning = ({ form }) => {
               </RadioGroup>
             </FormControl>
             <FormMessage />
-          </FormItem>
-        )}
-      />
+          </FormItem>} />
 
       {/* Industry Mentor Interest */}
-      <FormField
-        control={form.control}
-        name="highSchool.industryMentorInterest"
-        render={({ field }) => (
-          <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">Hvis du fikk muligheten til å snakke med en erfaren person i bransjen du vurderer – ville du gjort det?</FormLabel>
+      <FormField control={form.control} name="highSchool.industryMentorInterest" render={({
+      field
+    }) => <FormItem className="space-y-3">
+            <FormLabel className="text-base font-medium">35. Hvis du fikk muligheten til å snakke med en erfaren person i bransjen du vurderer – ville du gjort det?</FormLabel>
             <FormControl>
-              <RadioGroup
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                className="flex flex-col space-y-1"
-              >
+              <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
                   <FormControl>
                     <RadioGroupItem value="yes" />
@@ -280,11 +233,7 @@ const CareerPlanning = ({ form }) => {
               </RadioGroup>
             </FormControl>
             <FormMessage />
-          </FormItem>
-        )}
-      />
-    </div>
-  );
+          </FormItem>} />
+    </div>;
 };
-
 export default CareerPlanning;
