@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -94,7 +93,7 @@ const SchoolSubjects = ({
       <FormField control={form.control} name="highSchool.technologyComfort" render={({
       field
     }) => <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium">16. Hvor komfortabel er du med å bruke teknologi i skolearbeidet?</FormLabel>
+            <FormLabel className="text-base font-medium">15. Hvor komfortabel er du med å bruke teknologi i skolearbeidet?</FormLabel>
             <FormControl>
               <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
                 <FormItem className="flex items-center space-x-3 space-y-0">
@@ -129,7 +128,7 @@ const SchoolSubjects = ({
       {/* School Challenges */}
       <div className="space-y-4">
         <FormField control={form.control} name="highSchool.schoolChallenges" render={() => <FormItem>
-              <FormLabel className="text-base font-medium">17. Hva synes du er mest utfordrende med skolearbeidet ditt? (Velg opptil 2)</FormLabel>
+              <FormLabel className="text-base font-medium">16. Hva synes du er mest utfordrende med skolearbeidet ditt? (Velg opptil 2)</FormLabel>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
                 {[{
             id: "timeManagement",
