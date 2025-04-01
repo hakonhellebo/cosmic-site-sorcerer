@@ -73,7 +73,9 @@ const Index: React.FC = () => {
           careerPlan: "Ønsker å studere informatikk",
           industries: {
             it: true,
-            teknologi: true
+            teknologi: true,
+            helse: true,
+            kreativ: true
           }
         }
       };

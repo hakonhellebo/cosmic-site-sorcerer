@@ -1,7 +1,10 @@
+
 import React from 'react';
 import ResultCard from './ResultCard';
 import { getFormattedValue } from '@/utils/resultFormatters';
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ExternalLink } from "lucide-react";
 
 interface ResultsGeneratorProps {
   userData: any;
@@ -111,61 +114,10 @@ const ResultsGenerator: React.FC<ResultsGeneratorProps> = ({ userData }) => {
     });
 
   } else if (questionnaire.highSchool) {
-    // High school questionnaire results
-    resultSections.push(
-      {
-        title: "Din utdanningsprofil",
-        icon: "education",
-        items: [
-          { label: "Skole", value: questionnaire.highSchool.school },
-          { label: "Studieretning", value: questionnaire.highSchool.program },
-          { label: "Årstrinn", value: questionnaire.highSchool.grade }
-        ]
-      },
-      {
-        title: "Dine styrker og interesser",
-        icon: "award",
-        items: [
-          { 
-            label: "Interesser", 
-            value: Object.keys(questionnaire.highSchool.interests || {})
-              .filter(key => questionnaire.highSchool.interests[key])
-              .join(', ') || "Ingen oppgitt"
-          },
-          { 
-            label: "Styrker", 
-            value: Object.keys(questionnaire.highSchool.strengths || {})
-              .filter(key => questionnaire.highSchool.strengths[key])
-              .join(', ') || "Ingen oppgitt"
-          },
-          { 
-            label: "Foretrukne fag", 
-            value: Object.keys(questionnaire.highSchool.favoriteSubjects || {})
-              .filter(key => questionnaire.highSchool.favoriteSubjects[key])
-              .join(', ') || "Ingen oppgitt"
-          }
-        ]
-      },
-      {
-        title: "Karriere og fremtid",
-        icon: "target",
-        items: [
-          { 
-            label: "Karriereplaner", 
-            value: questionnaire.highSchool.careerPlan || "Ikke angitt"
-          },
-          { 
-            label: "Ønsket industri", 
-            value: Object.keys(questionnaire.highSchool.industries || {})
-              .filter(key => questionnaire.highSchool.industries[key])
-              .join(', ') || "Ingen oppgitt"
-          }
-        ]
-      }
-    );
+    // High school questionnaire results - Enhanced according to requirements
     
     // Add a personalized intro for high school students
-    resultSections.unshift({
+    resultSections.push({
       type: "intro",
       content: "Basert på svarene dine har vi laget en personlig profil som viser dine styrker, interesser og mulige veier videre. Dette er ikke en fasit – men en start på reisen mot noe som passer deg.",
       dimensions: [
@@ -174,18 +126,70 @@ const ResultsGenerator: React.FC<ResultsGeneratorProps> = ({ userData }) => {
         { name: "Kreativitet", description: "Du har evne til å tenke utenfor boksen og finne nye løsninger." }
       ]
     });
-
-    // Add education and career recommendations for high school students
+    
+    // Basic profile information
+    resultSections.push({
+      title: "Din utdanningsprofil",
+      icon: "education",
+      items: [
+        { label: "Skole", value: questionnaire.highSchool.school },
+        { label: "Studieretning", value: questionnaire.highSchool.program },
+        { label: "Årstrinn", value: questionnaire.highSchool.grade }
+      ]
+    });
+    
+    resultSections.push({
+      title: "Dine styrker og interesser",
+      icon: "award",
+      items: [
+        { 
+          label: "Interesser", 
+          value: Object.keys(questionnaire.highSchool.interests || {})
+            .filter(key => questionnaire.highSchool.interests[key])
+            .join(', ') || "Ingen oppgitt"
+        },
+        { 
+          label: "Styrker", 
+          value: Object.keys(questionnaire.highSchool.strengths || {})
+            .filter(key => questionnaire.highSchool.strengths[key])
+            .join(', ') || "Ingen oppgitt"
+        },
+        { 
+          label: "Foretrukne fag", 
+          value: Object.keys(questionnaire.highSchool.favoriteSubjects || {})
+            .filter(key => questionnaire.highSchool.favoriteSubjects[key])
+            .join(', ') || "Ingen oppgitt"
+        }
+      ]
+    });
+    
+    // Enhanced education recommendations with links
     resultSections.push({
       type: "education",
       title: "Anbefalte utdanninger",
       recommendations: [
-        { title: "Psykologi", location: "UiO, UiB", match: "Du scorer høyt på Helse og Struktur" },
-        { title: "HR og ledelse", location: "OsloMet", match: "Du er både sosial og strukturert" },
-        { title: "Ergoterapi", location: "UiT", match: "Praktisk, men med fokus på mennesker" }
+        { 
+          title: "Psykologi", 
+          location: "UiO, UiB", 
+          match: "Du scorer høyt på Helse og Struktur",
+          link: "https://www.uio.no/studier/program/psykologi/"
+        },
+        { 
+          title: "HR og ledelse", 
+          location: "OsloMet", 
+          match: "Du er både sosial og strukturert",
+          link: "https://www.oslomet.no/studier/sam/hrm"
+        },
+        { 
+          title: "Ergoterapi", 
+          location: "UiT", 
+          match: "Praktisk, men med fokus på mennesker",
+          link: "https://www.uit.no/utdanning/program/565246/ergoterapi_-_bachelor"
+        }
       ]
     });
     
+    // Jobs section
     resultSections.push({
       type: "jobs",
       title: "Mulige jobber",
@@ -327,6 +331,7 @@ const ResultsGenerator: React.FC<ResultsGeneratorProps> = ({ userData }) => {
                       <th className="text-left py-3">Utdanning</th>
                       <th className="text-left py-3">Lærested</th>
                       <th className="text-left py-3">Hvorfor passer det deg?</th>
+                      <th className="text-left py-3"></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -335,15 +340,29 @@ const ResultsGenerator: React.FC<ResultsGeneratorProps> = ({ userData }) => {
                         <td className="py-3 font-medium">{rec.title}</td>
                         <td className="py-3">{rec.location}</td>
                         <td className="py-3">{rec.match}</td>
+                        <td className="py-3 text-right">
+                          {rec.link && (
+                            <a 
+                              href={rec.link} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="inline-flex items-center text-primary hover:underline"
+                            >
+                              <span className="mr-1">Les mer</span>
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-              <div className="mt-4">
-                <a href="https://utdanning.no" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                  Se flere utdanningsmuligheter →
-                </a>
+              <div className="mt-6">
+                <Button variant="outline" className="flex items-center gap-2">
+                  <span>Se flere utdanningsmuligheter</span>
+                  <ExternalLink className="h-4 w-4" />
+                </Button>
               </div>
             </div>
           );
@@ -367,23 +386,23 @@ const ResultsGenerator: React.FC<ResultsGeneratorProps> = ({ userData }) => {
               </div>
               
               {section.nextSteps && (
-                <>
+                <div className="bg-muted/10 p-6 rounded-lg border">
                   <h3 className="text-xl font-semibold mb-4">Neste steg</h3>
                   <ul className="space-y-2 mb-6">
                     {section.nextSteps.map((step, idx) => (
                       <li key={idx} className="flex items-start">
-                        <div className="mr-2 mt-1 text-primary">✓</div>
+                        <div className="mr-2 mt-1 text-primary text-lg">✓</div>
                         <span>{step}</span>
                       </li>
                     ))}
                   </ul>
-                </>
-              )}
-              
-              {section.learningStyle && (
-                <div className="bg-muted/30 p-4 rounded-lg mt-6">
-                  <h4 className="font-semibold mb-2">Din læringsstil</h4>
-                  <p>{section.learningStyle}</p>
+                  
+                  {section.learningStyle && (
+                    <div className="mt-6 pt-6 border-t">
+                      <h4 className="font-semibold mb-2">Din læringsstil</h4>
+                      <p>{section.learningStyle}</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
