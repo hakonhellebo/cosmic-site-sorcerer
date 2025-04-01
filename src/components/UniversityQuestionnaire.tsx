@@ -8,6 +8,7 @@ import CareerExpectations from '@/components/questionnaire/university/CareerExpe
 import PreferencesAndWorkStyle from '@/components/questionnaire/university/PreferencesAndWorkStyle';
 import ReflectionAndTransition from '@/components/questionnaire/university/ReflectionAndTransition';
 import GradesAndWorkExperience from '@/components/questionnaire/university/GradesAndWorkExperience';
+import WorkExperienceDetails from '@/components/questionnaire/university/WorkExperienceDetails';
 
 const UniversityQuestionnaire = ({ form, page, onPrevious, onSubmit, isSubmitting }) => {
   // Page 1 - Personal Information
@@ -112,11 +113,28 @@ const UniversityQuestionnaire = ({ form, page, onPrevious, onSubmit, isSubmittin
     );
   }
 
-  // Page 7 - Grades and Work Experience
+  // Page 7 - Grades and Work Experience (now without job details questions)
   if (page === 7) {
     return (
       <div className="space-y-6">
         <GradesAndWorkExperience form={form} />
+        
+        <NavigationButtons
+          page={page}
+          onPrevious={onPrevious}
+          onSubmit={onSubmit}
+          isSubmitting={isSubmitting}
+          isLastPage={false}
+        />
+      </div>
+    );
+  }
+
+  // Page 8 - Work Experience Details (questions 46-51)
+  if (page === 8) {
+    return (
+      <div className="space-y-6">
+        <WorkExperienceDetails form={form} />
         
         <NavigationButtons
           page={page}
