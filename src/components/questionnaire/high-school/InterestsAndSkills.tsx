@@ -185,6 +185,98 @@ const InterestsAndSkills = ({ form }) => {
           </FormItem>
         )}
       />
+
+      {/* Good Skills */}
+      <div className="space-y-4">
+        <FormField
+          control={form.control}
+          name="highSchool.goodSkills"
+          render={() => (
+            <FormItem>
+              <FormLabel className="text-base font-medium">
+                11. Hvilke ferdigheter føler du at du er god på? (Velg opptil 3)
+              </FormLabel>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                {[
+                  { id: "communication", label: "Kommunikasjon" },
+                  { id: "logicalThinking", label: "Logisk tenkning" },
+                  { id: "creativity", label: "Kreativitet" },
+                  { id: "technicalUnderstanding", label: "Teknisk forståelse" },
+                  { id: "leadership", label: "Ledelse" },
+                  { id: "collaboration", label: "Samarbeid" },
+                  { id: "problemSolving", label: "Problemløsning" },
+                ].map((item) => (
+                  <FormField
+                    key={item.id}
+                    control={form.control}
+                    name={`highSchool.goodSkills.${item.id}`}
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          {item.label}
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                ))}
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      {/* Skills to Improve */}
+      <div className="space-y-4">
+        <FormField
+          control={form.control}
+          name="highSchool.improveSkills"
+          render={() => (
+            <FormItem>
+              <FormLabel className="text-base font-medium">
+                12. Hvilke av disse ferdighetene ønsker du å bli bedre på? (Velg opptil 3)
+              </FormLabel>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                {[
+                  { id: "communication", label: "Kommunikasjon" },
+                  { id: "logicalThinking", label: "Logisk tenkning" },
+                  { id: "creativity", label: "Kreativitet" },
+                  { id: "technicalUnderstanding", label: "Teknisk forståelse" },
+                  { id: "leadership", label: "Ledelse" },
+                  { id: "collaboration", label: "Samarbeid" },
+                  { id: "problemSolving", label: "Problemløsning" },
+                ].map((item) => (
+                  <FormField
+                    key={item.id}
+                    control={form.control}
+                    name={`highSchool.improveSkills.${item.id}`}
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          {item.label}
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                ))}
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
     </div>
   );
 };
