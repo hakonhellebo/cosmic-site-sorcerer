@@ -213,18 +213,22 @@ export function getCareerRecommendations(educationPrograms: string[]): CareerFie
       return DEFAULT_CAREER_DATA[matchingProgram];
     }
 
-    // If no exact match, return a generic recommendation
+    // If no exact match, return a generic recommendation with 5 jobs and 5 companies
     return {
       educationProgram: program,
       jobs: [
         { title: "Fagspesialist", description: "Jobber som spesialist innen ditt fagfelt." },
         { title: "Prosjektleder", description: "Leder prosjekter relatert til din fagkompetanse." },
-        { title: "Rådgiver", description: "Gir faglige råd og veiledning basert på din kompetanse." }
+        { title: "Rådgiver", description: "Gir faglige råd og veiledning basert på din kompetanse." },
+        { title: "Forsker", description: "Utfører forskningsarbeid innenfor relevante fagområder." },
+        { title: "Faglærer", description: "Underviser andre i ditt spesialområde." }
       ],
       companies: [
         { name: "FINN.no", website: "https://www.finn.no/job" },
         { name: "NAV", website: "https://www.nav.no" },
-        { name: "Manpower", website: "https://www.manpower.no" }
+        { name: "Manpower", website: "https://www.manpower.no" },
+        { name: "Adecco", website: "https://www.adecco.no" },
+        { name: "Randstad", website: "https://www.randstad.no" }
       ],
       match: "Dette utdanningsprogrammet kan åpne for mange ulike karrieremuligheter."
     };

@@ -5,6 +5,8 @@ import EducationBackground from './questionnaire/EducationBackground';
 import WorkExperience from './questionnaire/WorkExperience';
 import CareerDevelopment from './questionnaire/CareerDevelopment';
 import NavigationButtons from './questionnaire/NavigationButtons';
+import FutureIndustries from './questionnaire/FutureIndustries';
+import CareerPlanning from './questionnaire/CareerPlanning';
 
 interface WorkerQuestionnaireProps {
   form: UseFormReturn<any>;
@@ -55,6 +57,32 @@ const WorkerQuestionnaire: React.FC<WorkerQuestionnaireProps> = ({
         return (
           <div className="space-y-6">
             <CareerDevelopment form={form} />
+            <NavigationButtons 
+              page={page} 
+              onPrevious={onPrevious} 
+              onSubmit={onSubmit} 
+              isSubmitting={isSubmitting}
+              isLastPage={true}
+            />
+          </div>
+        );
+      case 4:
+        return (
+          <div className="space-y-6">
+            <FutureIndustries form={form} />
+            <NavigationButtons 
+              page={page} 
+              onPrevious={onPrevious} 
+              onSubmit={onSubmit} 
+              isSubmitting={isSubmitting}
+              isLastPage={false}
+            />
+          </div>
+        );
+      case 5:
+        return (
+          <div className="space-y-6">
+            <CareerPlanning form={form} />
             <NavigationButtons 
               page={page} 
               onPrevious={onPrevious} 
