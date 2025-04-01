@@ -137,7 +137,7 @@ const Index: React.FC = () => {
                 >
                   Last inn testdata
                 </Button>
-                <Link to="/results" className="w-full">
+                <Link to="/results/high-school" className="w-full">
                   <Button 
                     variant="default"
                     size="sm"
@@ -164,7 +164,7 @@ const Index: React.FC = () => {
                 >
                   Last inn testdata
                 </Button>
-                <Link to="/results" className="w-full">
+                <Link to="/results/university" className="w-full">
                   <Button 
                     variant="default"
                     size="sm"
@@ -191,7 +191,7 @@ const Index: React.FC = () => {
                 >
                   Last inn testdata
                 </Button>
-                <Link to="/results" className="w-full">
+                <Link to="/results/worker" className="w-full">
                   <Button 
                     variant="default"
                     size="sm"
