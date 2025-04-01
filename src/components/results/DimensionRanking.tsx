@@ -91,24 +91,27 @@ const DimensionRanking: React.FC<DimensionRankingProps> = ({ userData, questionn
       sosialitet: 0
     };
     
-    // If no user data, return default scores
+    // If no user data, return default scores with minimum value 1
     if (!userData || !questionnaire || !userData.questionnaire?.[questionnaire]) {
+      console.log("No user data found, using default scores");
       return Object.entries(scores)
         .map(([dimension, score]) => ({
           dimension,
-          score,
+          score: 1, // Set minimum score to 1
           ...dimensionMeta[dimension as keyof typeof dimensionMeta]
         }))
         .sort((a, b) => b.score - a.score);
     }
     
+    console.log("Processing user data for dimensions", questionnaire);
     const questionnaireData = userData.questionnaire[questionnaire];
     
     // Process data from high school questionnaire
     if (questionnaire === 'highSchool') {
       const data = questionnaireData;
+      console.log("Processing high school data", data);
       
-      // Calculate scores based on interests
+      // Calculate scores based on interests - check for true values only
       if (data.interests) {
         if (data.interests.technology === true) scores.teknologi += 5;
         if (data.interests.artDesign === true) scores.kreativitet += 5;
@@ -119,7 +122,7 @@ const DimensionRanking: React.FC<DimensionRankingProps> = ({ userData, questionn
         if (data.interests.environmentSustainability === true) scores.bærekraft += 5;
       }
       
-      // Calculate scores based on work tasks
+      // Calculate scores based on work tasks - check for true values only
       if (data.workTasks) {
         if (data.workTasks.numbers === true) scores.analytisk += 4;
         if (data.workTasks.practical === true) scores.praktisk += 5;
@@ -135,7 +138,7 @@ const DimensionRanking: React.FC<DimensionRankingProps> = ({ userData, questionn
         }
       }
       
-      // Calculate scores based on good skills
+      // Calculate scores based on good skills - check for true values only
       if (data.goodSkills) {
         if (data.goodSkills.communication === true) scores.sosialitet += 4;
         if (data.goodSkills.logicalThinking === true) scores.analytisk += 5;
@@ -164,7 +167,7 @@ const DimensionRanking: React.FC<DimensionRankingProps> = ({ userData, questionn
         scores.sosialitet += 5;
       }
       
-      // Calculate scores based on educational priorities
+      // Calculate scores based on educational priorities - check for true values only
       if (data.educationPriorities) {
         if (data.educationPriorities.salary === true) scores.ambisjon += 3;
         if (data.educationPriorities.flexibility === true) scores.selvstendighet += 3;
@@ -172,9 +175,12 @@ const DimensionRanking: React.FC<DimensionRankingProps> = ({ userData, questionn
           scores.helseinteresse += 2;
           scores.bærekraft += 2;
         }
+        if (data.educationPriorities.status === true) {
+          scores.ambisjon += 4;
+        }
       }
       
-      // Calculate scores based on interesting industries
+      // Calculate scores based on interesting industries - check for true values only
       if (data.interestingIndustries) {
         if (data.interestingIndustries.technology === true) scores.teknologi += 4;
         if (data.interestingIndustries.healthcare === true) scores.helseinteresse += 4;
@@ -186,9 +192,17 @@ const DimensionRanking: React.FC<DimensionRankingProps> = ({ userData, questionn
         if (data.interestingIndustries.education === true) scores.sosialitet += 3;
         if (data.interestingIndustries.environment === true) scores.bærekraft += 4;
         if (data.interestingIndustries.research === true) scores.analytisk += 3;
+        if (data.interestingIndustries.logistics === true) {
+          scores.struktur += 4;
+          scores.analytisk += 2;
+        }
+        if (data.interestingIndustries.engineering === true) {
+          scores.teknologi += 3;
+          scores.analytisk += 3;
+        }
       }
       
-      // Calculate scores based on desired roles
+      // Calculate scores based on desired roles - check for true values only
       if (data.desiredRoles) {
         if (data.desiredRoles.leader === true) {
           scores.ambisjon += 4;
@@ -202,9 +216,21 @@ const DimensionRanking: React.FC<DimensionRankingProps> = ({ userData, questionn
           scores.selvstendighet += 3;
         }
         if (data.desiredRoles.researcher === true) scores.analytisk += 4;
+        if (data.desiredRoles.consultant === true) {
+          scores.analytisk += 3;
+          scores.sosialitet += 2;
+        }
       }
       
-      // Calculate scores based on work environment preferences
+      // Add scoring for salaryImportance
+      if (data.salaryImportance === 'very-important') scores.ambisjon += 4;
+      else if (data.salaryImportance === 'important') scores.ambisjon += 2;
+      
+      // Add scoring for socialImpactImportance
+      if (data.socialImpactImportance === 'very-important') scores.bærekraft += 4;
+      else if (data.socialImpactImportance === 'important') scores.bærekraft += 2;
+      
+      // Calculate scores based on work environment preferences - check for true values only
       if (data.workEnvironmentPreferences) {
         if (data.workEnvironmentPreferences.flexibility === true) scores.selvstendighet += 3;
         if (data.workEnvironmentPreferences.social === true) scores.sosialitet += 4;
@@ -213,6 +239,9 @@ const DimensionRanking: React.FC<DimensionRankingProps> = ({ userData, questionn
         if (data.workEnvironmentPreferences.innovation === true) {
           scores.kreativitet += 3;
           scores.teknologi += 2;
+        }
+        if (data.workEnvironmentPreferences.stability === true) {
+          scores.struktur += 4;
         }
       }
       
@@ -224,11 +253,17 @@ const DimensionRanking: React.FC<DimensionRankingProps> = ({ userData, questionn
         scores.helseinteresse += 3;
         scores.sosialitet += 2;
       }
+      else if (data.futureWorkVision === 'specialist') {
+        scores.analytisk += 3;
+        scores.teknologi += 2;
+      }
+      
+      console.log("Calculated dimension scores:", scores);
     }
     
     // Ensure minimum score of 1 for all dimensions
     Object.keys(scores).forEach(key => {
-      if (scores[key] < 1) scores[key] = 1;
+      scores[key] = Math.max(1, scores[key]);
     });
     
     // Convert to array and sort by score (highest first)
