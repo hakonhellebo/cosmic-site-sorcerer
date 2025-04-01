@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Award, CheckCircle2, BarChart3, Lightbulb, Target, Book, Briefcase } from "lucide-react";
@@ -5,6 +6,7 @@ import Layout from '@/components/Layout';
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 const ResultsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -17,18 +19,25 @@ const ResultsPage: React.FC = () => {
     if (savedFullData) {
       setUserData(JSON.parse(savedFullData));
     } else {
-      toast.error("Ingen resultater funnet", {
-        description: "Vi kunne ikke finne dine spørreskjemasvar"
+      toast.warning("Ingen resultater funnet", {
+        description: "Tips: Du kan laste inn testdata fra hovedsiden"
       });
-      navigate('/');
     }
   }, [navigate]);
   
   if (!userData) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-12 flex items-center justify-center min-h-[60vh]">
-          <p className="text-muted-foreground">Laster resultater...</p>
+        <div className="container mx-auto px-4 py-12 flex flex-col items-center justify-center min-h-[60vh] gap-6">
+          <p className="text-muted-foreground">Ingen resultater funnet</p>
+          <div className="flex gap-4">
+            <Button onClick={() => navigate('/')}>
+              Gå til hovedsiden
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/registrer')}>
+              Registrer deg
+            </Button>
+          </div>
         </div>
       </Layout>
     );
@@ -274,9 +283,9 @@ const ResultsPage: React.FC = () => {
       title: "Grunnleggende informasjon",
       icon: "idea",
       items: [
-        { label: "Navn", value: fullName },
-        { label: "E-post", value: userData.email || "Ikke angitt" },
-        { label: "Status", value: "Spørreskjema fullført" }
+        { label: "Navn", value: userData.firstName && userData.lastName ? `${userData.firstName} ${userData.lastName}` : "Test Bruker" },
+        { label: "E-post", value: userData.email || "test@example.com" },
+        { label: "Status", value: "Testdata" }
       ]
     });
   }
@@ -286,7 +295,9 @@ const ResultsPage: React.FC = () => {
       <div className="container mx-auto px-4 py-12 md:py-16">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold">Resultatene dine</h1>
-          <p className="text-sm text-muted-foreground">{fullName}</p>
+          <p className="text-sm text-muted-foreground">
+            {userData.firstName && userData.lastName ? `${userData.firstName} ${userData.lastName}` : "Test Bruker"}
+          </p>
         </div>
         
         <Separator className="mb-8" />
@@ -313,9 +324,16 @@ const ResultsPage: React.FC = () => {
             </Card>
           ))}
         </div>
+        
+        {userData && userData.firstName === "Test" && (
+          <div className="mt-8 p-4 bg-muted rounded-lg">
+            <p className="text-muted-foreground text-center">Dette er testdata. For å se dine egne resultater, fyll ut spørreskjemaet.</p>
+          </div>
+        )}
       </div>
     </Layout>
   );
 };
 
 export default ResultsPage;
+
