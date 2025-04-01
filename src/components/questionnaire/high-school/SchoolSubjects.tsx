@@ -4,6 +4,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/comp
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 const SchoolSubjects = ({ form }) => {
   return (
@@ -35,6 +36,7 @@ const SchoolSubjects = ({ form }) => {
                   { id: "pe", label: "Kroppsøving" },
                   { id: "music", label: "Musikk" },
                   { id: "programming", label: "Programmering/teknologi" },
+                  { id: "other", label: "Annet" },
                 ].map((item) => (
                   <FormField
                     key={item.id}
@@ -55,6 +57,26 @@ const SchoolSubjects = ({ form }) => {
                     )}
                   />
                 ))}
+              </div>
+              <div className="mt-2">
+                <FormField
+                  control={form.control}
+                  name="highSchool.bestSubjectsOther"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="sr-only">Annet fag</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Skriv inn annet fag du liker"
+                          {...field}
+                          className={!form.watch('highSchool.bestSubjects.other') ? 'opacity-50' : ''}
+                          disabled={!form.watch('highSchool.bestSubjects.other')}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
               <FormMessage />
             </FormItem>
@@ -84,6 +106,7 @@ const SchoolSubjects = ({ form }) => {
                   { id: "pe", label: "Kroppsøving" },
                   { id: "music", label: "Musikk" },
                   { id: "programming", label: "Programmering/teknologi" },
+                  { id: "other", label: "Annet" },
                 ].map((item) => (
                   <FormField
                     key={item.id}
@@ -104,6 +127,26 @@ const SchoolSubjects = ({ form }) => {
                     )}
                   />
                 ))}
+              </div>
+              <div className="mt-2">
+                <FormField
+                  control={form.control}
+                  name="highSchool.challengingSubjectsOther"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="sr-only">Annet fag</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Skriv inn annet fag du finner utfordrende"
+                          {...field}
+                          className={!form.watch('highSchool.challengingSubjects.other') ? 'opacity-50' : ''}
+                          disabled={!form.watch('highSchool.challengingSubjects.other')}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
               <FormMessage />
             </FormItem>

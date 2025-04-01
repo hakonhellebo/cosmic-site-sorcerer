@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -32,7 +33,9 @@ const HighSchoolQuestionnairePage = () => {
         improveSkills: {},
         // Page 3 - School subjects and learning preferences
         bestSubjects: {},
+        bestSubjectsOther: '', // New field for "other" best subjects
         challengingSubjects: {},
+        challengingSubjectsOther: '', // New field for "other" challenging subjects
         learningStyle: {},
         digitalTools: {},
         technologyComfort: '',
