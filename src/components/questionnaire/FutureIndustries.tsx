@@ -3,9 +3,19 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/comp
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-const FutureIndustries = ({
-  form
-}) => {
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
+
+interface FutureIndustriesProps {
+  form: any;
+  validationErrors?: string[];
+}
+
+const FutureIndustries: React.FC<FutureIndustriesProps> = ({ form, validationErrors = [] }) => {
+  const getFieldError = (fieldPattern) => {
+    return validationErrors.find(error => error.includes(fieldPattern));
+  };
+  
   return <div className="space-y-6">
       <h2 className="text-2xl font-bold">Fremtidsplaner - Bransjer og roller</h2>
       <p className="text-muted-foreground mb-6">
@@ -58,6 +68,14 @@ const FutureIndustries = ({
                         </FormLabel>
                       </FormItem>} />)}
               </div>
+              {getFieldError("Spørsmål 25") && (
+                <Alert variant="destructive" className="mt-2">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                  {getFieldError("Spørsmål 25")}
+                  </AlertDescription>
+                </Alert>
+              )}
               <FormMessage />
             </FormItem>} />
       </div>

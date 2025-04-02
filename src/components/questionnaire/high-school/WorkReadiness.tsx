@@ -3,9 +3,19 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/comp
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-const WorkReadiness = ({
-  form
-}) => {
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
+
+interface WorkReadinessProps {
+  form: any;
+  validationErrors?: string[];
+}
+
+const WorkReadiness: React.FC<WorkReadinessProps> = ({ form, validationErrors = [] }) => {
+  const getFieldError = (fieldPattern) => {
+    return validationErrors.find(error => error.includes(fieldPattern));
+  };
+  
   return <div className="space-y-6">
       <h2 className="text-2xl font-bold">Arbeidsforberedelse og skolevaner</h2>
       <p className="text-muted-foreground mb-6">
@@ -45,6 +55,14 @@ const WorkReadiness = ({
                 </FormItem>
               </RadioGroup>
             </FormControl>
+            {getFieldError("Spørsmål 17") && (
+              <Alert variant="destructive" className="mt-2">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {getFieldError("Spørsmål 17")}
+                </AlertDescription>
+              </Alert>
+            )}
             <FormMessage />
           </FormItem>} />
 

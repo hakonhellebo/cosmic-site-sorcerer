@@ -8,9 +8,17 @@ import InterestsAndSkills from './questionnaire/high-school/InterestsAndSkills';
 import SchoolSubjects from './questionnaire/high-school/SchoolSubjects';
 import WorkReadiness from './questionnaire/high-school/WorkReadiness';
 
-// The component has been updated to now show 6 pages, where pages 5 and 6 are the new "Future Plans" sections
+interface HighSchoolQuestionnaireProps {
+  form: any;
+  setFormProgress: (progress: number) => void;
+  currentPage: number;
+  totalPages: number;
+  onNextPage: () => void;
+  onPrevPage: () => void;
+  validationErrors?: string[];
+}
 
-const HighSchoolQuestionnaire = ({ 
+const HighSchoolQuestionnaire: React.FC<HighSchoolQuestionnaireProps> = ({ 
   form, 
   setFormProgress,
   currentPage,

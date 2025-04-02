@@ -2,10 +2,19 @@ import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-const CareerPlanning = ({
-  form
-}) => {
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
+
+interface CareerPlanningProps {
+  form: any;
+  validationErrors?: string[];
+}
+
+const CareerPlanning: React.FC<CareerPlanningProps> = ({ form, validationErrors = [] }) => {
+  const getFieldError = (fieldPattern) => {
+    return validationErrors.find(error => error.includes(fieldPattern));
+  };
+
   return <div className="space-y-6">
       <h2 className="text-2xl font-bold">Karriereplanlegging og motivasjon</h2>
       <p className="text-muted-foreground mb-6">
@@ -236,4 +245,5 @@ const CareerPlanning = ({
           </FormItem>} />
     </div>;
 };
+
 export default CareerPlanning;
