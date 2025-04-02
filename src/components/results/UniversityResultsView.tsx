@@ -1,12 +1,14 @@
-import React from 'react';
+
+import React, { useMemo } from 'react';
+import { Check } from 'lucide-react';
 import ResultCard from './ResultCard';
+import DimensionRanking from './DimensionRanking';
+import RecommendedEducation from './highschool/RecommendedEducation';
+import CareerOpportunities from './highschool/CareerOpportunities';
 import { getFormattedValue } from '@/utils/resultFormatters';
 import { Badge } from "@/components/ui/badge";
 import { GraduationCap } from "lucide-react";
-import DimensionRanking from './DimensionRanking';
 import { matchEducationPrograms } from '@/utils/educationData';
-import RecommendedEducation from './highschool/RecommendedEducation';
-import CareerOpportunities from './highschool/CareerOpportunities';
 
 interface UniversityResultsViewProps {
   userData: any;
@@ -19,12 +21,18 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
     return <div>Ingen data funnet</div>;
   }
   
+  console.log("UniversityResultsView - Raw universityData:", universityData);
+  
   // Extract interests and strengths
   const interests = Object.keys(universityData.interests || {})
     .filter(key => universityData.interests[key] === true);
   
+  console.log("Filtered interests:", interests);
+  
   const strengths = Object.keys(universityData.strengths || {})
     .filter(key => universityData.strengths[key] === true);
+  
+  console.log("Filtered strengths:", strengths);
   
   // Determine if bachelor or master student
   const isBachelorStudent = universityData.level?.toLowerCase().includes('bachelor');
@@ -257,14 +265,28 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
   // Calculate dimension scores
   const dimensionScores = calculateDimensionScores();
   
-  // Get top 3 dimensions
-  const topDimensions = Object.entries(dimensionScores)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
-    .map(([dimension]) => dimension);
+  // Sort dimensions by score (highest first)
+  const dimensions = useMemo(() => {
+    return Object.entries(dimensionScores)
+      .map(([name, score]) => ({ name, score }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3); // Get top 3
+  }, [dimensionScores]);
+  
+  console.log("Top 3 Calculated dimensions:", dimensions);
+  
+  // Get top dimension names for education recommendations
+  const topDimensions = dimensions.map(dim => dim.name);
+  
+  // Match education programs based on dimensions - show more recommendations
+  const educationRecommendations = useMemo(() => {
+    return matchEducationPrograms(topDimensions, 8);
+  }, [topDimensions]);
+  
+  console.log("Education recommendations:", educationRecommendations);
   
   // Create basic info cards
-  const basicInfo = [
+  const basicInfoCards = [
     {
       title: "Din utdanningsprofil",
       icon: "education",
@@ -310,33 +332,29 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
     }
   ];
   
-  // Get education recommendations based on top dimensions
-  const educationRecommendations = matchEducationPrograms(topDimensions, 5);
+  // Format learning style
+  const formatLearningStyle = (learningStyle: any) => {
+    if (!learningStyle) return "Ikke spesifisert";
+    
+    const styles = Object.keys(learningStyle).filter(key => learningStyle[key] === true);
+    if (!styles.length) return "Ingen foretrukket stil";
+    
+    return styles.join(', ');
+  };
   
-  // Define next steps
-  const nextStepsBachelor = [
-    "Utforsk masterprogrammer innenfor ditt fagfelt",
-    "Delta på bedriftspresentasjoner på campus",
-    "Søk praksisplasser innen interessante bransjer",
-    "Knytt kontakter med alumni fra ditt studieprogram"
-  ];
+  // Format work preference
+  const formatWorkPreference = (preference: string) => {
+    switch(preference) {
+      case 'team': return 'Teamarbeid';
+      case 'individual': return 'Selvstendig arbeid';
+      case 'mixed': return 'Kombinasjon av team og selvstendig';
+      default: return 'Ikke spesifisert';
+    }
+  };
   
-  const nextStepsMaster = [
-    "Bygg et profesjonelt nettverk i din bransje",
-    "Oppdater LinkedIn-profilen med relevante ferdigheter",
-    "Delta på jobbmesser og rekrutteringsarrangementer",
-    "Utforsk trainee-programmer i relevante bedrifter"
-  ];
-
-  // Choose next steps based on education level
-  const nextSteps = isBachelorStudent ? nextStepsBachelor : nextStepsMaster;
-
-  // Career opportunities based on education recommendations
-  const careerOpportunities = educationRecommendations.map(rec => ({
-    title: rec.name.includes('Master') ? rec.name : `Karriere innen ${rec.name}`,
-    description: rec.description || `Jobbmuligheter relatert til ${rec.name}`,
-    icon: "briefcase"
-  }));
+  // Format interests for display
+  const formattedInterests = interests.length ? interests.join(', ') : "Ikke spesifisert";
+  const formattedLearningStyle = formatLearningStyle(universityData.learningStyle);
   
   return (
     <div className="space-y-10">
@@ -358,7 +376,7 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
           <div className="bg-muted/50 p-4 rounded-lg">
             <h3 className="font-semibold mb-2">Dine dimensjoner</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-              {topDimensions.map((dim, index) => {
+              {dimensions.map((dim, index) => {
                 const dimensionColors = {
                   analytisk: "bg-primary/10",
                   ambisjon: "bg-blue-100",
@@ -385,12 +403,12 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
                   praktisk: "Du er praktisk anlagt og liker å se konkrete resultater."
                 };
                 
-                const color = dimensionColors[dim as keyof typeof dimensionColors] || "bg-gray-100";
-                const description = dimensionDescriptions[dim as keyof typeof dimensionDescriptions] || "";
+                const color = dimensionColors[dim.name as keyof typeof dimensionColors] || "bg-gray-100";
+                const description = dimensionDescriptions[dim.name as keyof typeof dimensionDescriptions] || "";
                 
                 return (
                   <div key={index} className={`p-3 ${color} rounded-md`}>
-                    <h4 className="font-medium capitalize">{dim}</h4>
+                    <h4 className="font-medium capitalize">{dim.name}</h4>
                     <p className="text-sm">{description}</p>
                   </div>
                 );
@@ -402,16 +420,12 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
       
       {/* Dimension Ranking */}
       <DimensionRanking 
-        userData={{
-          questionnaire: {
-            university: universityData
-          }
-        }} 
+        userData={userData} 
         questionnaire="university" 
       />
       
-      {/* Result cards for basic info */}
-      {basicInfo.map((card, index) => (
+      {/* Basic info cards */}
+      {basicInfoCards.map((card, index) => (
         <ResultCard 
           key={index} 
           title={card.title} 
@@ -420,10 +434,10 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
         />
       ))}
 
-      {/* Education recommendations - For bachelor students, recommend masters. For master students, show career paths */}
+      {/* Education recommendations section */}
       <RecommendedEducation 
         recommendations={educationRecommendations}
-        nextSteps={nextSteps}
+        nextSteps={[]}
         showAllRecommendations={true}
         title={isBachelorStudent ? "Anbefalte masterprogrammer" : "Anbefalte karriereveier"}
         subtitle={isBachelorStudent 
@@ -431,11 +445,54 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
           : "Basert på din profil har vi funnet disse karriereveiene som kan passe for deg"}
       />
       
-      {/* Career opportunities - consistent with high school results */}
+      {/* Career opportunities section */}
       <CareerOpportunities 
         recommendations={educationRecommendations}
         showAllOpportunities={true}
       />
+      
+      {/* Next steps - updated content to match high school view */}
+      <div className="bg-muted/10 p-6 rounded-lg border">
+        <h3 className="text-xl font-semibold mb-4">Neste steg – dette får du snart tilgang til</h3>
+        <p className="mb-4">EdPath blir mer enn bare anbefalinger. Du vil snart kunne:</p>
+        
+        <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <li className="flex items-start">
+            <Check className="h-5 w-5 mr-2 mt-0.5 text-primary flex-shrink-0" />
+            <span>Se hva andre med lik profil har valgt – og hvor de fikk jobb</span>
+          </li>
+          <li className="flex items-start">
+            <Check className="h-5 w-5 mr-2 mt-0.5 text-primary flex-shrink-0" />
+            <span>Utforske bedrifter og stillinger som passer akkurat deg, basert på dine styrker og interesser</span>
+          </li>
+          <li className="flex items-start">
+            <Check className="h-5 w-5 mr-2 mt-0.5 text-primary flex-shrink-0" />
+            <span>Få ferdige forslag til hva du kan skrive i en CV – og hvordan du matcher en jobb</span>
+          </li>
+          <li className="flex items-start">
+            <Check className="h-5 w-5 mr-2 mt-0.5 text-primary flex-shrink-0" />
+            <span>Få anbefalte kurs og ferdigheter som gjør deg mer attraktiv for arbeidsgivere</span>
+          </li>
+          <li className="flex items-start">
+            <Check className="h-5 w-5 mr-2 mt-0.5 text-primary flex-shrink-0" />
+            <span>Snakke med vår AI-rådgiver og få veiledning døgnet rundt</span>
+          </li>
+          <li className="flex items-start">
+            <Check className="h-5 w-5 mr-2 mt-0.5 text-primary flex-shrink-0" />
+            <span>Bygge din egen profil som oppdateres etter hvert som du lærer og utvikler deg</span>
+          </li>
+          <li className="flex items-start">
+            <Check className="h-5 w-5 mr-2 mt-0.5 text-primary flex-shrink-0" />
+            <span>Få kontakt med bransjer og arbeidsgivere – og se hvor du faktisk kan søke</span>
+          </li>
+          <li className="flex items-start">
+            <Check className="h-5 w-5 mr-2 mt-0.5 text-primary flex-shrink-0" />
+            <span>Få oversikt over relevante utdanninger, snitt og opptak – på én side</span>
+          </li>
+        </ul>
+        
+        <p className="mt-4">Alt dette er basert på dine svar – og vil tilpasse seg deg, ikke motsatt.</p>
+      </div>
     </div>
   );
 };

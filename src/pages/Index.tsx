@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -65,6 +64,40 @@ const Index: React.FC = () => {
       priorities[priority] = randomBool(0.5);
     });
     
+    // Job challenges
+    const possibleChallenges = ["konkurranse", "manglende_erfaring", "hoye_krav", "usikker_jobbvalg"];
+    const jobChallenges: Record<string, boolean> = {};
+    possibleChallenges.forEach(challenge => {
+      jobChallenges[challenge] = randomBool(0.4);
+    });
+    
+    // Best subjects
+    const bestSubjects: Record<string, boolean> = {};
+    possibleInterests.forEach(subject => {
+      bestSubjects[subject] = randomBool(0.3);
+    });
+    
+    // Employer factors
+    const employerFactors = ["hoy_lonn", "godt_arbeidsmiljo", "karriereutvikling", "stabilitet", "innovasjon"];
+    const futureEmployerFactors: Record<string, boolean> = {};
+    employerFactors.forEach(factor => {
+      futureEmployerFactors[factor] = randomBool(0.5);
+    });
+    
+    // Study missing factors
+    const studyMissingOptions = ["praktisk_erfaring", "relevante_fag", "veiledning", "nettverk", "fleksibilitet", "kobling"];
+    const studyMissing: Record<string, boolean> = {};
+    studyMissingOptions.forEach(option => {
+      studyMissing[option] = randomBool(0.4);
+    });
+    
+    // Satisfaction factors
+    const satisfactionOptions = ["meningsfylt", "hoy_lonn", "karriereutvikling", "fleksibilitet", "innovasjon", "stabilitet"];
+    const satisfactionFactors: Record<string, boolean> = {};
+    satisfactionOptions.forEach(option => {
+      satisfactionFactors[option] = randomBool(0.5);
+    });
+
     // Random dream job options
     const dreamJobs = [
       "Teknologileder i innovativ bedrift", 
@@ -103,6 +136,7 @@ const Index: React.FC = () => {
           salaryImportance: randomItem(["very", "somewhat", "not-really"]),
           impactImportance: randomItem(["very", "somewhat", "not-really"]),
           jobPriorities: priorities,
+          jobChallenges: jobChallenges,
           internationalImportance: randomItem(["very", "somewhat", "not-really"]),
           entrepreneurship: randomItem(["yes", "no", "maybe"]),
           preferredCompanyType: randomItem(["startup", "small-medium", "large", "public", "nonprofit"]),
@@ -113,7 +147,243 @@ const Index: React.FC = () => {
           peopleTech: randomItem(["people", "tech", "both"]),
           studyChoiceReason: randomItem(["interesse", "lonn", "prestisje", "familie", "trygt"]),
           currentGrades: randomItem(["high", "good", "average", "below-average"]),
-          hadJob: randomItem(["yes", "no"])
+          hadJob: randomItem(["yes", "no"]),
+          bestSubjects: bestSubjects,
+          futureEmployerFactors: futureEmployerFactors,
+          studyMissing: studyMissing,
+          satisfactionFactors: satisfactionFactors
+        }
+      }
+    };
+  };
+
+  // Generate random high school student data with random answers
+  const generateRandomHighSchoolData = () => {
+    const studyDirections = ["studiespesialisering", "idrettsfag", "musikk_dans_drama", "kunst_design", "medier_kommunikasjon", "helse_oppvekst", "teknologi_industri", "elektro_datateknologi", "bygg_anlegg", "restaurant_matfag"];
+    const grades = ["vg1", "vg2", "vg3"];
+    const averageGrades = ["3-4", "4-5", "5-6"];
+    const workPreferences = ["team", "individual", "mixed"];
+    const learningStyles = ["visual", "auditory", "writing", "practical"];
+    
+    // Generate random interests
+    const possibleInterests = ["teknologi", "realfag", "samfunnsfag", "kreativitet", "entrepenørskap", "helse", "språk", "idrett", "teknologi", "okonomi", "reise", "miljø"];
+    const interests: Record<string, boolean> = {};
+    possibleInterests.forEach(interest => {
+      interests[interest] = randomBool(0.3);
+    });
+    
+    // Ensure at least one interest is selected
+    if (!Object.values(interests).some(v => v)) {
+      interests[randomItem(possibleInterests)] = true;
+    }
+    
+    // Generate random skills
+    const possibleSkills = ["logicalThinking", "creativity", "communication", "leadership", "collaboration", "problemSolving", "technicalUnderstanding"];
+    const goodSkills: Record<string, boolean> = {};
+    possibleSkills.forEach(skill => {
+      goodSkills[skill] = randomBool(0.4);
+    });
+    
+    // Ensure at least one skill is selected
+    if (!Object.values(goodSkills).some(v => v)) {
+      goodSkills[randomItem(possibleSkills)] = true;
+    }
+    
+    // Generate favorite and difficult courses
+    const possibleCourses = ["matematikk", "norsk", "engelsk", "naturfag", "samfunnsfag", "historie", "geografi", "kroppsøving", "teknologi", "kunst"];
+    const favoriteCourses: Record<string, boolean> = {};
+    const difficultCourses: Record<string, boolean> = {};
+    
+    possibleCourses.forEach(course => {
+      favoriteCourses[course] = randomBool(0.3);
+      difficultCourses[course] = randomBool(0.3) && !favoriteCourses[course]; // Avoid same course being both favorite and difficult
+    });
+    
+    // Ensure at least one favorite and difficult course
+    if (!Object.values(favoriteCourses).some(v => v)) {
+      favoriteCourses[randomItem(possibleCourses)] = true;
+    }
+    
+    if (!Object.values(difficultCourses).some(v => v)) {
+      // Find a course that's not already a favorite
+      let availableCourses = possibleCourses.filter(course => !favoriteCourses[course]);
+      if (availableCourses.length === 0) availableCourses = possibleCourses;
+      difficultCourses[randomItem(availableCourses)] = true;
+    }
+    
+    // Work tasks preferences
+    const possibleWorkTasks = ["problemSolving", "creativity", "leadership", "teamwork", "technical", "communication"];
+    const workTasks: Record<string, boolean> = {};
+    possibleWorkTasks.forEach(task => {
+      workTasks[task] = randomBool(0.4);
+    });
+    
+    // Learning style preferences
+    const learningStylePrefs: Record<string, boolean> = {};
+    ["visual", "auditory", "writing", "practical"].forEach(style => {
+      learningStylePrefs[style] = randomBool(0.4);
+    });
+    
+    return {
+      firstName: "Test",
+      lastName: "Bruker",
+      email: "test@example.com",
+      questionnaire: {
+        highSchool: {
+          school: "Oslo videregående skole",
+          studyDirection: randomItem(studyDirections),
+          grade: randomItem(grades),
+          averageGrade: randomItem(averageGrades),
+          interests: interests,
+          goodSkills: goodSkills,
+          favoriteCourses: favoriteCourses,
+          difficultCourses: difficultCourses,
+          careerPlan: randomBool() ? "Jeg planlegger å studere videre" : "Jeg er usikker på hva jeg vil gjøre",
+          favoriteCoursesOther: randomBool(0.3) ? "Programmering" : "",
+          difficultCoursesOther: randomBool(0.3) ? "Fysikk" : "",
+          workPreference: randomItem(workPreferences),
+          learningStyle: learningStylePrefs,
+          workTasks: workTasks
+        }
+      }
+    };
+  };
+  
+  // Generate random worker data
+  const generateRandomWorkerData = () => {
+    const studyFields = ["Informatikk", "Økonomi", "Psykologi", "Medisin", "Ingeniør", "Pedagogikk", "Statsvitenskap", "Juss"];
+    const institutions = ["Universitetet i Oslo", "NTNU", "Universitetet i Bergen", "UiT", "OsloMet", "Handelshøyskolen BI", "NMBU", "Høgskulen på Vestlandet"];
+    const levels = ["Bachelor", "Master", "PhD"];
+    const certaintyLevels = ["very", "quite", "somewhat", "not-really"];
+    const roles = ["leader", "specialist", "developer", "researcher", "teacher", "consultant", "entrepreneur"];
+    const environments = ["office", "remote", "hybrid", "field"];
+    
+    // Generate random interests
+    const possibleInterests = ["teknologi", "okonomi", "samfunnsvitenskap", "humaniora", "naturvitenskap", "helse", "kunst", "ingenior", "larer", "jus"];
+    const interests: Record<string, boolean> = {};
+    possibleInterests.forEach(interest => {
+      interests[interest] = randomBool(0.3); // 30% chance of having each interest
+    });
+    
+    // Ensure at least one interest is selected
+    if (!Object.values(interests).some(v => v)) {
+      interests[randomItem(possibleInterests)] = true;
+    }
+    
+    // Generate random strengths
+    const possibleStrengths = ["kritisk_tenkning", "problemlosning", "kreativitet", "kommunikasjon", "selvledelse", "prosjektstyring", "teknologiforstaaelse", "empati"];
+    const strengths: Record<string, boolean> = {};
+    possibleStrengths.forEach(strength => {
+      strengths[strength] = randomBool(0.4); // 40% chance of having each strength
+    });
+    
+    // Ensure at least one strength is selected
+    if (!Object.values(strengths).some(v => v)) {
+      strengths[randomItem(possibleStrengths)] = true;
+    }
+    
+    // Generate random learning style
+    const learningStyles = ["lesing", "lytting", "praksis", "diskusjon", "video"];
+    const learningStyle: Record<string, boolean> = {};
+    learningStyles.forEach(style => {
+      learningStyle[style] = randomBool(0.5);
+    });
+    
+    // Generate random job priorities
+    const jobPriorities = ["fleksibilitet", "hoy_lonn", "stabilitet", "karrieremuligheter", "mening", "innovasjon"];
+    const priorities: Record<string, boolean> = {};
+    jobPriorities.forEach(priority => {
+      priorities[priority] = randomBool(0.5);
+    });
+    
+    // Job challenges
+    const possibleChallenges = ["konkurranse", "manglende_erfaring", "hoye_krav", "usikker_jobbvalg"];
+    const jobChallenges: Record<string, boolean> = {};
+    possibleChallenges.forEach(challenge => {
+      jobChallenges[challenge] = randomBool(0.4);
+    });
+    
+    // Best subjects
+    const bestSubjects: Record<string, boolean> = {};
+    possibleInterests.forEach(subject => {
+      bestSubjects[subject] = randomBool(0.3);
+    });
+    
+    // Employer factors
+    const employerFactors = ["hoy_lonn", "godt_arbeidsmiljo", "karriereutvikling", "stabilitet", "innovasjon"];
+    const futureEmployerFactors: Record<string, boolean> = {};
+    employerFactors.forEach(factor => {
+      futureEmployerFactors[factor] = randomBool(0.5);
+    });
+    
+    // Study missing factors
+    const studyMissingOptions = ["praktisk_erfaring", "relevante_fag", "veiledning", "nettverk", "fleksibilitet", "kobling"];
+    const studyMissing: Record<string, boolean> = {};
+    studyMissingOptions.forEach(option => {
+      studyMissing[option] = randomBool(0.4);
+    });
+    
+    // Satisfaction factors
+    const satisfactionOptions = ["meningsfylt", "hoy_lonn", "karriereutvikling", "fleksibilitet", "innovasjon", "stabilitet"];
+    const satisfactionFactors: Record<string, boolean> = {};
+    satisfactionOptions.forEach(option => {
+      satisfactionFactors[option] = randomBool(0.5);
+    });
+
+    // Random dream job options
+    const dreamJobs = [
+      "Teknologileder i innovativ bedrift", 
+      "Forsker innen mitt fagfelt", 
+      "Selvstendig konsulent", 
+      "Prosjektleder for internasjonale prosjekter",
+      "Produktutvikler i tech-startup",
+      "Underviser på høyere nivå",
+      "Gründer med eget selskap"
+    ];
+
+    return {
+      firstName: "Test",
+      lastName: "Bruker",
+      email: "test@example.com",
+      questionnaire: {
+        university: {
+          studyField: randomItem(studyFields),
+          institution: randomItem(institutions),
+          level: randomItem(levels),
+          certaintylevel: randomItem(certaintyLevels),
+          interests: interests,
+          strengths: strengths,
+          futureRole: randomItem(roles),
+          workEnvironment: randomItem(environments),
+          dreamJob: randomItem(dreamJobs),
+          motivationSource: randomItem(["impact", "salary", "security", "passion"]),
+          workLifeBalance: randomItem(["work", "balanced", "life"]),
+          projectPreference: randomItem(["team", "solo", "mixed"]),
+          learningStyle: learningStyle,
+          collaboration: randomItem(["independent", "team", "daily", "weekly"]),
+          aiUsage: randomItem(["daily", "weekly", "monthly", "never"]),
+          internship: randomItem(["yes", "no", "planning"]),
+          internshipValue: randomItem(["very-useful", "somewhat-useful", "not-useful"]),
+          studyReason: randomItem(["job-security", "salary", "impact", "interest"]),
+          salaryImportance: randomItem(["very", "somewhat", "not-really"]),
+          impactImportance: randomItem(["very", "somewhat", "not-really"]),
+          jobPriorities: priorities,
+          jobChallenges: jobChallenges,
+          internationalImportance: randomItem(["very", "somewhat", "not-really"]),
+          entrepreneurship: randomItem(["yes", "no", "maybe"]),
+          preferredCompanyType: randomItem(["startup", "small-medium", "large", "public", "nonprofit"]),
+          technologyImportance: randomItem(["very", "somewhat", "not-really"]),
+          remoteWorkImportance: randomItem(["very", "somewhat", "not-really"]),
+          travelImportance: randomItem(["very", "somewhat", "not-really"]),
+          preferredWorkEnvironment: randomItem(["structured", "creative", "social", "flexible"]),
+          peopleTech: randomItem(["people", "tech", "both"]),
+          studyChoiceReason: randomItem(["interesse", "lonn", "prestisje", "familie", "trygt"]),
+          currentGrades: randomItem(["high", "good", "average", "below-average"]),
+          hadJob: randomItem(["yes", "no"]),
+          bestSubjects: bestSubjects,
+          futureEmployerFactors: futureEmployerFactors,
+          studyMissing: studyMissing,
+          satisfactionFactors: satisfactionFactors
         }
       }
     };
@@ -125,46 +395,14 @@ const Index: React.FC = () => {
     
     // Type-specific test data
     if (userType === 'university') {
-      // Generate random university student data
+      // Generate new random university student data
       testData = generateRandomUniversityData();
       toast.success("Student-testdata lastet inn med tilfeldige svar");
     } 
     else if (userType === 'highSchool') {
-      testData = {
-        firstName: "Test",
-        lastName: "Bruker",
-        email: "test@example.com",
-        questionnaire: {
-          highSchool: {
-            school: "Oslo videregående skole",
-            program: "Studiespesialisering",
-            grade: "VG2",
-            interests: {
-              teknologi: true,
-              realfag: true,
-              samfunnsfag: true
-            },
-            strengths: {
-              analytisk: true,
-              kreativ: true,
-              samarbeidsvillig: true
-            },
-            favoriteSubjects: {
-              matematikk: true,
-              naturfag: true,
-              samfunnsfag: true
-            },
-            careerPlan: "Ønsker å studere informatikk",
-            industries: {
-              it: true,
-              teknologi: true,
-              helse: true,
-              kreativ: true
-            }
-          }
-        }
-      };
-      toast.success("Elev-testdata lastet inn");
+      // Generate new random high school student data
+      testData = generateRandomHighSchoolData();
+      toast.success("Elev-testdata lastet inn med tilfeldige svar");
     } 
     else if (userType === 'worker') {
       testData = {
