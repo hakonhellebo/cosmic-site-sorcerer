@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { Check } from 'lucide-react';
 import ResultCard from '../ResultCard';
@@ -84,10 +83,10 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
   
   console.log("Top 3 Calculated dimensions:", dimensions);
   
-  // Få dimensjonsnavn fra dimensjonsobjektene
+  // Get dimension names from dimension objects
   const topDimensions = dimensions.map(dim => dim.name);
   
-  // Match utdanningsprogrammer basert på dimensjoner - vis flere anbefalinger
+  // Match education programs based on dimensions - show more recommendations
   const educationRecommendations = useMemo(() => {
     return matchEducationPrograms(topDimensions, 8);
   }, [topDimensions]);
@@ -101,7 +100,7 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
       institution: rec.institution,
       match: rec.match,
       description: rec.description || '',
-      careers: rec.careers || ['Fagspesialist', 'Rådgiver', 'Prosjektleder'] // Default careers if none provided
+      careers: rec.careers || []
     }));
   }, [educationRecommendations]);
 
