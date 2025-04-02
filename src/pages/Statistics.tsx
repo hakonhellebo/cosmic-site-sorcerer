@@ -5,20 +5,49 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import UniversityStatistics from '@/components/statistics/UniversityStatistics';
 import CompanyStatistics from '@/components/statistics/CompanyStatistics';
 import ResponsesTable from '@/components/statistics/ResponsesTable';
-import { getAllResponses } from '@/lib/supabase';
+import { getAllResponses, getCurrentUser } from '@/lib/supabase';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ShieldAlert } from "lucide-react";
 
 const Statistics = () => {
   const [activeTab, setActiveTab] = useState("universiteter");
   const [highSchoolResponses, setHighSchoolResponses] = useState<any[]>([]);
   const [universityResponses, setUniversityResponses] = useState<any[]>([]);
   const [workerResponses, setWorkerResponses] = useState<any[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState({
     highSchool: true,
     university: true,
-    worker: true
+    worker: true,
+    admin: true
   });
+  
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      try {
+        setIsLoading(prev => ({ ...prev, admin: true }));
+        const user = await getCurrentUser();
+        
+        // Check if user is admin (currently only one admin email)
+        const isUserAdmin = user?.email === 'hhhellebo@gmail.com';
+        setIsAdmin(isUserAdmin);
+        
+        setIsLoading(prev => ({ ...prev, admin: false }));
+        
+        // If admin, fetch responses
+        if (isUserAdmin) {
+          fetchResponses();
+        }
+      } catch (error) {
+        console.error("Failed to check admin status:", error);
+        setIsLoading(prev => ({ ...prev, admin: false }));
+      }
+    };
+    
+    checkAdminStatus();
+  }, []);
   
   const fetchResponses = async () => {
     try {
@@ -51,14 +80,62 @@ const Statistics = () => {
       setIsLoading({
         highSchool: false,
         university: false,
-        worker: false
+        worker: false,
+        admin: false
       });
     }
   };
   
-  useEffect(() => {
-    fetchResponses();
-  }, []);
+  const renderAdminContent = () => {
+    if (isLoading.admin) {
+      return (
+        <div className="flex justify-center items-center h-40">
+          <p>Sjekker tilgangsrettigheter...</p>
+        </div>
+      );
+    }
+    
+    if (!isAdmin) {
+      return (
+        <Alert variant="destructive" className="my-8">
+          <ShieldAlert className="h-4 w-4" />
+          <AlertDescription>
+            Du har ikke tilgang til å se svarene på undersøkelsene. 
+            Kun administratorer har tilgang til denne seksjonen.
+          </AlertDescription>
+        </Alert>
+      );
+    }
+    
+    return (
+      <div className="space-y-8">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold">Svar på undersøkelser</h2>
+          <Button onClick={fetchResponses}>Oppdater data</Button>
+        </div>
+        
+        <div className="space-y-8">
+          <ResponsesTable 
+            title="Videregående elever" 
+            responses={highSchoolResponses} 
+            isLoading={isLoading.highSchool} 
+          />
+          
+          <ResponsesTable 
+            title="Universitetsstudenter" 
+            responses={universityResponses} 
+            isLoading={isLoading.university} 
+          />
+          
+          <ResponsesTable 
+            title="Yrkesaktive" 
+            responses={workerResponses} 
+            isLoading={isLoading.worker} 
+          />
+        </div>
+      </div>
+    );
+  };
   
   return (
     <Layout>
@@ -86,32 +163,7 @@ const Statistics = () => {
             </TabsContent>
             
             <TabsContent value="svar" className="mt-6">
-              <div className="space-y-8">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-bold">Svar på undersøkelser</h2>
-                  <Button onClick={fetchResponses}>Oppdater data</Button>
-                </div>
-                
-                <div className="space-y-8">
-                  <ResponsesTable 
-                    title="Videregående elever" 
-                    responses={highSchoolResponses} 
-                    isLoading={isLoading.highSchool} 
-                  />
-                  
-                  <ResponsesTable 
-                    title="Universitetsstudenter" 
-                    responses={universityResponses} 
-                    isLoading={isLoading.university} 
-                  />
-                  
-                  <ResponsesTable 
-                    title="Yrkesaktive" 
-                    responses={workerResponses} 
-                    isLoading={isLoading.worker} 
-                  />
-                </div>
-              </div>
+              {renderAdminContent()}
             </TabsContent>
             
             <TabsContent value="admin" className="mt-6">
@@ -121,11 +173,21 @@ const Statistics = () => {
                   Denne seksjonen er for administratorer. Her kan du håndtere systeminnstillinger og få tilgang til avanserte funksjoner.
                 </p>
                 
-                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-                  <p className="text-yellow-800">
-                    Admin-funksjoner er under utvikling. Flere muligheter vil komme snart.
-                  </p>
-                </div>
+                {!isAdmin ? (
+                  <Alert variant="destructive">
+                    <ShieldAlert className="h-4 w-4" />
+                    <AlertDescription>
+                      Du har ikke administratortilgang. 
+                      Kun administratorer kan se innholdet i denne seksjonen.
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+                    <p className="text-yellow-800">
+                      Admin-funksjoner er under utvikling. Flere muligheter vil komme snart.
+                    </p>
+                  </div>
+                )}
               </div>
             </TabsContent>
           </Tabs>
