@@ -24,7 +24,6 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
   maxCount = 6
 }) => {
   const [expandedCareer, setExpandedCareer] = useState<string | null>(null);
-  const [expandedProgram, setExpandedProgram] = useState<string | null>(null);
   
   // Get education program names from recommendations
   const educationPrograms = useMemo(() => 
@@ -38,7 +37,7 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
     return getCareerRecommendations(educationPrograms);
   }, [educationPrograms]);
   
-  // Extract all unique career paths from recommendations
+  // Extract all unique career paths from recommendations and career details
   const allCareers = useMemo(() => {
     console.log("Extracting all careers from recommendations");
     
@@ -61,11 +60,6 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
   // Toggle expanded career
   const toggleCareerDetails = (career: string) => {
     setExpandedCareer(expandedCareer === career ? null : career);
-  };
-  
-  // Toggle expanded education program
-  const toggleProgramDetails = (program: string) => {
-    setExpandedProgram(expandedProgram === program ? null : program);
   };
   
   // Find career details for a specific job title
@@ -103,59 +97,8 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
     <div className="animate-fade-up">
       <h3 className="text-2xl font-semibold mb-6">Karrieremuligheter</h3>
       
-      {/* Display education programs with collapsible details */}
-      <div className="mb-8 space-y-4">
-        {recommendations.slice(0, 6).map((rec, idx) => (
-          <Collapsible 
-            key={idx} 
-            open={expandedProgram === rec.title}
-            onOpenChange={() => toggleProgramDetails(rec.title)}
-            className="border rounded-md overflow-hidden"
-          >
-            <div className="bg-muted/30">
-              <CollapsibleTrigger asChild>
-                <div className="flex justify-between items-center p-4 cursor-pointer hover:bg-muted/50">
-                  <div>
-                    <h4 className="font-semibold">{rec.title}</h4>
-                    <p className="text-sm text-muted-foreground">{rec.match}</p>
-                  </div>
-                  <Button variant="ghost" size="sm" className="p-1">
-                    {expandedProgram === rec.title ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                  </Button>
-                </div>
-              </CollapsibleTrigger>
-            </div>
-            
-            <CollapsibleContent className="border-t">
-              <div className="p-4 space-y-4">
-                <div>
-                  <h5 className="font-medium mb-2">Beskrivelse</h5>
-                  <p className="text-sm">{rec.description}</p>
-                </div>
-                
-                <div>
-                  <h5 className="font-medium mb-2">Tilbys på</h5>
-                  <p className="text-sm">{rec.institution}</p>
-                </div>
-                
-                <div>
-                  <h5 className="font-medium mb-2">Relaterte karrieremuligheter</h5>
-                  <div className="text-sm space-y-1">
-                    {rec.careers?.map((career, i) => (
-                      <div key={i} className="flex items-center gap-1">
-                        <span>{career}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-        ))}
-      </div>
-      
       {/* Display careers in rows of 3 */}
-      <h3 className="text-2xl font-semibold mb-4">Stillingstitler du kan sikte mot</h3>
+      <h3 className="text-xl font-semibold mb-4">Stillingstitler du kan sikte mot</h3>
       
       {careerRows.map((row, rowIndex) => (
         <div key={rowIndex} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -239,8 +182,8 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
       <div className="mt-8 p-4 bg-muted/30 rounded-lg">
         <p className="text-sm">
           <span className="font-medium">Tips:</span> Disse yrkene er basert på 
-          utdanningene som matcher din profil. Du kan klikke på utdanningene over 
-          for å lese mer om dem.
+          utdanningene som matcher din profil. Du kan utforske dem for å få en bedre 
+          forståelse av mulige karriereveier.
         </p>
       </div>
     </div>
