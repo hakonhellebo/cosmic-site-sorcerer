@@ -1,14 +1,14 @@
 
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { Award, CheckCircle2, BarChart3, Lightbulb, Target, Book, Briefcase } from "lucide-react";
+import { Award, CheckCircle2, BarChart3, Lightbulb, Target, Book, Briefcase, User, Clock } from "lucide-react";
 
 interface ResultCardProps {
   title: string;
   icon: string;
   items: {
     label: string;
-    value: string;
+    value: string | React.ReactNode;
   }[];
 }
 
@@ -21,7 +21,9 @@ const ResultCard: React.FC<ResultCardProps> = ({ title, icon, items }) => {
       idea: <Lightbulb className="h-6 w-6 text-amber-500" />,
       target: <Target className="h-6 w-6 text-red-500" />,
       education: <Book className="h-6 w-6 text-indigo-500" />,
-      work: <Briefcase className="h-6 w-6 text-purple-500" />
+      work: <Briefcase className="h-6 w-6 text-purple-500" />,
+      user: <User className="h-6 w-6 text-slate-500" />,
+      time: <Clock className="h-6 w-6 text-orange-500" />
     };
     return icons[iconName as keyof typeof icons] || icons.chart;
   };
