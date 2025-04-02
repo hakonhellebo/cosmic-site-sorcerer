@@ -55,9 +55,9 @@ const Index: React.FC = () => {
       priorities[priority] = randomBool(0.5);
     });
     
-    const jobChallenges = ["konkurranse", "manglende_erfaring", "hoye_krav", "usikker_jobbvalg"];
+    const challengeOptions = ["konkurranse", "manglende_erfaring", "hoye_krav", "usikker_jobbvalg"];
     const jobChallenges: Record<string, boolean> = {};
-    jobChallenges.forEach(challenge => {
+    challengeOptions.forEach(challenge => {
       jobChallenges[challenge] = randomBool(0.4);
     });
     
@@ -323,9 +323,9 @@ const Index: React.FC = () => {
       priorities[priority] = randomBool(0.5);
     });
     
-    const jobChallenges = ["konkurranse", "manglende_erfaring", "hoye_krav", "usikker_jobbvalg"];
+    const workerChallengeOptions = ["konkurranse", "manglende_erfaring", "hoye_krav", "usikker_jobbvalg"];
     const jobChallenges: Record<string, boolean> = {};
-    jobChallenges.forEach(challenge => {
+    workerChallengeOptions.forEach(challenge => {
       jobChallenges[challenge] = randomBool(0.4);
     });
     
