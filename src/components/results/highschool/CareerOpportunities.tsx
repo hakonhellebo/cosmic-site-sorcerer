@@ -14,9 +14,14 @@ interface CareerOpportunitiesProps {
     careers: string[];
   }[];
   showAllOpportunities?: boolean;
+  maxCount?: number;
 }
 
-const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({ recommendations, showAllOpportunities = false }) => {
+const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({ 
+  recommendations, 
+  showAllOpportunities = false,
+  maxCount = 5
+}) => {
   const [expandedCareer, setExpandedCareer] = useState<string | null>(null);
   
   // Extract all career paths from recommendations, remove duplicates
@@ -45,8 +50,8 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({ recommendatio
     }
   };
   
-  // Limit to 6 careers unless showAllOpportunities is true
-  const displayedCareers = showAllOpportunities ? allCareers : allCareers.slice(0, 6);
+  // Limit to specified number of careers (default 5)
+  const displayedCareers = showAllOpportunities ? allCareers : allCareers.slice(0, maxCount);
   
   return (
     <div className="animate-fade-up">
@@ -127,7 +132,7 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({ recommendatio
         })}
       </div>
       
-      {!showAllOpportunities && allCareers.length > 6 && (
+      {!showAllOpportunities && allCareers.length > maxCount && (
         <div className="mt-4">
           <Button variant="outline">
             Se flere karrieremuligheter

@@ -9,6 +9,7 @@ interface RecommendedEducationProps {
   showAllRecommendations?: boolean;
   title?: string;
   subtitle?: string;
+  maxCount?: number;
 }
 
 const RecommendedEducation: React.FC<RecommendedEducationProps> = ({ 
@@ -16,12 +17,13 @@ const RecommendedEducation: React.FC<RecommendedEducationProps> = ({
   nextSteps,
   showAllRecommendations = false,
   title = "Anbefalte utdanningsprogrammer",
-  subtitle = "Basert på din profil, her er noen utdanningsprogrammer som kan passe for deg"
+  subtitle = "Basert på din profil, her er noen utdanningsprogrammer som kan passe for deg",
+  maxCount = 5
 }) => {
-  // Determine how many recommendations to show (all or just top 3)
+  // Determine how many recommendations to show (all, or just the specified max)
   const displayRecommendations = showAllRecommendations 
     ? recommendations 
-    : recommendations.slice(0, 3);
+    : recommendations.slice(0, maxCount);
   
   return (
     <div className="space-y-6 animate-fade-up">

@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import { Check } from 'lucide-react';
 import ResultCard from '../ResultCard';
@@ -86,9 +87,9 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
   // Get dimension names from dimension objects
   const topDimensions = dimensions.map(dim => dim.name);
   
-  // Match education programs based on dimensions - show more recommendations
+  // Match education programs based on dimensions - show only top 5 recommendations
   const educationRecommendations = useMemo(() => {
-    return matchEducationPrograms(topDimensions, 8);
+    return matchEducationPrograms(topDimensions, 5);
   }, [topDimensions]);
   
   console.log("Education recommendations:", educationRecommendations);
@@ -188,17 +189,19 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
         />
       ))}
       
-      {/* All recommended education options in a single section */}
+      {/* Top 5 recommended education options */}
       <RecommendedEducation 
         recommendations={educationRecommendations} 
         nextSteps={[]}
-        showAllRecommendations={true}
+        showAllRecommendations={false}
+        maxCount={5}
       />
       
-      {/* Career Opportunities based on education recommendations */}
+      {/* Top 5 Career Opportunities based on education recommendations */}
       <CareerOpportunities 
         recommendations={careerRecommendations}
-        showAllOpportunities={true}
+        showAllOpportunities={false}
+        maxCount={5}
       />
       
       {/* Next steps - updated content */}
