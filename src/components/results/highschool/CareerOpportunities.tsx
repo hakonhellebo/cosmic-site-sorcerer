@@ -86,11 +86,23 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
   recommendations, 
   showAllOpportunities = false 
 }) => {
-  // Get career fields from the utility function
-  const careerFields = getCareerRecommendations(recommendations.map(rec => rec.name));
+  // Remove duplicate recommendations by name
+  const uniqueRecommendations = recommendations.filter(
+    (rec, index, self) => index === self.findIndex(r => r.name === rec.name)
+  );
+  
+  // Get career fields from the utility function with unique recommendations
+  const careerFields = getCareerRecommendations(uniqueRecommendations.map(rec => rec.name));
+  
+  // Deduplicate career fields by educationProgram
+  const uniqueCareerFields = careerFields.filter(
+    (field, index, self) => index === self.findIndex(
+      f => f.educationProgram === field.educationProgram
+    )
+  );
   
   // Limit to only 4 career fields
-  const displayedCareerFields = careerFields.slice(0, 4);
+  const displayedCareerFields = uniqueCareerFields.slice(0, 4);
   
   // Generate simplified IDs and titles for the tabs
   const tabData = displayedCareerFields.map(field => ({
@@ -104,80 +116,86 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
     <div className="space-y-6 animate-fade-up">
       <h3 className="text-2xl font-semibold">Karrieremuligheter</h3>
       
-      <Tabs defaultValue={tabData[0]?.tabId} className="w-full">
-        <TabsList className="mb-6 flex flex-wrap h-auto gap-2">
+      {tabData.length > 0 ? (
+        <Tabs defaultValue={tabData[0]?.tabId} className="w-full">
+          <TabsList className="mb-6 flex flex-wrap h-auto gap-2">
+            {tabData.map((tab) => (
+              <TabsTrigger 
+                key={tab.tabId} 
+                value={tab.tabId}
+                className="px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-white"
+              >
+                {tab.simplifiedTitle}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          
           {tabData.map((tab) => (
-            <TabsTrigger 
+            <TabsContent 
               key={tab.tabId} 
               value={tab.tabId}
-              className="px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-white"
+              className="border rounded-lg p-6"
             >
-              {tab.simplifiedTitle}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        
-        {tabData.map((tab) => (
-          <TabsContent 
-            key={tab.tabId} 
-            value={tab.tabId}
-            className="border rounded-lg p-6"
-          >
-            <h4 className="text-lg font-semibold mb-2">{tab.originalTitle}</h4>
-            
-            {tab.field.match && (
-              <div className="mb-6 p-4 bg-muted/30 rounded-lg">
-                <p className="italic">Disse karrieremulighetene passer godt for personer med {tab.originalTitle.toLowerCase()} og {cleanMatchText(tab.field.match, tab.originalTitle)}. Se aktuelle stillinger og relevante bedrifter under.</p>
-              </div>
-            )}
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <h4 className="text-lg font-semibold mb-4">Stillinger</h4>
-                <Accordion type="multiple" className="w-full">
-                  {tab.field.jobs.slice(0, 5).map((job, idx) => (
-                    <AccordionItem key={idx} value={`job-${idx}`}>
-                      <AccordionTrigger className="text-base font-medium hover:no-underline">
-                        {job.title}
-                      </AccordionTrigger>
-                      <AccordionContent className="text-sm text-muted-foreground">
-                        {job.description}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
+              <h4 className="text-lg font-semibold mb-2">{tab.originalTitle}</h4>
+              
+              {tab.field.match && (
+                <div className="mb-6 p-4 bg-muted/30 rounded-lg">
+                  <p className="italic">Disse karrieremulighetene passer godt for personer med {tab.originalTitle.toLowerCase()} og {cleanMatchText(tab.field.match, tab.originalTitle)}. Se aktuelle stillinger og relevante bedrifter under.</p>
+                </div>
+              )}
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <h4 className="text-lg font-semibold mb-4">Stillinger</h4>
+                  <Accordion type="multiple" className="w-full">
+                    {tab.field.jobs.slice(0, 5).map((job, idx) => (
+                      <AccordionItem key={idx} value={`job-${idx}`}>
+                        <AccordionTrigger className="text-base font-medium hover:no-underline">
+                          {job.title}
+                        </AccordionTrigger>
+                        <AccordionContent className="text-sm text-muted-foreground">
+                          {job.description}
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </div>
+                
+                <div>
+                  <h4 className="text-lg font-semibold mb-4">Relevante bedrifter</h4>
+                  <ul className="space-y-3">
+                    {tab.field.companies.slice(0, 5).map((company, idx) => (
+                      <li key={idx} className="flex items-center justify-between border-b pb-2">
+                        <span>{company.name}</span>
+                        <a 
+                          href={company.website} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-primary hover:text-primary/80 flex items-center gap-1 text-sm"
+                        >
+                          <span>Besøk</span>
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
               
-              <div>
-                <h4 className="text-lg font-semibold mb-4">Relevante bedrifter</h4>
-                <ul className="space-y-3">
-                  {tab.field.companies.slice(0, 5).map((company, idx) => (
-                    <li key={idx} className="flex items-center justify-between border-b pb-2">
-                      <span>{company.name}</span>
-                      <a 
-                        href={company.website} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-primary hover:text-primary/80 flex items-center gap-1 text-sm"
-                      >
-                        <span>Besøk</span>
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    </li>
-                  ))}
-                </ul>
+              <div className="mt-6 pt-4 border-t">
+                <p className="text-sm text-muted-foreground">
+                  Dette er en oversikt over mulige karriereveier basert på din profil og valgt utdanning. 
+                  Faktiske jobbtilbud vil avhenge av flere faktorer som erfaring, kompetanse og arbeidsmarkedet.
+                </p>
               </div>
-            </div>
-            
-            <div className="mt-6 pt-4 border-t">
-              <p className="text-sm text-muted-foreground">
-                Dette er en oversikt over mulige karriereveier basert på din profil og valgt utdanning. 
-                Faktiske jobbtilbud vil avhenge av flere faktorer som erfaring, kompetanse og arbeidsmarkedet.
-              </p>
-            </div>
-          </TabsContent>
-        ))}
-      </Tabs>
+            </TabsContent>
+          ))}
+        </Tabs>
+      ) : (
+        <div className="p-6 border rounded-lg">
+          <p>Ingen karrieremuligheter funnet basert på dine valg. Vennligst fullfør spørreskjemaet for flere anbefalinger.</p>
+        </div>
+      )}
     </div>
   );
 };
