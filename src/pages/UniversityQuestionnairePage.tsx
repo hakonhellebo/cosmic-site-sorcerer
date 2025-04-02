@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import UniversityQuestionnaire from '@/components/UniversityQuestionnaire';
@@ -136,11 +137,25 @@ const UniversityQuestionnairePage: React.FC = () => {
       
       localStorage.setItem('userFullData', JSON.stringify(fullData));
       
+      console.log("Submitting university questionnaire data:", {
+        userData,
+        universityData: formData.university
+      });
+      
       // Save to Supabase
       const { error } = await saveUniversityQuestionnaire(userData, formData.university);
       
       if (error) {
-        throw error;
+        console.log("Error from Supabase:", error);
+        toast.warning("Merk", {
+          description: "Dine svar ble lagret lokalt, men vi kunne ikke lagre dem i databasen."
+        });
+        
+        // Still navigate to results since we saved locally
+        setTimeout(() => {
+          navigate('/results/university');
+        }, 2000);
+        return;
       }
       
       toast.success("Spørreskjema fullført!", {
@@ -157,6 +172,11 @@ const UniversityQuestionnairePage: React.FC = () => {
       toast.error("Noe gikk galt", {
         description: "Vi kunne ikke lagre svarene dine. Vennligst prøv igjen."
       });
+      
+      // Still try to navigate to results since we saved locally
+      setTimeout(() => {
+        navigate('/results/university');
+      }, 2000);
     } finally {
       setIsSubmitting(false);
     }

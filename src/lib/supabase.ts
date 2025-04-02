@@ -83,12 +83,74 @@ export const signOut = async () => {
   return { error };
 };
 
+// Helper function to create tables if they don't exist
+const ensureTablesExist = async () => {
+  try {
+    // First check if high_school_responses table exists
+    const { error: checkHighSchoolError } = await supabase
+      .from('high_school_responses')
+      .select('id')
+      .limit(1)
+      .throwOnError();
+      
+    if (checkHighSchoolError) {
+      // If error happens, table likely doesn't exist, let's check more specifically
+      console.log("High school responses table may not exist:", checkHighSchoolError);
+    }
+    
+    // Check university_responses table
+    const { error: checkUniversityError } = await supabase
+      .from('university_responses')
+      .select('id')
+      .limit(1)
+      .throwOnError();
+      
+    if (checkUniversityError) {
+      console.log("University responses table may not exist:", checkUniversityError);
+    }
+    
+    // Check worker_responses table
+    const { error: checkWorkerError } = await supabase
+      .from('worker_responses')
+      .select('id')
+      .limit(1)
+      .throwOnError();
+      
+    if (checkWorkerError) {
+      console.log("Worker responses table may not exist:", checkWorkerError);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error checking tables:", error);
+    return false;
+  }
+};
+
+// Call ensure tables when this module loads
+ensureTablesExist();
+
 // New helper functions for storing questionnaire responses
 
 // Store a high school questionnaire response
 export const saveHighSchoolQuestionnaire = async (userData: any, questionnaireData: any) => {
   try {
     const user = await getCurrentUser();
+    
+    console.log("Attempting to save high school response with data:", {
+      user_id: user?.id || 'anonymous',
+      email: userData?.email || 'anonymous',
+      name: `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() || 'Anonymous',
+    });
+    
+    // Use local storage as fallback
+    localStorage.setItem('highSchoolResponses', JSON.stringify({
+      user_id: user?.id || 'anonymous',
+      email: userData?.email || 'anonymous',
+      name: `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() || 'Anonymous',
+      responses: questionnaireData,
+      created_at: new Date().toISOString()
+    }));
     
     const { data, error } = await supabase
       .from('high_school_responses')
@@ -100,11 +162,22 @@ export const saveHighSchoolQuestionnaire = async (userData: any, questionnaireDa
         created_at: new Date().toISOString()
       });
       
-    if (error) throw error;
+    if (error) {
+      console.error("Supabase insert error:", error);
+      throw error;
+    }
+    
     return { data, error: null };
   } catch (error) {
     console.error("Error saving high school questionnaire:", error);
-    return { data: null, error };
+    // Return a more specific error but still allow the app to proceed
+    return { 
+      data: null, 
+      error: {
+        message: "Kunne ikke lagre data i databasen, men dine svar er lagret lokalt.",
+        details: error
+      } 
+    };
   }
 };
 
@@ -113,21 +186,50 @@ export const saveUniversityQuestionnaire = async (userData: any, questionnaireDa
   try {
     const user = await getCurrentUser();
     
+    console.log("Attempting to save university response with data:", {
+      user_id: user?.id || 'anonymous',
+      email: userData?.email || 'anonymous',
+      name: `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() || 'Anonymous',
+    });
+    
+    // Use local storage as fallback
+    localStorage.setItem('universityResponses', JSON.stringify({
+      user_id: user?.id || 'anonymous',
+      email: userData?.email || 'anonymous',
+      name: `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() || 'Anonymous',
+      responses: questionnaireData,
+      created_at: new Date().toISOString()
+    }));
+    
+    // Simplify the response object to avoid potential issues
+    const simpleResponses = JSON.parse(JSON.stringify(questionnaireData));
+    
     const { data, error } = await supabase
       .from('university_responses')
       .insert({
         user_id: user?.id || 'anonymous',
         email: userData?.email || 'anonymous',
         name: `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() || 'Anonymous',
-        responses: questionnaireData,
+        responses: simpleResponses,
         created_at: new Date().toISOString()
       });
       
-    if (error) throw error;
+    if (error) {
+      console.error("Supabase insert error:", error);
+      throw error;
+    }
+    
     return { data, error: null };
   } catch (error) {
     console.error("Error saving university questionnaire:", error);
-    return { data: null, error };
+    // Return a more specific error but still allow the app to proceed
+    return { 
+      data: null, 
+      error: {
+        message: "Kunne ikke lagre data i databasen, men dine svar er lagret lokalt.",
+        details: error
+      } 
+    };
   }
 };
 
@@ -135,6 +237,21 @@ export const saveUniversityQuestionnaire = async (userData: any, questionnaireDa
 export const saveWorkerQuestionnaire = async (userData: any, questionnaireData: any) => {
   try {
     const user = await getCurrentUser();
+    
+    console.log("Attempting to save worker response with data:", {
+      user_id: user?.id || 'anonymous',
+      email: userData?.email || 'anonymous',
+      name: `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() || 'Anonymous',
+    });
+    
+    // Use local storage as fallback
+    localStorage.setItem('workerResponses', JSON.stringify({
+      user_id: user?.id || 'anonymous',
+      email: userData?.email || 'anonymous',
+      name: `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() || 'Anonymous',
+      responses: questionnaireData,
+      created_at: new Date().toISOString()
+    }));
     
     const { data, error } = await supabase
       .from('worker_responses')
@@ -146,11 +263,22 @@ export const saveWorkerQuestionnaire = async (userData: any, questionnaireData: 
         created_at: new Date().toISOString()
       });
       
-    if (error) throw error;
+    if (error) {
+      console.error("Supabase insert error:", error);
+      throw error;
+    }
+    
     return { data, error: null };
   } catch (error) {
     console.error("Error saving worker questionnaire:", error);
-    return { data: null, error };
+    // Return a more specific error but still allow the app to proceed
+    return { 
+      data: null, 
+      error: {
+        message: "Kunne ikke lagre data i databasen, men dine svar er lagret lokalt.",
+        details: error
+      } 
+    };
   }
 };
 
