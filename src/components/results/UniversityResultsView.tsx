@@ -2,7 +2,7 @@ import React from 'react';
 import ResultCard from './ResultCard';
 import { getFormattedValue } from '@/utils/resultFormatters';
 import { Badge } from "@/components/ui/badge";
-import { Check, GraduationCap, ExternalLink, Building, Briefcase } from "lucide-react";
+import { GraduationCap } from "lucide-react";
 import DimensionRanking from './DimensionRanking';
 import { matchEducationPrograms } from '@/utils/educationData';
 import RecommendedEducation from './highschool/RecommendedEducation';
@@ -310,10 +310,10 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
     }
   ];
   
-  // Get master program recommendations (for bachelor students)
+  // Get education recommendations based on top dimensions
   const educationRecommendations = matchEducationPrograms(topDimensions, 5);
   
-  // Define next steps based on student level
+  // Define next steps
   const nextStepsBachelor = [
     "Utforsk masterprogrammer innenfor ditt fagfelt",
     "Delta på bedriftspresentasjoner på campus",
@@ -330,6 +330,13 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
 
   // Choose next steps based on education level
   const nextSteps = isBachelorStudent ? nextStepsBachelor : nextStepsMaster;
+
+  // Career opportunities based on education recommendations
+  const careerOpportunities = educationRecommendations.map(rec => ({
+    title: rec.name.includes('Master') ? rec.name : `Karriere innen ${rec.name}`,
+    description: rec.description || `Jobbmuligheter relatert til ${rec.name}`,
+    icon: "briefcase"
+  }));
   
   return (
     <div className="space-y-10">
@@ -394,11 +401,14 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
       </div>
       
       {/* Dimension Ranking */}
-      <DimensionRanking userData={{
-        questionnaire: {
-          university: universityData
-        }
-      }} questionnaire="university" />
+      <DimensionRanking 
+        userData={{
+          questionnaire: {
+            university: universityData
+          }
+        }} 
+        questionnaire="university" 
+      />
       
       {/* Result cards for basic info */}
       {basicInfo.map((card, index) => (
@@ -410,22 +420,22 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
         />
       ))}
 
-      {/* Education recommendations */}
-      {isBachelorStudent && (
-        <RecommendedEducation 
-          recommendations={educationRecommendations}
-          nextSteps={nextSteps}
-          showAllRecommendations={true}
-        />
-      )}
-      
-      {/* Career opportunities section using the same component as high school results */}
-      <CareerOpportunities 
-        recommendations={educationRecommendations} 
-        showAllOpportunities={true}
+      {/* Education recommendations - For bachelor students, recommend masters. For master students, show career paths */}
+      <RecommendedEducation 
+        recommendations={educationRecommendations}
+        nextSteps={nextSteps}
+        showAllRecommendations={true}
+        title={isBachelorStudent ? "Anbefalte masterprogrammer" : "Anbefalte karriereveier"}
+        subtitle={isBachelorStudent 
+          ? "Basert på din profil har vi funnet disse masterprogrammene som kan passe for deg" 
+          : "Basert på din profil har vi funnet disse karriereveiene som kan passe for deg"}
       />
       
-      {/* Next steps section is now included in RecommendedEducation component */}
+      {/* Career opportunities - consistent with high school results */}
+      <CareerOpportunities 
+        recommendations={educationRecommendations}
+        showAllOpportunities={true}
+      />
     </div>
   );
 };
