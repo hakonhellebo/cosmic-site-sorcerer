@@ -3,9 +3,9 @@ import React from 'react';
 import ResultCard from './ResultCard';
 import { getFormattedValue } from '@/utils/resultFormatters';
 import { Badge } from "@/components/ui/badge";
-import { Check, GraduationCap, ExternalLink } from "lucide-react";
+import { Check, GraduationCap, ExternalLink, Building, Briefcase } from "lucide-react";
 import DimensionRanking from './DimensionRanking';
-import { matchEducationPrograms } from '@/utils/educationData';
+import { matchEducationPrograms, EducationRecommendation } from '@/utils/educationData';
 
 interface UniversityResultsViewProps {
   userData: any;
@@ -310,14 +310,160 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
   ];
   
   // Get master program recommendations (for bachelor students)
-  const masterRecommendations = isBachelorStudent ? matchEducationPrograms(topDimensions, 3) : [];
+  const educationRecommendations = matchEducationPrograms(topDimensions, 5);
   
-  // Define career recommendations
-  const careerRecommendations = [
-    { title: "Prosjektleder", location: "Teknologibedrifter", match: "Passer med dine organisatoriske evner" },
-    { title: "Forsker", location: "Forskningsinstitusjoner", match: "Utnytter dine analytiske ferdigheter" },
-    { title: "Konsulent", location: "Konsulentfirmaer", match: "Kombinerer dine sosiale og analytiske evner" }
-  ];
+  // Define career recommendations based on dimensions
+  const getCareerRecommendations = () => {
+    const careers = [
+      // Teknologi
+      { 
+        title: "Software-utvikler", 
+        company: "Tech-selskaper og konsulentfirmaer", 
+        match: "Passer med dine teknologiske interesser",
+        dimension: "teknologi"
+      },
+      { 
+        title: "Data Scientist", 
+        company: "Tech-selskaper, konsulentfirmaer, forskningsinstitusjoner", 
+        match: "Utnytter dine analytiske og teknologiske ferdigheter",
+        dimension: "teknologi"
+      },
+      // Analytisk
+      { 
+        title: "Forretningsanalytiker", 
+        company: "Konsulentfirmaer, større bedrifter", 
+        match: "Passer med dine analytiske ferdigheter",
+        dimension: "analytisk"
+      },
+      { 
+        title: "Finansanalytiker", 
+        company: "Banker, investeringsselskaper", 
+        match: "Utnytter dine analytiske evner innen finans",
+        dimension: "analytisk"
+      },
+      // Ambisjon
+      { 
+        title: "Prosjektleder", 
+        company: "Konsulentfirmaer, tech-selskaper", 
+        match: "Passer med din ambisjon og strukturerte tilnærming",
+        dimension: "ambisjon"
+      },
+      // Struktur
+      { 
+        title: "Produktansvarlig", 
+        company: "Tech-selskaper, produktdrevne selskaper", 
+        match: "Utnytter din strukturerte arbeidsmetode",
+        dimension: "struktur"
+      },
+      // Kreativitet
+      { 
+        title: "UX/UI-designer", 
+        company: "Tech-selskaper, designbyråer", 
+        match: "Passer med din kreative tilnærming",
+        dimension: "kreativitet"
+      },
+      // Helseinteresse
+      { 
+        title: "Helsefaglig rådgiver", 
+        company: "Sykehus, offentlige etater", 
+        match: "Kombinerer din helseinteresse med rådgivning",
+        dimension: "helseinteresse"
+      },
+      // Sosialitet
+      { 
+        title: "HR-konsulent", 
+        company: "Større bedrifter, konsulentfirmaer", 
+        match: "Utnytter dine sosiale evner i rekruttering og personalutvikling",
+        dimension: "sosialitet"
+      },
+      // Bærekraft
+      { 
+        title: "Miljørådgiver", 
+        company: "Offentlige etater, konsulentfirmaer", 
+        match: "Passer med din interesse for bærekraft",
+        dimension: "bærekraft"
+      },
+      // Selvstendighet
+      { 
+        title: "Selvstendig konsulent", 
+        company: "Egen virksomhet, konsulentnettverk", 
+        match: "Passer med din selvstendige arbeidsmetode",
+        dimension: "selvstendighet"
+      },
+      // Praktisk
+      { 
+        title: "Praktisk prosjektleder", 
+        company: "Produksjonsbedrifter, industri", 
+        match: "Utnytter din praktiske tilnærming til oppgaver",
+        dimension: "praktisk"
+      }
+    ];
+    
+    // Filter careers based on top dimensions
+    return careers
+      .filter(career => topDimensions.includes(career.dimension))
+      .slice(0, 4); // Show max 4 careers
+  };
+
+  const careerRecommendations = getCareerRecommendations();
+  
+  // Define company recommendations based on dimensions and student preferences
+  const getCompanyRecommendations = () => {
+    // Base set of companies by company type preference
+    const companyTypeRecommendations: {[key: string]: {name: string, industry: string, match: string}[]} = {
+      'startup': [
+        { name: "Cognite", industry: "Data/AI", match: "Innovativ startup innen dataplattformer" },
+        { name: "Tibber", industry: "Energi/Tech", match: "Revolusjonerer strømforbruk med smart teknologi" },
+        { name: "Dune Analytics", industry: "Data/Blockchain", match: "Datadrevet blockchain-analyse" },
+        { name: "Memory", industry: "SaaS/Produktivitet", match: "Automatisk time-tracking og dataanalyse" }
+      ],
+      'small-medium': [
+        { name: "EGGS Design", industry: "Design/Konsulent", match: "Design- og innovasjonsbyrå" },
+        { name: "Computas", industry: "IT/Konsulent", match: "Teknologibedrift med fokus på AI og skytjenester" },
+        { name: "Bekk Consulting", industry: "IT/Konsulent", match: "Digital rådgivning og systemutvikling" },
+        { name: "Kantega", industry: "IT/Konsulent", match: "Medarbeidereiet IT-selskap med bredt spekter" }
+      ],
+      'large': [
+        { name: "Equinor", industry: "Energi", match: "Ledende energiselskap med teknologifokus" },
+        { name: "DNB", industry: "Bank/Finans", match: "Norges største finanskonsern" },
+        { name: "Telenor", industry: "Telekom", match: "Internasjonal telekommunikasjonsgigant" },
+        { name: "Schibsted", industry: "Media/Tech", match: "Digitalt medieselskap med tech-fokus" }
+      ],
+      'public': [
+        { name: "NAV IT", industry: "Offentlig/IT", match: "Digital transformasjon av offentlige tjenester" },
+        { name: "Direktoratet for e-helse", industry: "Offentlig/Helse", match: "Digitalisering av helsesektoren" },
+        { name: "Skatteetaten", industry: "Offentlig", match: "Moderne digitale løsninger for skattesystemet" },
+        { name: "Statens vegvesen", industry: "Offentlig/Samferdsel", match: "Teknologiutvikling innen transport" }
+      ],
+      'nonprofit': [
+        { name: "Røde Kors", industry: "Humanitær", match: "Teknologibaserte humanitære løsninger" },
+        { name: "UNICEF Norge", industry: "Humanitær/Barn", match: "Innovative løsninger for barns rettigheter" },
+        { name: "WWF Norge", industry: "Miljø", match: "Digitale løsninger for miljøvern" },
+        { name: "NRC (Flyktninghjelpen)", industry: "Humanitær/Flyktninger", match: "Tech-løsninger for humanitær hjelp" }
+      ]
+    };
+    
+    // Get preferred company type or default to 'large'
+    const preferredType = universityData.preferredCompanyType || 'large';
+    let recommendations = companyTypeRecommendations[preferredType] || companyTypeRecommendations['large'];
+    
+    // If technology is a top dimension and tech is important, adjust recommendations
+    if (topDimensions.includes('teknologi') && universityData.technologyImportance === 'very') {
+      const techCompanies = [
+        { name: "Microsoft Norge", industry: "Tech/Programvare", match: "Global teknologigigant" },
+        { name: "Google Norway", industry: "Tech/AI", match: "Ledende innen søk og AI-teknologi" },
+        { name: "NVIDIA", industry: "Tech/AI/Hardware", match: "Ledende innen AI og GPU-teknologi" },
+        { name: "Finn.no", industry: "Tech/Markedsplass", match: "Norges største digitale markedsplass" }
+      ];
+      
+      // Blend in some tech companies
+      recommendations = [...recommendations.slice(0, 2), ...techCompanies.slice(0, 2)];
+    }
+    
+    return recommendations;
+  };
+
+  const companyRecommendations = getCompanyRecommendations();
   
   // Define next steps based on student level
   const nextStepsBachelor = [
@@ -357,24 +503,49 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
           <div className="bg-muted/50 p-4 rounded-lg">
             <h3 className="font-semibold mb-2">Dine dimensjoner</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-              <div className="p-3 bg-primary/10 rounded-md">
-                <h4 className="font-medium">Analytisk</h4>
-                <p className="text-sm">Du har sterke analytiske evner og er god til å løse komplekse problemer.</p>
-              </div>
-              <div className="p-3 bg-blue-100 rounded-md">
-                <h4 className="font-medium">Målrettet</h4>
-                <p className="text-sm">Du er fokusert på å nå dine mål og jobber systematisk mot dem.</p>
-              </div>
-              <div className="p-3 bg-green-100 rounded-md">
-                <h4 className="font-medium">Samarbeidende</h4>
-                <p className="text-sm">Du trives med å jobbe i team og bidra til fellesskapet.</p>
-              </div>
+              {topDimensions.map((dim, index) => {
+                const dimensionColors = {
+                  analytisk: "bg-primary/10",
+                  ambisjon: "bg-blue-100",
+                  teknologi: "bg-green-100",
+                  kreativitet: "bg-amber-100",
+                  struktur: "bg-purple-100",
+                  sosialitet: "bg-rose-100",
+                  helseinteresse: "bg-red-100",
+                  bærekraft: "bg-emerald-100",
+                  selvstendighet: "bg-sky-100",
+                  praktisk: "bg-orange-100"
+                };
+                
+                const dimensionDescriptions = {
+                  analytisk: "Du har sterke analytiske evner og er god til å løse komplekse problemer.",
+                  ambisjon: "Du er fokusert på å nå dine mål og jobber systematisk mot dem.",
+                  teknologi: "Du har god teknologiforståelse og interesse for digitale løsninger.",
+                  kreativitet: "Du har kreative evner og liker å tenke utenfor boksen.",
+                  struktur: "Du er strukturert, organisert og metodisk i din tilnærming.",
+                  sosialitet: "Du trives med å jobbe i team og bidra til fellesskapet.",
+                  helseinteresse: "Du er opptatt av helse og velvære, både for deg selv og andre.",
+                  bærekraft: "Du er opptatt av bærekraft og samfunnsansvar.",
+                  selvstendighet: "Du er selvstendig, selvgående og liker å ta egne valg.",
+                  praktisk: "Du er praktisk anlagt og liker å se konkrete resultater."
+                };
+                
+                const color = dimensionColors[dim as keyof typeof dimensionColors] || "bg-gray-100";
+                const description = dimensionDescriptions[dim as keyof typeof dimensionDescriptions] || "";
+                
+                return (
+                  <div key={index} className={`p-3 ${color} rounded-md`}>
+                    <h4 className="font-medium capitalize">{dim}</h4>
+                    <p className="text-sm">{description}</p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
       </div>
       
-      {/* Dimension Ranking - Now properly populated with university data */}
+      {/* Dimension Ranking */}
       <DimensionRanking userData={{
         questionnaire: {
           university: universityData
@@ -391,72 +562,97 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
         />
       ))}
 
-      {/* Master studies recommendations (for bachelor students only) */}
-      {isBachelorStudent && masterRecommendations.length > 0 && (
-        <div className="animate-fade-up">
-          <h3 className="text-2xl font-semibold mb-6">Anbefalte masterstudier</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-3">Masterprogram</th>
-                  <th className="text-left py-3">Institusjon</th>
-                  <th className="text-left py-3">Hvorfor passer det deg?</th>
-                  <th className="text-left py-3"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {masterRecommendations.map((rec, idx) => (
-                  <tr key={idx} className="border-b hover:bg-muted/30">
-                    <td className="py-3 font-medium">{rec.name}</td>
-                    <td className="py-3">{rec.institution}</td>
-                    <td className="py-3">{rec.match}</td>
-                    <td className="py-3 text-right">
-                      {rec.link && (
-                        <a 
-                          href={rec.link} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="inline-flex items-center text-primary hover:underline"
-                        >
-                          <span className="mr-1">Les mer</span>
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-      
-      {/* Career recommendations - shown for both bachelor and master students */}
+      {/* Education recommendations */}
       <div className="animate-fade-up">
-        <h3 className="text-2xl font-semibold mb-6">Anbefalte karriereveier</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <h3 className="text-2xl font-semibold mb-6 flex items-center gap-2">
+          <GraduationCap className="h-6 w-6 text-primary" />
+          {isBachelorStudent ? "Anbefalte masterstudier" : "Anbefalte videreutdanninger"}
+        </h3>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left py-3">Utdanning</th>
+                <th className="text-left py-3">Institusjon</th>
+                <th className="text-left py-3">Hvorfor passer det deg?</th>
+                <th className="text-left py-3"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {educationRecommendations.map((rec, idx) => (
+                <tr key={idx} className="border-b hover:bg-muted/30">
+                  <td className="py-3 font-medium">{rec.name}</td>
+                  <td className="py-3">{rec.institution}</td>
+                  <td className="py-3">{rec.match}</td>
+                  <td className="py-3 text-right">
+                    {rec.link && (
+                      <a 
+                        href={rec.link} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="inline-flex items-center text-primary hover:underline"
+                      >
+                        <span className="mr-1">Les mer</span>
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      {/* Career recommendations */}
+      <div className="animate-fade-up">
+        <h3 className="text-2xl font-semibold mb-6 flex items-center gap-2">
+          <Briefcase className="h-6 w-6 text-primary" />
+          Anbefalte karriereveier
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           {careerRecommendations.map((career, idx) => (
             <div key={idx} className="bg-card border rounded-lg p-5 hover:shadow-md transition-shadow">
               <h4 className="font-semibold text-lg mb-2">{career.title}</h4>
-              <p className="text-sm text-muted-foreground mb-3">{career.location}</p>
+              <p className="text-sm text-muted-foreground mb-3">{career.company}</p>
               <div className="bg-muted/40 p-2 rounded">
                 <p className="text-sm">{career.match}</p>
               </div>
             </div>
           ))}
         </div>
-        <div className="bg-muted/10 p-6 rounded-lg border">
-          <h3 className="text-xl font-semibold mb-4">Neste steg</h3>
-          <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {nextSteps.map((step, idx) => (
-              <li key={idx} className="flex items-start">
-                <Check className="h-5 w-5 mr-2 mt-0.5 text-primary flex-shrink-0" />
-                <span>{step}</span>
-              </li>
-            ))}
-          </ul>
+      </div>
+
+      {/* Company recommendations */}
+      <div className="animate-fade-up">
+        <h3 className="text-2xl font-semibold mb-6 flex items-center gap-2">
+          <Building className="h-6 w-6 text-primary" />
+          Anbefalte bedrifter
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          {companyRecommendations.map((company, idx) => (
+            <div key={idx} className="bg-card border rounded-lg p-5 hover:shadow-md transition-shadow">
+              <div className="flex justify-between items-start mb-2">
+                <h4 className="font-semibold text-lg">{company.name}</h4>
+                <Badge variant="outline">{company.industry}</Badge>
+              </div>
+              <p className="text-sm text-muted-foreground mb-3">{company.match}</p>
+            </div>
+          ))}
         </div>
+      </div>
+      
+      {/* Next steps */}
+      <div className="bg-muted/10 p-6 rounded-lg border">
+        <h3 className="text-xl font-semibold mb-4">Neste steg</h3>
+        <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {nextSteps.map((step, idx) => (
+            <li key={idx} className="flex items-start">
+              <Check className="h-5 w-5 mr-2 mt-0.5 text-primary flex-shrink-0" />
+              <span>{step}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
