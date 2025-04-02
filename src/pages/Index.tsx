@@ -12,100 +12,191 @@ import { GraduationCap, BookOpen, Briefcase, ArrowRight } from "lucide-react";
 
 const Index: React.FC = () => {
   
-  const loadTestData = (userType: 'university' | 'highSchool' | 'worker') => {
-    // Base test data structure
-    const baseTestData = {
+  // Generate random boolean value with specified probability
+  const randomBool = (probability = 0.5) => Math.random() < probability;
+  
+  // Generate random item from an array
+  const randomItem = <T,>(items: T[]): T => items[Math.floor(Math.random() * items.length)];
+  
+  // Generate random university student data with random answers
+  const generateRandomUniversityData = () => {
+    const studyFields = ["Informatikk", "Økonomi", "Psykologi", "Medisin", "Ingeniør", "Pedagogikk", "Statsvitenskap", "Juss"];
+    const institutions = ["Universitetet i Oslo", "NTNU", "Universitetet i Bergen", "UiT", "OsloMet", "Handelshøyskolen BI", "NMBU", "Høgskulen på Vestlandet"];
+    const levels = ["Bachelor", "Master", "PhD"];
+    const certaintyLevels = ["very", "quite", "somewhat", "not-really"];
+    const roles = ["leader", "specialist", "developer", "researcher", "teacher", "consultant", "entrepreneur"];
+    const environments = ["office", "remote", "hybrid", "field"];
+    
+    // Generate random interests
+    const possibleInterests = ["teknologi", "okonomi", "samfunnsvitenskap", "humaniora", "naturvitenskap", "helse", "kunst", "ingenior", "larer", "jus"];
+    const interests: Record<string, boolean> = {};
+    possibleInterests.forEach(interest => {
+      interests[interest] = randomBool(0.3); // 30% chance of having each interest
+    });
+    
+    // Ensure at least one interest is selected
+    if (!Object.values(interests).some(v => v)) {
+      interests[randomItem(possibleInterests)] = true;
+    }
+    
+    // Generate random strengths
+    const possibleStrengths = ["kritisk_tenkning", "problemlosning", "kreativitet", "kommunikasjon", "selvledelse", "prosjektstyring", "teknologiforstaaelse", "empati"];
+    const strengths: Record<string, boolean> = {};
+    possibleStrengths.forEach(strength => {
+      strengths[strength] = randomBool(0.4); // 40% chance of having each strength
+    });
+    
+    // Ensure at least one strength is selected
+    if (!Object.values(strengths).some(v => v)) {
+      strengths[randomItem(possibleStrengths)] = true;
+    }
+    
+    // Generate random learning style
+    const learningStyles = ["lesing", "lytting", "praksis", "diskusjon", "video"];
+    const learningStyle: Record<string, boolean> = {};
+    learningStyles.forEach(style => {
+      learningStyle[style] = randomBool(0.5);
+    });
+    
+    // Generate random job priorities
+    const jobPriorities = ["fleksibilitet", "hoy_lonn", "stabilitet", "karrieremuligheter", "mening", "innovasjon"];
+    const priorities: Record<string, boolean> = {};
+    jobPriorities.forEach(priority => {
+      priorities[priority] = randomBool(0.5);
+    });
+    
+    // Random dream job options
+    const dreamJobs = [
+      "Teknologileder i innovativ bedrift", 
+      "Forsker innen mitt fagfelt", 
+      "Selvstendig konsulent", 
+      "Prosjektleder for internasjonale prosjekter",
+      "Produktutvikler i tech-startup",
+      "Underviser på høyere nivå",
+      "Gründer med eget selskap"
+    ];
+
+    return {
       firstName: "Test",
       lastName: "Bruker",
       email: "test@example.com",
-      questionnaire: {}
+      questionnaire: {
+        university: {
+          studyField: randomItem(studyFields),
+          institution: randomItem(institutions),
+          level: randomItem(levels),
+          certaintylevel: randomItem(certaintyLevels),
+          interests: interests,
+          strengths: strengths,
+          futureRole: randomItem(roles),
+          workEnvironment: randomItem(environments),
+          dreamJob: randomItem(dreamJobs),
+          motivationSource: randomItem(["impact", "salary", "security", "passion"]),
+          workLifeBalance: randomItem(["work", "balanced", "life"]),
+          projectPreference: randomItem(["team", "solo", "mixed"]),
+          learningStyle: learningStyle,
+          collaboration: randomItem(["independent", "team", "daily", "weekly"]),
+          aiUsage: randomItem(["daily", "weekly", "monthly", "never"]),
+          internship: randomItem(["yes", "no", "planning"]),
+          internshipValue: randomItem(["very-useful", "somewhat-useful", "not-useful"]),
+          studyReason: randomItem(["job-security", "salary", "impact", "interest"]),
+          salaryImportance: randomItem(["very", "somewhat", "not-really"]),
+          impactImportance: randomItem(["very", "somewhat", "not-really"]),
+          jobPriorities: priorities,
+          internationalImportance: randomItem(["very", "somewhat", "not-really"]),
+          entrepreneurship: randomItem(["yes", "no", "maybe"]),
+          preferredCompanyType: randomItem(["startup", "small-medium", "large", "public", "nonprofit"]),
+          technologyImportance: randomItem(["very", "somewhat", "not-really"]),
+          remoteWorkImportance: randomItem(["very", "somewhat", "not-really"]),
+          travelImportance: randomItem(["very", "somewhat", "not-really"]),
+          preferredWorkEnvironment: randomItem(["structured", "creative", "social", "flexible"]),
+          peopleTech: randomItem(["people", "tech", "both"]),
+          studyChoiceReason: randomItem(["interesse", "lonn", "prestisje", "familie", "trygt"]),
+          currentGrades: randomItem(["high", "good", "average", "below-average"]),
+          hadJob: randomItem(["yes", "no"])
+        }
+      }
     };
+  };
+  
+  const loadTestData = (userType: 'university' | 'highSchool' | 'worker') => {
+    // Base test data structure
+    let testData;
     
     // Type-specific test data
     if (userType === 'university') {
-      baseTestData.questionnaire = {
-        university: {
-          studyField: "Informatikk",
-          institution: "Universitetet i Oslo",
-          level: "Bachelor",
-          certaintylevel: "quite",
-          interests: {
-            teknologi: true,
-            forskning: true,
-            innovasjon: true
-          },
-          strengths: {
-            analytisk_tenkning: true,
-            problemløsning: true,
-            teamarbeid: true
-          },
-          futureRole: "developer",
-          workEnvironment: "hybrid",
-          dreamJob: "Teknologileder i innovativ bedrift",
-          motivationSource: "impact",
-          workLifeBalance: "balanced",
-          projectPreference: "team"
-        }
-      };
-      toast.success("Student-testdata lastet inn");
+      // Generate random university student data
+      testData = generateRandomUniversityData();
+      toast.success("Student-testdata lastet inn med tilfeldige svar");
     } 
     else if (userType === 'highSchool') {
-      baseTestData.questionnaire = {
-        highSchool: {
-          school: "Oslo videregående skole",
-          program: "Studiespesialisering",
-          grade: "VG2",
-          interests: {
-            teknologi: true,
-            realfag: true,
-            samfunnsfag: true
-          },
-          strengths: {
-            analytisk: true,
-            kreativ: true,
-            samarbeidsvillig: true
-          },
-          favoriteSubjects: {
-            matematikk: true,
-            naturfag: true,
-            samfunnsfag: true
-          },
-          careerPlan: "Ønsker å studere informatikk",
-          industries: {
-            it: true,
-            teknologi: true,
-            helse: true,
-            kreativ: true
+      testData = {
+        firstName: "Test",
+        lastName: "Bruker",
+        email: "test@example.com",
+        questionnaire: {
+          highSchool: {
+            school: "Oslo videregående skole",
+            program: "Studiespesialisering",
+            grade: "VG2",
+            interests: {
+              teknologi: true,
+              realfag: true,
+              samfunnsfag: true
+            },
+            strengths: {
+              analytisk: true,
+              kreativ: true,
+              samarbeidsvillig: true
+            },
+            favoriteSubjects: {
+              matematikk: true,
+              naturfag: true,
+              samfunnsfag: true
+            },
+            careerPlan: "Ønsker å studere informatikk",
+            industries: {
+              it: true,
+              teknologi: true,
+              helse: true,
+              kreativ: true
+            }
           }
         }
       };
       toast.success("Elev-testdata lastet inn");
     } 
     else if (userType === 'worker') {
-      baseTestData.questionnaire = {
-        worker: {
-          currentRole: "Utvikler",
-          industry: "IT og teknologi",
-          experience: "5",
-          strengths: {
-            problemløsning: true,
-            kritisk_tenkning: true,
-            kommunikasjon: true
-          },
-          skills: {
-            programmering: true,
-            prosjektledelse: true,
-            dataanalyse: true
-          },
-          careerGoal: "Bli en teknisk leder innen 3 år",
-          developmentImportance: "very-important"
+      testData = {
+        firstName: "Test",
+        lastName: "Bruker",
+        email: "test@example.com",
+        questionnaire: {
+          worker: {
+            currentRole: "Utvikler",
+            industry: "IT og teknologi",
+            experience: "5",
+            strengths: {
+              problemløsning: true,
+              kritisk_tenkning: true,
+              kommunikasjon: true
+            },
+            skills: {
+              programmering: true,
+              prosjektledelse: true,
+              dataanalyse: true
+            },
+            careerGoal: "Bli en teknisk leder innen 3 år",
+            developmentImportance: "very-important"
+          }
         }
       };
       toast.success("Arbeidstaker-testdata lastet inn");
     }
     
     // Store test data in localStorage
-    localStorage.setItem('userFullData', JSON.stringify(baseTestData));
+    localStorage.setItem('userFullData', JSON.stringify(testData));
+    localStorage.setItem('userType', userType);
     
     toast.success("Testdata lastet inn", {
       description: "Du kan nå se resultatssiden med eksempeldata"
