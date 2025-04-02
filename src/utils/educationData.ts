@@ -317,37 +317,45 @@ export const educationDatabase: {
 
 // Funksjon for å matche dimensjoner mot studieprogram
 export function matchEducationPrograms(userDimensions: string[], count: number = 5): EducationRecommendation[] {
-  // Finn de programmene som har minst én matchende dimensjon
+  // Ensure we're focusing on just the top 2-3 dimensions for better matches
+  const topDimensions = userDimensions.slice(0, 3);
+  console.log("Using top dimensions for matching:", topDimensions);
+  
+  // Find programs that match the TOP dimensions (not all dimensions)
   const matchedPrograms = educationDatabase.filter(program => {
-    return program.dimensions.some(dim => userDimensions.includes(dim));
+    return program.dimensions.some(dim => topDimensions.includes(dim));
   });
   
-  // Sorter basert på antall matchende dimensjoner og prioriter presise matcher
+  // Prioritize programs that match the highest ranked dimensions
   const sortedPrograms = matchedPrograms.sort((a, b) => {
-    const aMatches = a.dimensions.filter(dim => userDimensions.includes(dim)).length;
-    const bMatches = b.dimensions.filter(dim => userDimensions.includes(dim)).length;
+    // Count matches only with the top 2-3 dimensions
+    const aMatches = a.dimensions.filter(dim => topDimensions.includes(dim)).length;
+    const bMatches = b.dimensions.filter(dim => topDimensions.includes(dim)).length;
     
-    // Hvis begge programmer har samme antall matcher, prioriter de som har dimensjonene "Analytisk" og "Ambisjon"
+    // If both have the same number of matches with top dimensions
     if (aMatches === bMatches) {
-      // Sjekk om programmet har både "Analytisk" og "Ambisjon" som dimensjoner
-      const aHasAnalytiskAmbisjon = 
-        a.dimensions.includes('Analytisk') && 
-        a.dimensions.includes('Ambisjon');
+      // Check if either program matches the highest priority dimension (first one)
+      const aHasTopDimension = a.dimensions.includes(topDimensions[0]);
+      const bHasTopDimension = b.dimensions.includes(topDimensions[0]);
       
-      const bHasAnalytiskAmbisjon = 
-        b.dimensions.includes('Analytisk') && 
-        b.dimensions.includes('Ambisjon');
+      if (aHasTopDimension && !bHasTopDimension) return -1;
+      if (!aHasTopDimension && bHasTopDimension) return 1;
       
-      // Hvis A har begge dimensjoner og B ikke har det, A kommer først
-      if (aHasAnalytiskAmbisjon && !bHasAnalytiskAmbisjon) return -1;
-      // Hvis B har begge dimensjoner og A ikke har det, B kommer først
-      if (!aHasAnalytiskAmbisjon && bHasAnalytiskAmbisjon) return 1;
+      // If both or neither match the top dimension, check second dimension
+      if (topDimensions.length > 1) {
+        const aHasSecondDimension = a.dimensions.includes(topDimensions[1]);
+        const bHasSecondDimension = b.dimensions.includes(topDimensions[1]);
+        
+        if (aHasSecondDimension && !bHasSecondDimension) return -1;
+        if (!aHasSecondDimension && bHasSecondDimension) return 1;
+      }
     }
     
-    return bMatches - aMatches; // Sorter synkende etter antall matcher
+    // Primary sort by number of matches with top dimensions
+    return bMatches - aMatches;
   });
   
-  // Grupper programmer etter navn for å unngå duplikater
+  // Group programs by name to avoid duplicates
   const groupedPrograms: { [key: string]: any[] } = {};
   
   sortedPrograms.forEach(program => {
@@ -357,17 +365,18 @@ export function matchEducationPrograms(userDimensions: string[], count: number =
     groupedPrograms[program.program].push(program);
   });
   
-  // Konverter grupperte programmer til anbefalinger
+  // Convert grouped programs to recommendations
   const recommendations: EducationRecommendation[] = [];
   
   for (const programName in groupedPrograms) {
     const programs = groupedPrograms[programName];
     const firstProgram = programs[0];
     
-    // Kombiner alle institusjoner
+    // Combine all institutions
     const allInstitutions = programs.map(p => p.institutions).join(', ');
     
-    const matchingDimensions = firstProgram.dimensions.filter(dim => userDimensions.includes(dim));
+    // Calculate match based on the top dimensions only
+    const matchingDimensions = firstProgram.dimensions.filter(dim => topDimensions.includes(dim));
     const matchDescription = matchingDimensions.length > 1
       ? `Passer med dine dimensjoner: ${matchingDimensions.join(' og ')}`
       : `Passer med din ${matchingDimensions[0]}-dimensjon`;
@@ -408,6 +417,9 @@ export function matchEducationPrograms(userDimensions: string[], count: number =
     });
   }
   
-  // Returner top N programmer
+  // Log the recommendations before returning
+  console.log(`Generated ${recommendations.length} recommendations based on top dimensions:`, topDimensions);
+  
+  // Return top N programs
   return recommendations.slice(0, count);
 }
