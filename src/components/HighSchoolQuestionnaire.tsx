@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import NavigationButtons from '@/components/questionnaire/NavigationButtons';
 import FutureIndustries from '@/components/questionnaire/FutureIndustries';
@@ -15,7 +16,8 @@ const HighSchoolQuestionnaire = ({
   currentPage,
   totalPages,
   onNextPage,
-  onPrevPage
+  onPrevPage,
+  validationErrors = []
 }) => {
   
   // Calculate progress based on current page
@@ -28,7 +30,7 @@ const HighSchoolQuestionnaire = ({
   if (currentPage === 5) {
     return (
       <div className="space-y-6">
-        <FutureIndustries form={form} />
+        <FutureIndustries form={form} validationErrors={validationErrors} />
         
         <NavigationButtons
           page={currentPage}
@@ -45,7 +47,7 @@ const HighSchoolQuestionnaire = ({
   if (currentPage === 6) {
     return (
       <div className="space-y-6">
-        <CareerPlanning form={form} />
+        <CareerPlanning form={form} validationErrors={validationErrors} />
         
         <NavigationButtons
           page={currentPage}
@@ -62,7 +64,7 @@ const HighSchoolQuestionnaire = ({
   if (currentPage === 1) {
     return (
       <div className="space-y-6">
-        <Introduction form={form} />
+        <Introduction form={form} validationErrors={validationErrors} />
         
         <NavigationButtons
           page={currentPage}
@@ -78,7 +80,7 @@ const HighSchoolQuestionnaire = ({
   if (currentPage === 2) {
     return (
       <div className="space-y-6">
-        <InterestsAndSkills form={form} />
+        <InterestsAndSkills form={form} validationErrors={validationErrors} />
         
         <NavigationButtons
           page={currentPage}
@@ -94,7 +96,7 @@ const HighSchoolQuestionnaire = ({
   if (currentPage === 3) {
     return (
       <div className="space-y-6">
-        <SchoolSubjects form={form} />
+        <SchoolSubjects form={form} validationErrors={validationErrors} />
         
         <NavigationButtons
           page={currentPage}
@@ -110,7 +112,7 @@ const HighSchoolQuestionnaire = ({
   if (currentPage === 4) {
     return (
       <div className="space-y-6">
-        <WorkReadiness form={form} />
+        <WorkReadiness form={form} validationErrors={validationErrors} />
         
         <NavigationButtons
           page={currentPage}
