@@ -11,13 +11,10 @@ import { GraduationCap, BookOpen, Briefcase, ArrowRight } from "lucide-react";
 
 const Index: React.FC = () => {
   
-  // Generate random boolean value with specified probability
   const randomBool = (probability = 0.5) => Math.random() < probability;
   
-  // Generate random item from an array
   const randomItem = <T,>(items: T[]): T => items[Math.floor(Math.random() * items.length)];
   
-  // Generate random university student data with random answers
   const generateRandomUniversityData = () => {
     const studyFields = ["Informatikk", "Økonomi", "Psykologi", "Medisin", "Ingeniør", "Pedagogikk", "Statsvitenskap", "Juss"];
     const institutions = ["Universitetet i Oslo", "NTNU", "Universitetet i Bergen", "UiT", "OsloMet", "Handelshøyskolen BI", "NMBU", "Høgskulen på Vestlandet"];
@@ -26,79 +23,67 @@ const Index: React.FC = () => {
     const roles = ["leader", "specialist", "developer", "researcher", "teacher", "consultant", "entrepreneur"];
     const environments = ["office", "remote", "hybrid", "field"];
     
-    // Generate random interests
     const possibleInterests = ["teknologi", "okonomi", "samfunnsvitenskap", "humaniora", "naturvitenskap", "helse", "kunst", "ingenior", "larer", "jus"];
     const interests: Record<string, boolean> = {};
     possibleInterests.forEach(interest => {
-      interests[interest] = randomBool(0.3); // 30% chance of having each interest
+      interests[interest] = randomBool(0.3);
     });
     
-    // Ensure at least one interest is selected
     if (!Object.values(interests).some(v => v)) {
       interests[randomItem(possibleInterests)] = true;
     }
     
-    // Generate random strengths
     const possibleStrengths = ["kritisk_tenkning", "problemlosning", "kreativitet", "kommunikasjon", "selvledelse", "prosjektstyring", "teknologiforstaaelse", "empati"];
     const strengths: Record<string, boolean> = {};
     possibleStrengths.forEach(strength => {
-      strengths[strength] = randomBool(0.4); // 40% chance of having each strength
+      strengths[strength] = randomBool(0.4);
     });
     
-    // Ensure at least one strength is selected
     if (!Object.values(strengths).some(v => v)) {
       strengths[randomItem(possibleStrengths)] = true;
     }
     
-    // Generate random learning style
     const learningStyles = ["lesing", "lytting", "praksis", "diskusjon", "video"];
     const learningStyle: Record<string, boolean> = {};
     learningStyles.forEach(style => {
       learningStyle[style] = randomBool(0.5);
     });
     
-    // Generate random job priorities
     const jobPriorities = ["fleksibilitet", "hoy_lonn", "stabilitet", "karrieremuligheter", "mening", "innovasjon"];
     const priorities: Record<string, boolean> = {};
     jobPriorities.forEach(priority => {
       priorities[priority] = randomBool(0.5);
     });
     
-    // Job challenges
-    const possibleChallenges = ["konkurranse", "manglende_erfaring", "hoye_krav", "usikker_jobbvalg"];
+    const jobChallenges = ["konkurranse", "manglende_erfaring", "hoye_krav", "usikker_jobbvalg"];
     const jobChallenges: Record<string, boolean> = {};
-    possibleChallenges.forEach(challenge => {
+    jobChallenges.forEach(challenge => {
       jobChallenges[challenge] = randomBool(0.4);
     });
     
-    // Best subjects
     const bestSubjects: Record<string, boolean> = {};
     possibleInterests.forEach(subject => {
       bestSubjects[subject] = randomBool(0.3);
     });
     
-    // Employer factors
     const employerFactors = ["hoy_lonn", "godt_arbeidsmiljo", "karriereutvikling", "stabilitet", "innovasjon"];
     const futureEmployerFactors: Record<string, boolean> = {};
     employerFactors.forEach(factor => {
       futureEmployerFactors[factor] = randomBool(0.5);
     });
     
-    // Study missing factors
     const studyMissingOptions = ["praktisk_erfaring", "relevante_fag", "veiledning", "nettverk", "fleksibilitet", "kobling"];
     const studyMissing: Record<string, boolean> = {};
     studyMissingOptions.forEach(option => {
       studyMissing[option] = randomBool(0.4);
     });
     
-    // Satisfaction factors
     const satisfactionOptions = ["meningsfylt", "hoy_lonn", "karriereutvikling", "fleksibilitet", "innovasjon", "stabilitet"];
     const satisfactionFactors: Record<string, boolean> = {};
     satisfactionOptions.forEach(option => {
       satisfactionFactors[option] = randomBool(0.5);
     });
 
-    // Random dream job options
     const dreamJobs = [
       "Teknologileder i innovativ bedrift", 
       "Forsker innen mitt fagfelt", 
@@ -157,72 +142,121 @@ const Index: React.FC = () => {
     };
   };
 
-  // Generate random high school student data with random answers
   const generateRandomHighSchoolData = () => {
     const studyDirections = ["studiespesialisering", "idrettsfag", "musikk_dans_drama", "kunst_design", "medier_kommunikasjon", "helse_oppvekst", "teknologi_industri", "elektro_datateknologi", "bygg_anlegg", "restaurant_matfag"];
     const grades = ["vg1", "vg2", "vg3"];
     const averageGrades = ["3-4", "4-5", "5-6"];
     const workPreferences = ["team", "individual", "mixed"];
-    const learningStyles = ["visual", "auditory", "writing", "practical"];
     
-    // Generate random interests
     const possibleInterests = ["teknologi", "realfag", "samfunnsfag", "kreativitet", "entrepenørskap", "helse", "språk", "idrett", "teknologi", "okonomi", "reise", "miljø"];
     const interests: Record<string, boolean> = {};
+    let selectedInterestsCount = 0;
+    
     possibleInterests.forEach(interest => {
-      interests[interest] = randomBool(0.3);
+      if (selectedInterestsCount < 3 && randomBool(0.4)) {
+        interests[interest] = true;
+        selectedInterestsCount++;
+      } else {
+        interests[interest] = false;
+      }
     });
     
-    // Ensure at least one interest is selected
-    if (!Object.values(interests).some(v => v)) {
-      interests[randomItem(possibleInterests)] = true;
+    if (selectedInterestsCount < 3) {
+      const remainingInterests = possibleInterests.filter(interest => !interests[interest]);
+      while (selectedInterestsCount < 3 && remainingInterests.length > 0) {
+        const randomIndex = Math.floor(Math.random() * remainingInterests.length);
+        const selectedInterest = remainingInterests.splice(randomIndex, 1)[0];
+        interests[selectedInterest] = true;
+        selectedInterestsCount++;
+      }
     }
     
-    // Generate random skills
     const possibleSkills = ["logicalThinking", "creativity", "communication", "leadership", "collaboration", "problemSolving", "technicalUnderstanding"];
     const goodSkills: Record<string, boolean> = {};
+    let selectedSkillsCount = 0;
+    
     possibleSkills.forEach(skill => {
-      goodSkills[skill] = randomBool(0.4);
+      if (selectedSkillsCount < 2 && randomBool(0.4)) {
+        goodSkills[skill] = true;
+        selectedSkillsCount++;
+      } else {
+        goodSkills[skill] = false;
+      }
     });
     
-    // Ensure at least one skill is selected
-    if (!Object.values(goodSkills).some(v => v)) {
-      goodSkills[randomItem(possibleSkills)] = true;
+    if (selectedSkillsCount < 2) {
+      const remainingSkills = possibleSkills.filter(skill => !goodSkills[skill]);
+      while (selectedSkillsCount < 2 && remainingSkills.length > 0) {
+        const randomIndex = Math.floor(Math.random() * remainingSkills.length);
+        const selectedSkill = remainingSkills.splice(randomIndex, 1)[0];
+        goodSkills[selectedSkill] = true;
+        selectedSkillsCount++;
+      }
     }
     
-    // Generate favorite and difficult courses
     const possibleCourses = ["matematikk", "norsk", "engelsk", "naturfag", "samfunnsfag", "historie", "geografi", "kroppsøving", "teknologi", "kunst"];
     const favoriteCourses: Record<string, boolean> = {};
     const difficultCourses: Record<string, boolean> = {};
     
-    possibleCourses.forEach(course => {
-      favoriteCourses[course] = randomBool(0.3);
-      difficultCourses[course] = randomBool(0.3) && !favoriteCourses[course]; // Avoid same course being both favorite and difficult
+    const favoriteCoursesCount = Math.floor(Math.random() * 3) + 1;
+    const favoriteIndices = new Set<number>();
+    while (favoriteIndices.size < favoriteCoursesCount) {
+      favoriteIndices.add(Math.floor(Math.random() * possibleCourses.length));
+    }
+    possibleCourses.forEach((course, index) => {
+      favoriteCourses[course] = favoriteIndices.has(index);
     });
     
-    // Ensure at least one favorite and difficult course
-    if (!Object.values(favoriteCourses).some(v => v)) {
-      favoriteCourses[randomItem(possibleCourses)] = true;
+    const difficultCoursesCount = Math.floor(Math.random() * 2) + 1;
+    const nonFavoriteCourses = possibleCourses.filter(course => !favoriteCourses[course]);
+    const difficultIndices = new Set<number>();
+    while (difficultIndices.size < difficultCoursesCount && difficultIndices.size < nonFavoriteCourses.length) {
+      difficultIndices.add(Math.floor(Math.random() * nonFavoriteCourses.length));
     }
+    possibleCourses.forEach((course) => {
+      difficultCourses[course] = difficultIndices.has(nonFavoriteCourses.indexOf(course)) && nonFavoriteCourses.includes(course);
+    });
     
-    if (!Object.values(difficultCourses).some(v => v)) {
-      // Find a course that's not already a favorite
-      let availableCourses = possibleCourses.filter(course => !favoriteCourses[course]);
-      if (availableCourses.length === 0) availableCourses = possibleCourses;
-      difficultCourses[randomItem(availableCourses)] = true;
-    }
-    
-    // Work tasks preferences
     const possibleWorkTasks = ["problemSolving", "creativity", "leadership", "teamwork", "technical", "communication"];
     const workTasks: Record<string, boolean> = {};
+    let selectedWorkTasksCount = 0;
+    
     possibleWorkTasks.forEach(task => {
-      workTasks[task] = randomBool(0.4);
+      if (selectedWorkTasksCount < 2 && randomBool(0.5)) {
+        workTasks[task] = true;
+        selectedWorkTasksCount++;
+      } else {
+        workTasks[task] = false;
+      }
     });
     
-    // Learning style preferences
+    if (selectedWorkTasksCount < 2) {
+      const remainingTasks = possibleWorkTasks.filter(task => !workTasks[task]);
+      while (selectedWorkTasksCount < 2 && remainingTasks.length > 0) {
+        const randomIndex = Math.floor(Math.random() * remainingTasks.length);
+        const selectedTask = remainingTasks.splice(randomIndex, 1)[0];
+        workTasks[selectedTask] = true;
+        selectedWorkTasksCount++;
+      }
+    }
+    
+    const learningStyleOptions = ["visual", "auditory", "writing", "practical"];
     const learningStylePrefs: Record<string, boolean> = {};
-    ["visual", "auditory", "writing", "practical"].forEach(style => {
-      learningStylePrefs[style] = randomBool(0.4);
+    let selectedLearningStylesCount = 0;
+    
+    learningStyleOptions.forEach(style => {
+      if (selectedLearningStylesCount < 1 && randomBool(0.6)) {
+        learningStylePrefs[style] = true;
+        selectedLearningStylesCount++;
+      } else {
+        learningStylePrefs[style] = false;
+      }
     });
+    
+    if (selectedLearningStylesCount === 0) {
+      const randomStyle = randomItem(learningStyleOptions);
+      learningStylePrefs[randomStyle] = true;
+    }
     
     return {
       firstName: "Test",
@@ -249,7 +283,6 @@ const Index: React.FC = () => {
     };
   };
   
-  // Generate random worker data
   const generateRandomWorkerData = () => {
     const studyFields = ["Informatikk", "Økonomi", "Psykologi", "Medisin", "Ingeniør", "Pedagogikk", "Statsvitenskap", "Juss"];
     const institutions = ["Universitetet i Oslo", "NTNU", "Universitetet i Bergen", "UiT", "OsloMet", "Handelshøyskolen BI", "NMBU", "Høgskulen på Vestlandet"];
@@ -258,79 +291,67 @@ const Index: React.FC = () => {
     const roles = ["leader", "specialist", "developer", "researcher", "teacher", "consultant", "entrepreneur"];
     const environments = ["office", "remote", "hybrid", "field"];
     
-    // Generate random interests
     const possibleInterests = ["teknologi", "okonomi", "samfunnsvitenskap", "humaniora", "naturvitenskap", "helse", "kunst", "ingenior", "larer", "jus"];
     const interests: Record<string, boolean> = {};
     possibleInterests.forEach(interest => {
-      interests[interest] = randomBool(0.3); // 30% chance of having each interest
+      interests[interest] = randomBool(0.3);
     });
     
-    // Ensure at least one interest is selected
     if (!Object.values(interests).some(v => v)) {
       interests[randomItem(possibleInterests)] = true;
     }
     
-    // Generate random strengths
     const possibleStrengths = ["kritisk_tenkning", "problemlosning", "kreativitet", "kommunikasjon", "selvledelse", "prosjektstyring", "teknologiforstaaelse", "empati"];
     const strengths: Record<string, boolean> = {};
     possibleStrengths.forEach(strength => {
-      strengths[strength] = randomBool(0.4); // 40% chance of having each strength
+      strengths[strength] = randomBool(0.4);
     });
     
-    // Ensure at least one strength is selected
     if (!Object.values(strengths).some(v => v)) {
       strengths[randomItem(possibleStrengths)] = true;
     }
     
-    // Generate random learning style
     const learningStyles = ["lesing", "lytting", "praksis", "diskusjon", "video"];
     const learningStyle: Record<string, boolean> = {};
     learningStyles.forEach(style => {
       learningStyle[style] = randomBool(0.5);
     });
     
-    // Generate random job priorities
     const jobPriorities = ["fleksibilitet", "hoy_lonn", "stabilitet", "karrieremuligheter", "mening", "innovasjon"];
     const priorities: Record<string, boolean> = {};
     jobPriorities.forEach(priority => {
       priorities[priority] = randomBool(0.5);
     });
     
-    // Job challenges
-    const possibleChallenges = ["konkurranse", "manglende_erfaring", "hoye_krav", "usikker_jobbvalg"];
+    const jobChallenges = ["konkurranse", "manglende_erfaring", "hoye_krav", "usikker_jobbvalg"];
     const jobChallenges: Record<string, boolean> = {};
-    possibleChallenges.forEach(challenge => {
+    jobChallenges.forEach(challenge => {
       jobChallenges[challenge] = randomBool(0.4);
     });
     
-    // Best subjects
     const bestSubjects: Record<string, boolean> = {};
     possibleInterests.forEach(subject => {
       bestSubjects[subject] = randomBool(0.3);
     });
     
-    // Employer factors
     const employerFactors = ["hoy_lonn", "godt_arbeidsmiljo", "karriereutvikling", "stabilitet", "innovasjon"];
     const futureEmployerFactors: Record<string, boolean> = {};
     employerFactors.forEach(factor => {
       futureEmployerFactors[factor] = randomBool(0.5);
     });
     
-    // Study missing factors
     const studyMissingOptions = ["praktisk_erfaring", "relevante_fag", "veiledning", "nettverk", "fleksibilitet", "kobling"];
     const studyMissing: Record<string, boolean> = {};
     studyMissingOptions.forEach(option => {
       studyMissing[option] = randomBool(0.4);
     });
     
-    // Satisfaction factors
     const satisfactionOptions = ["meningsfylt", "hoy_lonn", "karriereutvikling", "fleksibilitet", "innovasjon", "stabilitet"];
     const satisfactionFactors: Record<string, boolean> = {};
     satisfactionOptions.forEach(option => {
       satisfactionFactors[option] = randomBool(0.5);
     });
 
-    // Random dream job options
     const dreamJobs = [
       "Teknologileder i innovativ bedrift", 
       "Forsker innen mitt fagfelt", 
@@ -390,17 +411,13 @@ const Index: React.FC = () => {
   };
   
   const loadTestData = (userType: 'university' | 'highSchool' | 'worker') => {
-    // Base test data structure
     let testData;
     
-    // Type-specific test data
     if (userType === 'university') {
-      // Generate new random university student data
       testData = generateRandomUniversityData();
       toast.success("Student-testdata lastet inn med tilfeldige svar");
     } 
     else if (userType === 'highSchool') {
-      // Generate new random high school student data
       testData = generateRandomHighSchoolData();
       toast.success("Elev-testdata lastet inn med tilfeldige svar");
     } 
@@ -432,7 +449,6 @@ const Index: React.FC = () => {
       toast.success("Arbeidstaker-testdata lastet inn");
     }
     
-    // Store test data in localStorage
     localStorage.setItem('userFullData', JSON.stringify(testData));
     localStorage.setItem('userType', userType);
     
@@ -445,7 +461,6 @@ const Index: React.FC = () => {
     <Layout>
       <Hero />
       
-      {/* Direct Questionnaire Access Buttons */}
       <div className="container mx-auto my-12 px-4">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold mb-2">Kom i gang med din karrierereise</h2>

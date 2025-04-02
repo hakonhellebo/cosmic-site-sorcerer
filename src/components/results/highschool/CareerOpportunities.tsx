@@ -101,8 +101,20 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
     )
   );
   
+  // Deduplicate by simplified title to avoid having multiple "Informatikk" entries
+  const deduplicatedBySimplifiedTitle: CareerField[] = [];
+  const seenSimplifiedTitles = new Set<string>();
+  
+  uniqueCareerFields.forEach(field => {
+    const simplifiedTitle = simplifyProgramTitle(field.educationProgram);
+    if (!seenSimplifiedTitles.has(simplifiedTitle)) {
+      seenSimplifiedTitles.add(simplifiedTitle);
+      deduplicatedBySimplifiedTitle.push(field);
+    }
+  });
+  
   // Limit to only 4 career fields
-  const displayedCareerFields = uniqueCareerFields.slice(0, 4);
+  const displayedCareerFields = deduplicatedBySimplifiedTitle.slice(0, 4);
   
   // Generate simplified IDs and titles for the tabs
   const tabData = displayedCareerFields.map(field => ({
