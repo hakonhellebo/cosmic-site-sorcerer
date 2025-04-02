@@ -1,7 +1,9 @@
 
-import React from 'react';
-import { Check } from "lucide-react";
+import React, { useState } from 'react';
+import { Check, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface RecommendedEducationProps {
   recommendations: any[];
@@ -18,8 +20,15 @@ const RecommendedEducation: React.FC<RecommendedEducationProps> = ({
   showAllRecommendations = false,
   title = "Anbefalte utdanningsprogrammer",
   subtitle = "Basert på din profil, her er noen utdanningsprogrammer som kan passe for deg",
-  maxCount = 5
+  maxCount = 6
 }) => {
+  const [expandedProgram, setExpandedProgram] = useState<string | null>(null);
+  
+  // Toggle expanded education program
+  const toggleProgramDetails = (programName: string) => {
+    setExpandedProgram(expandedProgram === programName ? null : programName);
+  };
+  
   // Determine how many recommendations to show (all, or just the specified max)
   const displayRecommendations = showAllRecommendations 
     ? recommendations 
@@ -31,30 +40,70 @@ const RecommendedEducation: React.FC<RecommendedEducationProps> = ({
         <h2 className="text-xl font-semibold mb-2">{title}</h2>
         <p className="text-muted-foreground mb-6">{subtitle}</p>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-4">
           {displayRecommendations.map((rec, index) => (
-            <Card key={index} className="bg-muted/30 hover:shadow-md transition-shadow">
-              <CardHeader className="pb-2">
-                <h3 className="font-semibold">{rec.name}</h3>
-                <p className="text-sm text-muted-foreground">{rec.institution}</p>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm mb-2">{rec.description || 'Dette studieprogrammet passer med din profil.'}</p>
-                <div className="text-sm bg-primary/10 px-2 py-1 rounded inline-block mt-1 mb-2">
-                  {rec.match}
-                </div>
-                {rec.highlights && (
-                  <div className="mt-3">
-                    {rec.highlights?.map((highlight: string, idx: number) => (
-                      <div key={idx} className="text-sm flex items-start mb-1">
-                        <Check className="h-4 w-4 mr-1 mt-0.5 text-green-500 flex-shrink-0" />
-                        <span>{highlight}</span>
-                      </div>
-                    ))}
+            <Collapsible 
+              key={index}
+              open={expandedProgram === rec.name} 
+              onOpenChange={() => toggleProgramDetails(rec.name)}
+              className="border rounded-lg overflow-hidden bg-muted/30 hover:shadow-md transition-shadow"
+            >
+              <CollapsibleTrigger className="w-full" asChild>
+                <div className="flex justify-between items-center p-4 cursor-pointer">
+                  <div className="text-left">
+                    <h3 className="font-semibold">{rec.name}</h3>
+                    <p className="text-sm text-muted-foreground">{rec.match}</p>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                  <Button variant="ghost" size="sm" className="ml-2">
+                    {expandedProgram === rec.name ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                  </Button>
+                </div>
+              </CollapsibleTrigger>
+              
+              <CollapsibleContent className="border-t">
+                <div className="p-4 space-y-4">
+                  <p className="text-sm">{rec.description || 'Dette studieprogrammet passer med din profil.'}</p>
+                  
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Utdanningsinstitusjoner</h4>
+                    <p className="text-sm">{rec.institution}</p>
+                  </div>
+                  
+                  {rec.requirements && (
+                    <div>
+                      <h4 className="text-sm font-medium mb-2">Opptakskrav</h4>
+                      <p className="text-sm">{rec.requirements}</p>
+                    </div>
+                  )}
+                  
+                  {rec.link && (
+                    <div>
+                      <h4 className="text-sm font-medium mb-2">Les mer</h4>
+                      <a 
+                        href={rec.link} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-primary hover:underline inline-flex items-center text-sm"
+                      >
+                        Se utdanningen <ExternalLink size={14} className="ml-1" />
+                      </a>
+                    </div>
+                  )}
+                  
+                  {rec.highlights && (
+                    <div className="mt-3">
+                      <h4 className="text-sm font-medium mb-2">Fordeler</h4>
+                      {rec.highlights?.map((highlight: string, idx: number) => (
+                        <div key={idx} className="text-sm flex items-start mb-1">
+                          <Check className="h-4 w-4 mr-1 mt-0.5 text-green-500 flex-shrink-0" />
+                          <span>{highlight}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           ))}
         </div>
         

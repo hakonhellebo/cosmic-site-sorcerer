@@ -87,9 +87,62 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
   // Get dimension names from dimension objects
   const topDimensions = dimensions.map(dim => dim.name);
   
-  // Match education programs based on dimensions - show only top 5 recommendations
+  // Match education programs based on dimensions - show exactly 6 recommendations
   const educationRecommendations = useMemo(() => {
-    return matchEducationPrograms(topDimensions, 5);
+    // Get base recommendations (more than we need)
+    const baseRecommendations = matchEducationPrograms(topDimensions, 10);
+    
+    // We want exactly 6 recommendations with specific dimension combinations:
+    // 3 with dimensions 1 & 2, 1 with dimensions 1 & 3, 1 with dimensions 2 & 3, 1 with any other good match
+    const dim1 = topDimensions[0];
+    const dim2 = topDimensions[1];
+    const dim3 = topDimensions[2];
+    
+    // Filter for different dimension combinations
+    const dim1And2Matches = baseRecommendations.filter(rec => {
+      const matchText = rec.match.toLowerCase();
+      return matchText.includes(dim1.toLowerCase()) && matchText.includes(dim2.toLowerCase());
+    }).slice(0, 3);
+    
+    const dim1And3Matches = baseRecommendations.filter(rec => {
+      const matchText = rec.match.toLowerCase();
+      return matchText.includes(dim1.toLowerCase()) && matchText.includes(dim3.toLowerCase()) &&
+             !dim1And2Matches.some(r => r.name === rec.name);
+    }).slice(0, 1);
+    
+    const dim2And3Matches = baseRecommendations.filter(rec => {
+      const matchText = rec.match.toLowerCase();
+      return matchText.includes(dim2.toLowerCase()) && matchText.includes(dim3.toLowerCase()) &&
+             !dim1And2Matches.some(r => r.name === rec.name) && 
+             !dim1And3Matches.some(r => r.name === rec.name);
+    }).slice(0, 1);
+    
+    // Any other good matches
+    const otherMatches = baseRecommendations.filter(rec => 
+      !dim1And2Matches.some(r => r.name === rec.name) &&
+      !dim1And3Matches.some(r => r.name === rec.name) &&
+      !dim2And3Matches.some(r => r.name === rec.name)
+    ).slice(0, 1);
+    
+    // Combine all matches to get exactly 6 recommendations
+    const combinedRecommendations = [
+      ...dim1And2Matches,
+      ...dim1And3Matches,
+      ...dim2And3Matches,
+      ...otherMatches
+    ];
+    
+    // If we still don't have 6, add more from the base recommendations
+    if (combinedRecommendations.length < 6) {
+      const remainingNeeded = 6 - combinedRecommendations.length;
+      const additionalRecs = baseRecommendations.filter(rec => 
+        !combinedRecommendations.some(r => r.name === rec.name)
+      ).slice(0, remainingNeeded);
+      
+      combinedRecommendations.push(...additionalRecs);
+    }
+    
+    return combinedRecommendations.slice(0, 6); // Ensure we have exactly 6
   }, [topDimensions]);
   
   console.log("Education recommendations:", educationRecommendations);
@@ -189,19 +242,19 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
         />
       ))}
       
-      {/* Top 5 recommended education options */}
+      {/* Exactly 6 recommended education options */}
       <RecommendedEducation 
         recommendations={educationRecommendations} 
         nextSteps={[]}
-        showAllRecommendations={false}
-        maxCount={5}
+        showAllRecommendations={true}
+        maxCount={6}
       />
       
-      {/* Top 5 Career Opportunities based on education recommendations */}
+      {/* Career Opportunities based on education recommendations */}
       <CareerOpportunities 
         recommendations={careerRecommendations}
         showAllOpportunities={false}
-        maxCount={5}
+        maxCount={6}
       />
       
       {/* Next steps - updated content */}

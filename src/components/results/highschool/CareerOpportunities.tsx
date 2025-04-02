@@ -3,6 +3,7 @@ import React, { useMemo, useState } from 'react';
 import { ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { getCareerRecommendations } from '@/utils/careerRecommendations';
 
 interface CareerOpportunitiesProps {
@@ -20,9 +21,10 @@ interface CareerOpportunitiesProps {
 const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({ 
   recommendations, 
   showAllOpportunities = false,
-  maxCount = 5
+  maxCount = 6
 }) => {
   const [expandedCareer, setExpandedCareer] = useState<string | null>(null);
+  const [expandedProgram, setExpandedProgram] = useState<string | null>(null);
   
   // Get education program names from recommendations
   const educationPrograms = useMemo(() => 
@@ -36,7 +38,7 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
     return getCareerRecommendations(educationPrograms);
   }, [educationPrograms]);
   
-  // Extract all unique career paths from recommendations with better handling
+  // Extract all unique career paths from recommendations
   const allCareers = useMemo(() => {
     console.log("Extracting all careers from recommendations");
     
@@ -61,6 +63,11 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
     setExpandedCareer(expandedCareer === career ? null : career);
   };
   
+  // Toggle expanded education program
+  const toggleProgramDetails = (program: string) => {
+    setExpandedProgram(expandedProgram === program ? null : program);
+  };
+  
   // Find career details for a specific job title
   const findCareerDetails = (jobTitle: string) => {
     // Look through all career details to find which education program has this job
@@ -80,81 +87,146 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
     return null;
   };
   
-  // Limit to specified number of careers (default 5)
-  const displayedCareers = showAllOpportunities ? allCareers : allCareers.slice(0, maxCount);
+  // Group careers into rows of 3
+  const careerRows = useMemo(() => {
+    const rows = [];
+    const displayedCareers = showAllOpportunities ? allCareers : allCareers.slice(0, maxCount);
+    
+    for (let i = 0; i < displayedCareers.length; i += 3) {
+      rows.push(displayedCareers.slice(i, i + 3));
+    }
+    
+    return rows;
+  }, [allCareers, showAllOpportunities, maxCount]);
   
   return (
     <div className="animate-fade-up">
       <h3 className="text-2xl font-semibold mb-6">Karrieremuligheter</h3>
       
-      <div className="grid grid-cols-1 gap-4 mb-8">
-        {displayedCareers.map((career, idx) => {
-          // Find the details for this career
-          const careerDetail = findCareerDetails(career);
-          const isExpanded = expandedCareer === career;
-          
-          return (
-            <Card key={idx} className="bg-card border hover:shadow-md transition-shadow">
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-center">
-                  <h4 className="font-semibold text-lg">{career}</h4>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => toggleCareerDetails(career)}
-                    className="p-1"
-                  >
-                    {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+      {/* Display education programs with collapsible details */}
+      <div className="mb-8 space-y-4">
+        {recommendations.slice(0, 6).map((rec, idx) => (
+          <Collapsible 
+            key={idx} 
+            open={expandedProgram === rec.title}
+            onOpenChange={() => toggleProgramDetails(rec.title)}
+            className="border rounded-md overflow-hidden"
+          >
+            <div className="bg-muted/30">
+              <CollapsibleTrigger asChild>
+                <div className="flex justify-between items-center p-4 cursor-pointer hover:bg-muted/50">
+                  <div>
+                    <h4 className="font-semibold">{rec.title}</h4>
+                    <p className="text-sm text-muted-foreground">{rec.match}</p>
+                  </div>
+                  <Button variant="ghost" size="sm" className="p-1">
+                    {expandedProgram === rec.title ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                   </Button>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  {careerDetail?.job?.description || "Basert på dine interesser og styrker"}
-                </p>
+              </CollapsibleTrigger>
+            </div>
+            
+            <CollapsibleContent className="border-t">
+              <div className="p-4 space-y-4">
+                <div>
+                  <h5 className="font-medium mb-2">Beskrivelse</h5>
+                  <p className="text-sm">{rec.description}</p>
+                </div>
                 
-                {isExpanded && careerDetail && (
-                  <div className="mt-4 space-y-4">
-                    {careerDetail.program.educationProgram && (
-                      <div>
-                        <h5 className="text-sm font-medium">Relevant utdanning</h5>
-                        <p className="text-sm">{careerDetail.program.educationProgram}</p>
+                <div>
+                  <h5 className="font-medium mb-2">Tilbys på</h5>
+                  <p className="text-sm">{rec.institution}</p>
+                </div>
+                
+                <div>
+                  <h5 className="font-medium mb-2">Relaterte karrieremuligheter</h5>
+                  <div className="text-sm space-y-1">
+                    {rec.careers?.map((career, i) => (
+                      <div key={i} className="flex items-center gap-1">
+                        <span>{career}</span>
                       </div>
-                    )}
-                    
-                    {careerDetail.program.companies && careerDetail.program.companies.length > 0 && (
-                      <div>
-                        <h5 className="text-sm font-medium">Eksempler på arbeidsplasser</h5>
-                        <ul className="text-sm mt-1 space-y-1">
-                          {careerDetail.program.companies.slice(0, 3).map((company, i) => (
-                            <li key={i} className="flex items-center">
-                              <a 
-                                href={company.website} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="text-primary hover:underline flex items-center"
-                              >
-                                {company.name}
-                                <ExternalLink size={14} className="ml-1" />
-                              </a>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    
-                    {careerDetail.program.match && (
-                      <div className="bg-primary/10 p-2 rounded-md text-sm mt-2">
-                        {careerDetail.program.match}
-                      </div>
-                    )}
+                    ))}
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        ))}
       </div>
+      
+      {/* Display careers in rows of 3 */}
+      <h3 className="text-2xl font-semibold mb-4">Stillingstitler du kan sikte mot</h3>
+      
+      {careerRows.map((row, rowIndex) => (
+        <div key={rowIndex} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {row.map((career, idx) => {
+            // Find the details for this career
+            const careerDetail = findCareerDetails(career);
+            const isExpanded = expandedCareer === career;
+            
+            return (
+              <Card key={idx} className="bg-card border hover:shadow-md transition-shadow h-full">
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-semibold text-lg">{career}</h4>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => toggleCareerDetails(career)}
+                      className="p-1"
+                    >
+                      {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    {careerDetail?.job?.description || "Basert på dine interesser og styrker"}
+                  </p>
+                  
+                  {isExpanded && careerDetail && (
+                    <div className="mt-4 space-y-4">
+                      {careerDetail.program.educationProgram && (
+                        <div>
+                          <h5 className="text-sm font-medium">Relevant utdanning</h5>
+                          <p className="text-sm">{careerDetail.program.educationProgram}</p>
+                        </div>
+                      )}
+                      
+                      {careerDetail.program.companies && careerDetail.program.companies.length > 0 && (
+                        <div>
+                          <h5 className="text-sm font-medium">Eksempler på arbeidsplasser</h5>
+                          <ul className="text-sm mt-1 space-y-1">
+                            {careerDetail.program.companies.slice(0, 5).map((company, i) => (
+                              <li key={i} className="flex items-center">
+                                <a 
+                                  href={company.website} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-primary hover:underline flex items-center"
+                                >
+                                  {company.name}
+                                  <ExternalLink size={14} className="ml-1" />
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {careerDetail.program.match && (
+                        <div className="bg-primary/10 p-2 rounded-md text-sm mt-2">
+                          {careerDetail.program.match}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      ))}
       
       {!showAllOpportunities && allCareers.length > maxCount && (
         <div className="mt-4">
