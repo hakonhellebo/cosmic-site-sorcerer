@@ -19,6 +19,7 @@ const Navigation: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [userType, setUserType] = useState<string | null>(null);
 
   const navItems = [
     { name: 'Hjem', href: '/' },
@@ -59,6 +60,7 @@ const Navigation: React.FC = () => {
           };
           
           setCurrentUser(userData);
+          setUserType(userMeta.userType || localStorage.getItem('userType') || null);
           localStorage.setItem('currentUser', JSON.stringify(userData));
           localStorage.setItem('userData', JSON.stringify({
             email: user.email,
@@ -67,12 +69,42 @@ const Navigation: React.FC = () => {
             userType: userMeta.userType || '',
             isVerified: true
           }));
+        } else {
+          // Try to get user type from local storage
+          const savedUserData = localStorage.getItem('userFullData');
+          if (savedUserData) {
+            const parsedData = JSON.parse(savedUserData);
+            if (parsedData.questionnaire) {
+              if (parsedData.questionnaire.highSchool) {
+                setUserType('highSchool');
+              } else if (parsedData.questionnaire.university) {
+                setUserType('university');
+              } else if (parsedData.questionnaire.worker) {
+                setUserType('worker');
+              }
+            }
+          }
         }
       } catch (error) {
         console.error("Error checking session:", error);
         const storedUser = localStorage.getItem('currentUser');
         if (storedUser) {
           setCurrentUser(JSON.parse(storedUser));
+        }
+        
+        // Try to get user type from local storage in catch block too
+        const savedUserData = localStorage.getItem('userFullData');
+        if (savedUserData) {
+          const parsedData = JSON.parse(savedUserData);
+          if (parsedData.questionnaire) {
+            if (parsedData.questionnaire.highSchool) {
+              setUserType('highSchool');
+            } else if (parsedData.questionnaire.university) {
+              setUserType('university');
+            } else if (parsedData.questionnaire.worker) {
+              setUserType('worker');
+            }
+          }
         }
       }
     };
@@ -101,6 +133,20 @@ const Navigation: React.FC = () => {
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Kunne ikke logge ut. Vennligst prøv igjen.");
+    }
+  };
+
+  const goToUserResults = () => {
+    // Determine which results page to go to based on user type
+    if (userType === 'highSchool') {
+      navigate('/results/high-school');
+    } else if (userType === 'university') {
+      navigate('/results/university');
+    } else if (userType === 'worker') {
+      navigate('/results/worker');
+    } else {
+      // If we don't know, go to the generic results page
+      navigate('/results');
     }
   };
 
@@ -156,10 +202,10 @@ const Navigation: React.FC = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => navigate('/results')}>
+                <DropdownMenuItem onClick={goToUserResults}>
                   Dashboard
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/results')}>
+                <DropdownMenuItem onClick={goToUserResults}>
                   Min profil
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -234,7 +280,10 @@ const Navigation: React.FC = () => {
                       <Link 
                         to="/results" 
                         className="block py-2 text-sm font-medium"
-                        onClick={() => setIsMobileMenuOpen(false)}
+                        onClick={() => {
+                          goToUserResults();
+                          setIsMobileMenuOpen(false);
+                        }}
                       >
                         Dashboard
                       </Link>
@@ -243,7 +292,10 @@ const Navigation: React.FC = () => {
                       <Link 
                         to="/results" 
                         className="block py-2 text-sm font-medium"
-                        onClick={() => setIsMobileMenuOpen(false)}
+                        onClick={() => {
+                          goToUserResults();
+                          setIsMobileMenuOpen(false);
+                        }}
                       >
                         Min profil
                       </Link>

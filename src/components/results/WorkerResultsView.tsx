@@ -7,6 +7,7 @@ import { Check, Briefcase } from "lucide-react";
 import DimensionRanking from './DimensionRanking';
 import CareerOpportunities from './worker/CareerOpportunities';
 import { getCareerRecommendations } from '@/utils/careerRecommendations';
+import RecommendedEducation from './highschool/RecommendedEducation';
 
 interface WorkerResultsViewProps {
   userData: any;
@@ -60,6 +61,45 @@ export const WorkerResultsView: React.FC<WorkerResultsViewProps> = ({ userData }
         }
       ]
     }
+  ];
+  
+  // Define further education recommendations
+  const furtherEducationRecommendations = [
+    {
+      name: "Master i ledelse",
+      description: "Fordyp deg i ledelsesfag for å ta neste steg i karrieren din.",
+      highlights: [
+        "Bygger på din eksisterende fagkompetanse",
+        "Gir lederverktøy for større ansvar",
+        "Kan tas på deltid ved siden av jobb"
+      ]
+    },
+    {
+      name: "Spesialisering innen fagfeltet",
+      description: "Bli en ekspert på ditt område gjennom spesialiserte kurs og sertifiseringer.",
+      highlights: [
+        "Styrker din posisjon som fagperson",
+        "Øker verdien din for arbeidsgivere",
+        "Praktisk anvendbar kunnskap"
+      ]
+    },
+    {
+      name: "Executive Education",
+      description: "Kortere, intensive programmer for erfarne fagpersoner.",
+      highlights: [
+        "Skreddersydd for yrkesaktive",
+        "Fokus på praktiske ferdigheter",
+        "Nettverksbygging med andre fagfolk"
+      ]
+    }
+  ];
+  
+  // Define next steps for education
+  const educationNextSteps = [
+    "Undersøk deltidsstudier ved universitet/høyskoler",
+    "Vurder nettbaserte kurs som passer med din timeplan",
+    "Sjekk om arbeidsgiveren din tilbyr støtte til videreutdanning",
+    "Ta kontakt med studierådgivere for personlig veiledning"
   ];
   
   // Define development opportunities
@@ -150,7 +190,16 @@ export const WorkerResultsView: React.FC<WorkerResultsViewProps> = ({ userData }
         ]}
       />
       
-      {/* Career Opportunities - NEW SECTION */}
+      {/* Recommended Further Education - NEW SECTION */}
+      <RecommendedEducation 
+        recommendations={furtherEducationRecommendations} 
+        nextSteps={educationNextSteps} 
+        showAllRecommendations={true}
+        title="Anbefalt videreutdanning"
+        subtitle="Basert på din profil, her er noen utdanningsmuligheter som kan styrke din karriere" 
+      />
+      
+      {/* Career Opportunities */}
       <CareerOpportunities careerFields={careerRecommendations} />
       
       {/* Development opportunities */}

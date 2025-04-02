@@ -34,16 +34,20 @@ const ResultsPage: React.FC = () => {
         if (parsedData.questionnaire) {
           if (parsedData.questionnaire.highSchool) {
             setUserType('highSchool');
+            // Store user type in localStorage for navigation
+            localStorage.setItem('userType', 'highSchool');
             // Redirect to specific page instead of showing generic results
             navigate('/results/high-school');
             return;
           } else if (parsedData.questionnaire.university) {
             setUserType('university');
+            localStorage.setItem('userType', 'university');
             // Redirect to specific page
             navigate('/results/university');
             return;
           } else if (parsedData.questionnaire.worker) {
             setUserType('worker');
+            localStorage.setItem('userType', 'worker');
             // Redirect to specific page
             navigate('/results/worker');
             return;
@@ -69,14 +73,17 @@ const ResultsPage: React.FC = () => {
       if (parsedData.questionnaire) {
         if (parsedData.questionnaire.highSchool) {
           setUserType('highSchool');
+          localStorage.setItem('userType', 'highSchool');
           navigate('/results/high-school');
           return;
         } else if (parsedData.questionnaire.university) {
           setUserType('university');
+          localStorage.setItem('userType', 'university');
           navigate('/results/university');
           return;
         } else if (parsedData.questionnaire.worker) {
           setUserType('worker');
+          localStorage.setItem('userType', 'worker');
           navigate('/results/worker');
           return;
         }
