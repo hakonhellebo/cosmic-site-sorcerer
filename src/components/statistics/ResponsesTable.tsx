@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Lock } from 'lucide-react';
+import { Eye } from 'lucide-react';
 
 interface ResponsesTableProps {
   responses: any[];
@@ -80,10 +80,14 @@ const ResponsesTable: React.FC<ResponsesTableProps> = ({ responses, title, isLoa
                 <TableCell>{formatDate(response.created_at)}</TableCell>
                 <TableCell>
                   <details className="cursor-pointer">
-                    <summary>Vis svar</summary>
-                    <pre className="text-xs max-h-96 overflow-auto p-2 mt-2 bg-gray-50 rounded">
-                      {JSON.stringify(response.responses, null, 2)}
-                    </pre>
+                    <summary className="flex items-center">
+                      <Eye className="h-4 w-4 mr-1" /> Vis svar
+                    </summary>
+                    <div className="p-3 mt-2 bg-gray-50 rounded border">
+                      <pre className="text-xs max-h-96 overflow-auto whitespace-pre-wrap">
+                        {JSON.stringify(response.responses, null, 2)}
+                      </pre>
+                    </div>
                   </details>
                 </TableCell>
               </TableRow>

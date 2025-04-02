@@ -147,11 +147,10 @@ const Statistics = () => {
           </p>
 
           <Tabs defaultValue="universiteter" className="w-full" onValueChange={(value) => setActiveTab(value)}>
-            <TabsList className="grid w-full grid-cols-4 mb-8">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="universiteter">Universiteter</TabsTrigger>
               <TabsTrigger value="bedrifter">Bedrifter</TabsTrigger>
-              <TabsTrigger value="svar">Svar</TabsTrigger>
-              <TabsTrigger value="admin">Admin</TabsTrigger>
+              {isAdmin && <TabsTrigger value="svar">Svar</TabsTrigger>}
             </TabsList>
             
             <TabsContent value="universiteter" className="mt-6">
@@ -162,34 +161,11 @@ const Statistics = () => {
               <CompanyStatistics />
             </TabsContent>
             
-            <TabsContent value="svar" className="mt-6">
-              {renderAdminContent()}
-            </TabsContent>
-            
-            <TabsContent value="admin" className="mt-6">
-              <div className="bg-white p-6 rounded-lg shadow">
-                <h2 className="text-2xl font-bold mb-4">Admin-panel</h2>
-                <p className="text-gray-600 mb-6">
-                  Denne seksjonen er for administratorer. Her kan du håndtere systeminnstillinger og få tilgang til avanserte funksjoner.
-                </p>
-                
-                {!isAdmin ? (
-                  <Alert variant="destructive">
-                    <ShieldAlert className="h-4 w-4" />
-                    <AlertDescription>
-                      Du har ikke administratortilgang. 
-                      Kun administratorer kan se innholdet i denne seksjonen.
-                    </AlertDescription>
-                  </Alert>
-                ) : (
-                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-                    <p className="text-yellow-800">
-                      Admin-funksjoner er under utvikling. Flere muligheter vil komme snart.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
+            {isAdmin && (
+              <TabsContent value="svar" className="mt-6">
+                {renderAdminContent()}
+              </TabsContent>
+            )}
           </Tabs>
         </div>
       </div>
