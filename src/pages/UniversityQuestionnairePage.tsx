@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import UniversityQuestionnaire from '@/components/UniversityQuestionnaire';
@@ -7,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Form } from '@/components/ui/form';
 import { Progress } from "@/components/ui/progress";
+import { saveUniversityQuestionnaire } from '@/lib/supabase';
 
 const UniversityQuestionnairePage: React.FC = () => {
   const navigate = useNavigate();
@@ -93,7 +93,7 @@ const UniversityQuestionnairePage: React.FC = () => {
   
   useEffect(() => {
     // Check if user is logged in
-    const storedUser = localStorage.getItem('currentUser');
+    const storedUser = localStorage.getItem('userData');
     if (storedUser) {
       setCurrentUser(JSON.parse(storedUser));
     }
@@ -124,17 +124,23 @@ const UniversityQuestionnairePage: React.FC = () => {
         firstName: currentUser?.firstName || "Anonymous",
         lastName: currentUser?.lastName || "User",
         email: currentUser?.email || "",
+      };
+
+      // Save data to localStorage for backward compatibility
+      const fullData = {
+        ...userData,
         questionnaire: {
           university: formData.university,
         }
       };
-
-      // Save the full user data including questionnaire responses
-      localStorage.setItem('userFullData', JSON.stringify(userData));
       
-      // If user is logged in, save this data to their profile
-      if (currentUser) {
-        localStorage.setItem(`userFullData_${currentUser.id}`, JSON.stringify(userData));
+      localStorage.setItem('userFullData', JSON.stringify(fullData));
+      
+      // Save to Supabase
+      const { error } = await saveUniversityQuestionnaire(userData, formData.university);
+      
+      if (error) {
+        throw error;
       }
       
       toast.success("Spørreskjema fullført!", {

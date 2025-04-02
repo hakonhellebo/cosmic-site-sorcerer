@@ -1,12 +1,64 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import UniversityStatistics from '@/components/statistics/UniversityStatistics';
 import CompanyStatistics from '@/components/statistics/CompanyStatistics';
+import ResponsesTable from '@/components/statistics/ResponsesTable';
+import { getAllResponses } from '@/lib/supabase';
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const Statistics = () => {
   const [activeTab, setActiveTab] = useState("universiteter");
+  const [highSchoolResponses, setHighSchoolResponses] = useState<any[]>([]);
+  const [universityResponses, setUniversityResponses] = useState<any[]>([]);
+  const [workerResponses, setWorkerResponses] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState({
+    highSchool: true,
+    university: true,
+    worker: true
+  });
+  
+  const fetchResponses = async () => {
+    try {
+      // Fetch high school responses
+      setIsLoading(prev => ({ ...prev, highSchool: true }));
+      const { data: highSchoolData, error: highSchoolError } = await getAllResponses('high_school_responses');
+      if (highSchoolError) throw highSchoolError;
+      setHighSchoolResponses(highSchoolData || []);
+      setIsLoading(prev => ({ ...prev, highSchool: false }));
+      
+      // Fetch university responses
+      setIsLoading(prev => ({ ...prev, university: true }));
+      const { data: universityData, error: universityError } = await getAllResponses('university_responses');
+      if (universityError) throw universityError;
+      setUniversityResponses(universityData || []);
+      setIsLoading(prev => ({ ...prev, university: false }));
+      
+      // Fetch worker responses
+      setIsLoading(prev => ({ ...prev, worker: true }));
+      const { data: workerData, error: workerError } = await getAllResponses('worker_responses');
+      if (workerError) throw workerError;
+      setWorkerResponses(workerData || []);
+      setIsLoading(prev => ({ ...prev, worker: false }));
+      
+    } catch (error) {
+      console.error("Failed to fetch responses:", error);
+      toast.error("Kunne ikke hente svardata", {
+        description: "Det oppstod en feil ved henting av data fra databasen."
+      });
+      setIsLoading({
+        highSchool: false,
+        university: false,
+        worker: false
+      });
+    }
+  };
+  
+  useEffect(() => {
+    fetchResponses();
+  }, []);
   
   return (
     <Layout>
@@ -14,20 +66,67 @@ const Statistics = () => {
         <div className="max-w-5xl mx-auto mt-10 mb-8">
           <h1 className="text-4xl font-bold mb-6">Statistikk</h1>
           <p className="text-lg mb-8 text-muted-foreground">
-            Her finner du oppdatert statistikk for utdanningsmuligheter og karriereveier.
-            Denne informasjonen kan hjelpe deg å ta informerte valg om din fremtid.
+            Her finner du oppdatert statistikk for utdanningsmuligheter, karriereveier og svar på spørreundersøkelser.
           </p>
 
           <Tabs defaultValue="universiteter" className="w-full" onValueChange={(value) => setActiveTab(value)}>
-            <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsList className="grid w-full grid-cols-4 mb-8">
               <TabsTrigger value="universiteter">Universiteter</TabsTrigger>
               <TabsTrigger value="bedrifter">Bedrifter</TabsTrigger>
+              <TabsTrigger value="svar">Svar</TabsTrigger>
+              <TabsTrigger value="admin">Admin</TabsTrigger>
             </TabsList>
+            
             <TabsContent value="universiteter" className="mt-6">
               <UniversityStatistics />
             </TabsContent>
+            
             <TabsContent value="bedrifter" className="mt-6">
               <CompanyStatistics />
+            </TabsContent>
+            
+            <TabsContent value="svar" className="mt-6">
+              <div className="space-y-8">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold">Svar på undersøkelser</h2>
+                  <Button onClick={fetchResponses}>Oppdater data</Button>
+                </div>
+                
+                <div className="space-y-8">
+                  <ResponsesTable 
+                    title="Videregående elever" 
+                    responses={highSchoolResponses} 
+                    isLoading={isLoading.highSchool} 
+                  />
+                  
+                  <ResponsesTable 
+                    title="Universitetsstudenter" 
+                    responses={universityResponses} 
+                    isLoading={isLoading.university} 
+                  />
+                  
+                  <ResponsesTable 
+                    title="Yrkesaktive" 
+                    responses={workerResponses} 
+                    isLoading={isLoading.worker} 
+                  />
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="admin" className="mt-6">
+              <div className="bg-white p-6 rounded-lg shadow">
+                <h2 className="text-2xl font-bold mb-4">Admin-panel</h2>
+                <p className="text-gray-600 mb-6">
+                  Denne seksjonen er for administratorer. Her kan du håndtere systeminnstillinger og få tilgang til avanserte funksjoner.
+                </p>
+                
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+                  <p className="text-yellow-800">
+                    Admin-funksjoner er under utvikling. Flere muligheter vil komme snart.
+                  </p>
+                </div>
+              </div>
             </TabsContent>
           </Tabs>
         </div>

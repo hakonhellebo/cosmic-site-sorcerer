@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -6,6 +7,7 @@ import Layout from '@/components/Layout';
 import { Progress } from "@/components/ui/progress";
 import { Form } from "@/components/ui/form";
 import HighSchoolQuestionnaire from '@/components/HighSchoolQuestionnaire';
+import { saveHighSchoolQuestionnaire } from '@/lib/supabase';
 
 const HighSchoolQuestionnairePage = () => {
   const navigate = useNavigate();
@@ -13,6 +15,14 @@ const HighSchoolQuestionnairePage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = 6;
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userData, setUserData] = useState<any>(null);
+
+  useEffect(() => {
+    const savedUserData = localStorage.getItem('userData');
+    if (savedUserData) {
+      setUserData(JSON.parse(savedUserData));
+    }
+  }, []);
 
   const form = useForm({
     defaultValues: {
@@ -69,24 +79,42 @@ const HighSchoolQuestionnairePage = () => {
     }
   });
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     console.log('High School Questionnaire Data:', data);
     setIsSubmitting(true);
 
-    // Lagre data først, uavhengig av valideringsresultater
-    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-    const combinedData = {
-      ...userData,
-      questionnaire: { highSchool: data.highSchool }
-    };
-    
-    localStorage.setItem('userFullData', JSON.stringify(combinedData));
-    
-    toast.success("Spørreskjema fullført!", {
-      description: "Takk for dine svar. Vi har laget en personlig karriereprofil til deg."
-    });
-    
-    navigate('/results/high-school');
+    try {
+      // Get user data for associating with the response
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      
+      // Save to localStorage for backward compatibility
+      const combinedData = {
+        ...userData,
+        questionnaire: { highSchool: data.highSchool }
+      };
+      
+      localStorage.setItem('userFullData', JSON.stringify(combinedData));
+      
+      // Save to Supabase
+      const { error } = await saveHighSchoolQuestionnaire(userData, data.highSchool);
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast.success("Spørreskjema fullført!", {
+        description: "Takk for dine svar. Vi har laget en personlig karriereprofil til deg."
+      });
+      
+      navigate('/results/high-school');
+    } catch (error) {
+      console.error("Error saving form data:", error);
+      toast.error("Det oppstod en feil", {
+        description: "Kunne ikke lagre svarene dine. Vennligst prøv igjen."
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const nextPage = () => {

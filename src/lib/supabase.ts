@@ -82,3 +82,90 @@ export const signOut = async () => {
   const { error } = await supabase.auth.signOut();
   return { error };
 };
+
+// New helper functions for storing questionnaire responses
+
+// Store a high school questionnaire response
+export const saveHighSchoolQuestionnaire = async (userData: any, questionnaireData: any) => {
+  try {
+    const user = await getCurrentUser();
+    
+    const { data, error } = await supabase
+      .from('high_school_responses')
+      .insert({
+        user_id: user?.id || 'anonymous',
+        email: userData?.email || 'anonymous',
+        name: `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() || 'Anonymous',
+        responses: questionnaireData,
+        created_at: new Date().toISOString()
+      });
+      
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    console.error("Error saving high school questionnaire:", error);
+    return { data: null, error };
+  }
+};
+
+// Store a university questionnaire response
+export const saveUniversityQuestionnaire = async (userData: any, questionnaireData: any) => {
+  try {
+    const user = await getCurrentUser();
+    
+    const { data, error } = await supabase
+      .from('university_responses')
+      .insert({
+        user_id: user?.id || 'anonymous',
+        email: userData?.email || 'anonymous',
+        name: `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() || 'Anonymous',
+        responses: questionnaireData,
+        created_at: new Date().toISOString()
+      });
+      
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    console.error("Error saving university questionnaire:", error);
+    return { data: null, error };
+  }
+};
+
+// Store a worker questionnaire response
+export const saveWorkerQuestionnaire = async (userData: any, questionnaireData: any) => {
+  try {
+    const user = await getCurrentUser();
+    
+    const { data, error } = await supabase
+      .from('worker_responses')
+      .insert({
+        user_id: user?.id || 'anonymous',
+        email: userData?.email || 'anonymous',
+        name: `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() || 'Anonymous',
+        responses: questionnaireData,
+        created_at: new Date().toISOString()
+      });
+      
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    console.error("Error saving worker questionnaire:", error);
+    return { data: null, error };
+  }
+};
+
+// Get all questionnaire responses (for admin view)
+export const getAllResponses = async (table: 'high_school_responses' | 'university_responses' | 'worker_responses') => {
+  try {
+    const { data, error } = await supabase
+      .from(table)
+      .select('*')
+      .order('created_at', { ascending: false });
+      
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    console.error(`Error fetching ${table}:`, error);
+    return { data: null, error };
+  }
+};

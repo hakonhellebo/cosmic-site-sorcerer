@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from "sonner";
@@ -6,6 +7,7 @@ import Layout from '@/components/Layout';
 import { Form } from "@/components/ui/form";
 import { Progress } from "@/components/ui/progress";
 import WorkerQuestionnaire from '@/components/WorkerQuestionnaire';
+import { saveWorkerQuestionnaire } from '@/lib/supabase';
 
 type QuestionnaireFormData = {
   worker: {
@@ -45,7 +47,7 @@ type QuestionnaireFormData = {
 const WorkerQuestionnairePage: React.FC = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
-  const totalPages = 3;
+  const totalPages = 5;
   const progressValue = (page / totalPages) * 100;
   const [userData, setUserData] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -112,7 +114,15 @@ const WorkerQuestionnairePage: React.FC = () => {
         questionnaire: data
       };
       
+      // Save to localStorage for backward compatibility
       localStorage.setItem('userFullData', JSON.stringify(combinedData));
+      
+      // Save to Supabase
+      const { error } = await saveWorkerQuestionnaire(userData, data.worker);
+      
+      if (error) {
+        throw error;
+      }
       
       toast.success("Spørreskjema fullført!", {
         description: "Takk for dine svar. Vi har laget en personlig karriereprofil til deg."
@@ -201,11 +211,15 @@ const WorkerQuestionnairePage: React.FC = () => {
             {page === 1 && "Bakgrunn og utdanning"}
             {page === 2 && "Arbeidserfaring"}
             {page === 3 && "Karrierevei og erfaring"}
+            {page === 4 && "Fremtidige bransjer"}
+            {page === 5 && "Karriere og planlegging"}
           </h2>
           <p className="text-muted-foreground mb-6">
             {page === 1 && "Fortell oss om din utdanningsbakgrunn"}
             {page === 2 && "Fortell oss om din arbeidserfaring"}
             {page === 3 && "Fortell oss om din karriereutvikling"}
+            {page === 4 && "Fortell oss om hvilke bransjer du er interessert i"}
+            {page === 5 && "Fortell oss om dine karrieremål og planer"}
           </p>
           
           {formErrors && (
