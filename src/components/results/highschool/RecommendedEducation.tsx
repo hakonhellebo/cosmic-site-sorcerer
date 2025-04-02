@@ -24,27 +24,33 @@ const RecommendedEducation: React.FC<RecommendedEducationProps> = ({
     : recommendations.slice(0, 3);
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-up">
       <div className="bg-card p-6 rounded-lg border">
         <h2 className="text-xl font-semibold mb-2">{title}</h2>
-        <p className="text-muted-foreground mb-4">{subtitle}</p>
+        <p className="text-muted-foreground mb-6">{subtitle}</p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {displayRecommendations.map((rec, index) => (
-            <Card key={index} className="bg-muted/30">
+            <Card key={index} className="bg-muted/30 hover:shadow-md transition-shadow">
               <CardHeader className="pb-2">
                 <h3 className="font-semibold">{rec.name}</h3>
+                <p className="text-sm text-muted-foreground">{rec.institution}</p>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground mb-2">{rec.description}</p>
-                <div className="mt-2">
-                  {rec.highlights?.map((highlight: string, idx: number) => (
-                    <div key={idx} className="text-sm flex items-start mb-1">
-                      <Check className="h-4 w-4 mr-1 mt-0.5 text-green-500 flex-shrink-0" />
-                      <span>{highlight}</span>
-                    </div>
-                  ))}
+                <p className="text-sm mb-2">{rec.description || 'Dette studieprogrammet passer med din profil.'}</p>
+                <div className="text-sm bg-primary/10 px-2 py-1 rounded inline-block mt-1 mb-2">
+                  {rec.match}
                 </div>
+                {rec.highlights && (
+                  <div className="mt-3">
+                    {rec.highlights?.map((highlight: string, idx: number) => (
+                      <div key={idx} className="text-sm flex items-start mb-1">
+                        <Check className="h-4 w-4 mr-1 mt-0.5 text-green-500 flex-shrink-0" />
+                        <span>{highlight}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

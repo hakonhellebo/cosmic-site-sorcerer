@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ExternalLink } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
@@ -16,11 +16,13 @@ interface CareerOpportunitiesProps {
 
 const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({ recommendations, showAllOpportunities = false }) => {
   // Extract all career paths from recommendations, remove duplicates
-  const allCareers = recommendations.flatMap(rec => rec.careers || [])
+  const allCareers = useMemo(() => {
+    const careers = recommendations.flatMap(rec => rec.careers || []);
     // Filter out duplicate careers by comparing lowercased strings
-    .filter((career, index, self) => 
+    return careers.filter((career, index, self) => 
       index === self.findIndex(c => c.toLowerCase() === career.toLowerCase())
     );
+  }, [recommendations]);
   
   // Limit to 6 careers unless showAllOpportunities is true
   const displayedCareers = showAllOpportunities ? allCareers : allCareers.slice(0, 6);

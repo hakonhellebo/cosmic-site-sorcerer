@@ -32,7 +32,7 @@ const HighSchoolIntro: React.FC<HighSchoolIntroProps> = ({
         <div className="bg-muted/50 p-4 rounded-lg">
           <h3 className="font-semibold mb-2">Dine topp dimensjoner</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-            {dimensions.map((dim, index) => (
+            {dimensions.slice(0, 3).map((dim, index) => (
               <div key={index} className="p-3 bg-primary/10 rounded-md">
                 <h4 className="font-medium">{dim.name}</h4>
                 <p className="text-sm">{dim.description}</p>
@@ -44,15 +44,15 @@ const HighSchoolIntro: React.FC<HighSchoolIntroProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
           <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-md">
             <h4 className="font-medium">Interesser</h4>
-            <p className="text-sm">{interests}</p>
+            <p className="text-sm">{interests || 'Ingen valgt'}</p>
           </div>
           <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-md">
             <h4 className="font-medium">Læringsstil</h4>
-            <p className="text-sm">{learningStyle}</p>
+            <p className="text-sm">{learningStyle || 'Ikke spesifisert'}</p>
           </div>
           <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-md">
             <h4 className="font-medium">Arbeidspreferanser</h4>
-            <p className="text-sm">{workPreference}</p>
+            <p className="text-sm">{workPreference || 'Ikke spesifisert'}</p>
           </div>
         </div>
       </div>
