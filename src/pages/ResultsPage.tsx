@@ -12,10 +12,13 @@ const ResultsPage: React.FC = () => {
   const navigate = useNavigate();
   const [userData, setUserData] = useState<any>(null);
   const [userType, setUserType] = useState<'highSchool' | 'university' | 'worker' | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
   
   useEffect(() => {
     console.log("ResultsPage: Loading user data");
+    setIsLoading(true);
+    
     // Check if user is logged in
     const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
@@ -58,6 +61,7 @@ const ResultsPage: React.FC = () => {
     
     // Fall back to general userFullData if no user-specific data found
     const savedFullData = localStorage.getItem('userFullData');
+    const savedUserType = localStorage.getItem('userType');
     
     if (savedFullData) {
       const parsedData = JSON.parse(savedFullData);
@@ -69,7 +73,24 @@ const ResultsPage: React.FC = () => {
         localStorage.setItem(`userFullData_${currentUser.id}`, savedFullData);
       }
       
-      // Determine user type based on questionnaire data and redirect
+      // Check if we have a saved user type first
+      if (savedUserType) {
+        if (savedUserType === 'highSchool') {
+          setUserType('highSchool');
+          navigate('/results/high-school');
+          return;
+        } else if (savedUserType === 'university') {
+          setUserType('university');
+          navigate('/results/university');
+          return;
+        } else if (savedUserType === 'worker') {
+          setUserType('worker');
+          navigate('/results/worker');
+          return;
+        }
+      }
+      
+      // If no saved type, determine user type based on questionnaire data and redirect
       if (parsedData.questionnaire) {
         if (parsedData.questionnaire.highSchool) {
           setUserType('highSchool');
@@ -93,7 +114,19 @@ const ResultsPage: React.FC = () => {
         description: "Tips: Du kan laste inn testdata fra hovedsiden"
       });
     }
+    
+    setIsLoading(false);
   }, [navigate, currentUser]);
+  
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-12 md:py-16 flex justify-center items-center">
+          <p>Laster inn data...</p>
+        </div>
+      </Layout>
+    );
+  }
   
   if (!userData) {
     return (
