@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { 
@@ -259,6 +258,151 @@ const DimensionRanking: React.FC<DimensionRankingProps> = ({ userData, questionn
       }
       
       console.log("Calculated dimension scores:", scores);
+    }
+    
+    // Process data from university questionnaire 
+    if (questionnaire === 'university') {
+      const data = questionnaireData;
+      console.log("Processing university data", data);
+      
+      // Process interests - handle boolean values
+      if (data.interests) {
+        if (data.interests.teknologi === true) scores.teknologi += 5;
+        if (data.interests.okonomi === true) scores.analytisk += 5;
+        if (data.interests.samfunnsvitenskap === true) scores.bærekraft += 4;
+        if (data.interests.humaniora === true) scores.kreativitet += 4;
+        if (data.interests.naturvitenskap === true) scores.analytisk += 4;
+        if (data.interests.helse === true) scores.helseinteresse += 5;
+        if (data.interests.kunst === true) scores.kreativitet += 5;
+        if (data.interests.ingenior === true) {
+          scores.teknologi += 4;
+          scores.analytisk += 3;
+        }
+        if (data.interests.larer === true) scores.sosialitet += 5;
+        if (data.interests.jus === true) scores.struktur += 5;
+      }
+      
+      // Process strengths - handle boolean values
+      if (data.strengths) {
+        if (data.strengths.kritisk_tenkning === true) scores.analytisk += 4;
+        if (data.strengths.problemlosning === true) scores.analytisk += 4;
+        if (data.strengths.kreativitet === true) scores.kreativitet += 5;
+        if (data.strengths.kommunikasjon === true) scores.sosialitet += 4;
+        if (data.strengths.selvledelse === true) scores.selvstendighet += 4;
+        if (data.strengths.prosjektstyring === true) scores.struktur += 4;
+        if (data.strengths.teknologiforstaaelse === true) scores.teknologi += 4;
+        if (data.strengths.empati === true) scores.sosialitet += 4;
+      }
+      
+      // Process weaknesses (opposite effect)
+      if (data.weaknesses) {
+        if (data.weaknesses.kritisk_tenkning === true) scores.analytisk -= 1;
+        if (data.weaknesses.problemlosning === true) scores.analytisk -= 1;
+        if (data.weaknesses.kreativitet === true) scores.kreativitet -= 1;
+        if (data.weaknesses.kommunikasjon === true) scores.sosialitet -= 1;
+        if (data.weaknesses.selvledelse === true) scores.selvstendighet -= 1;
+        if (data.weaknesses.prosjektstyring === true) scores.struktur -= 1;
+        if (data.weaknesses.teknologiforstaaelse === true) scores.teknologi -= 1;
+        if (data.weaknesses.empati === true) scores.sosialitet -= 1;
+      }
+      
+      // Process learning style
+      if (data.learningStyle) {
+        if (data.learningStyle.lesing === true) scores.analytisk += 3;
+        if (data.learningStyle.lytting === true) scores.sosialitet += 2;
+        if (data.learningStyle.praksis === true) scores.praktisk += 4;
+        if (data.learningStyle.diskusjon === true) scores.sosialitet += 3;
+        if (data.learningStyle.video === true) scores.teknologi += 2;
+      }
+      
+      // Process collaboration style
+      if (data.collaboration === 'independent') scores.selvstendighet += 4;
+      else if (data.collaboration === 'team') scores.sosialitet += 4;
+      else if (data.collaboration === 'daily') scores.sosialitet += 3;
+      else if (data.collaboration === 'weekly') scores.selvstendighet += 2;
+      
+      // Process AI usage
+      if (data.aiUsage === 'daily') scores.teknologi += 4;
+      else if (data.aiUsage === 'weekly') scores.teknologi += 3;
+      else if (data.aiUsage === 'monthly') scores.teknologi += 2;
+      else if (data.aiUsage === 'rarely') scores.teknologi += 1;
+      
+      // Internship
+      if (data.internship === 'yes') scores.praktisk += 3;
+      if (data.internshipValue === 'very-useful') scores.praktisk += 2;
+      
+      // Study reason
+      if (data.studyReason === 'job-security') {
+        scores.struktur += 3;
+        scores.ambisjon += 2;
+      }
+      else if (data.studyReason === 'salary') scores.ambisjon += 4;
+      else if (data.studyReason === 'impact') scores.bærekraft += 4;
+      else if (data.studyReason === 'interest') scores.kreativitet += 4;
+      
+      // Salary importance
+      if (data.salaryImportance === 'very') scores.ambisjon += 4;
+      else if (data.salaryImportance === 'somewhat') scores.ambisjon += 2;
+      
+      // Impact importance
+      if (data.impactImportance === 'very') scores.bærekraft += 4;
+      else if (data.impactImportance === 'somewhat') scores.bærekraft += 2;
+      
+      // Job priorities
+      if (data.jobPriorities) {
+        if (data.jobPriorities.fleksibilitet === true) scores.selvstendighet += 3;
+        if (data.jobPriorities.hoy_lonn === true) scores.ambisjon += 3;
+        if (data.jobPriorities.stabilitet === true) scores.struktur += 3;
+        if (data.jobPriorities.karrieremuligheter === true) scores.ambisjon += 3;
+        if (data.jobPriorities.mening === true) scores.bærekraft += 3;
+        if (data.jobPriorities.innovasjon === true) scores.kreativitet += 3;
+      }
+      
+      // Future role
+      if (data.futureRole === 'leader') scores.ambisjon += 4;
+      else if (data.futureRole === 'specialist') scores.analytisk += 4;
+      else if (data.futureRole === 'entrepreneur') scores.selvstendighet += 4;
+      
+      // Technology importance
+      if (data.technologyImportance === 'very') scores.teknologi += 4;
+      else if (data.technologyImportance === 'somewhat') scores.teknologi += 2;
+      
+      // Work-life balance
+      if (data.workLifeBalance === 'work') scores.ambisjon += 3;
+      else if (data.workLifeBalance === 'balance') scores.struktur += 3;
+      else if (data.workLifeBalance === 'life') scores.selvstendighet += 3;
+      
+      // Remote work importance
+      if (data.remoteWorkImportance === 'very') scores.selvstendighet += 3;
+      else if (data.remoteWorkImportance === 'somewhat') scores.selvstendighet += 2;
+      
+      // Travel importance
+      if (data.travelImportance === 'very') scores.selvstendighet += 3;
+      else if (data.travelImportance === 'somewhat') scores.selvstendighet += 2;
+      
+      // Preferred work environment
+      if (data.preferredWorkEnvironment === 'structured') scores.struktur += 3;
+      else if (data.preferredWorkEnvironment === 'creative') scores.kreativitet += 3;
+      else if (data.preferredWorkEnvironment === 'social') scores.sosialitet += 3;
+      else if (data.preferredWorkEnvironment === 'flexible') scores.selvstendighet += 3;
+      
+      // People vs tech preference
+      if (data.peopleTech === 'people') scores.sosialitet += 3;
+      else if (data.peopleTech === 'tech') scores.teknologi += 3;
+      
+      // Study choice reason
+      if (data.studyChoiceReason === 'interesse') scores.kreativitet += 3;
+      else if (data.studyChoiceReason === 'lonn') scores.ambisjon += 3;
+      else if (data.studyChoiceReason === 'prestisje') scores.ambisjon += 3;
+      
+      // Best subjects
+      if (data.bestSubjects) {
+        if (data.bestSubjects.teknologi === true) scores.teknologi += 3;
+        if (data.bestSubjects.okonomi === true) scores.analytisk += 3;
+        if (data.bestSubjects.ingenior === true) scores.teknologi += 3;
+      }
+      
+      console.log("Calculated university dimension scores:", scores);
     }
     
     // Ensure minimum score of 1 for all dimensions
