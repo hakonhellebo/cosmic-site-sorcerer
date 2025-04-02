@@ -1,12 +1,12 @@
 
 import React, { useMemo } from 'react';
-import DimensionRanking from './DimensionRanking';
-import RecommendedEducation from './highschool/RecommendedEducation';
-import CareerOpportunities from './highschool/CareerOpportunities';
 import { matchEducationPrograms } from '@/utils/educationData';
 import UniversityIntro from './university/UniversityIntro';
 import NextSteps from './university/NextSteps';
 import BasicInfoCards from './university/BasicInfoCards';
+import UniversityDimensions from './university/UniversityDimensions';
+import UniversityEducation from './university/UniversityEducation';
+import UniversityCareers from './university/UniversityCareers';
 import { calculateUniversityDimensions, getTopDimensions } from '@/utils/universityDimensionCalculator';
 
 interface UniversityResultsViewProps {
@@ -20,18 +20,16 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
     return <div>Ingen data funnet</div>;
   }
   
-  console.log("UniversityResultsView - Raw universityData:", universityData);
-  
   // Extract interests and strengths
-  const interests = Object.keys(universityData.interests || {})
-    .filter(key => universityData.interests[key] === true);
+  const interests = useMemo(() => {
+    return Object.keys(universityData.interests || {})
+      .filter(key => universityData.interests[key] === true);
+  }, [universityData.interests]);
   
-  console.log("Filtered interests:", interests);
-  
-  const strengths = Object.keys(universityData.strengths || {})
-    .filter(key => universityData.strengths[key] === true);
-  
-  console.log("Filtered strengths:", strengths);
+  const strengths = useMemo(() => {
+    return Object.keys(universityData.strengths || {})
+      .filter(key => universityData.strengths[key] === true);
+  }, [universityData.strengths]);
   
   // Determine if bachelor or master student
   const isBachelorStudent = universityData.level?.toLowerCase().includes('bachelor');
@@ -44,8 +42,6 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
     return getTopDimensions(dimensionScores, 3);
   }, [dimensionScores]);
   
-  console.log("Top 3 Calculated dimensions:", dimensions);
-  
   // Get top dimension names for education recommendations
   const topDimensions = dimensions.map(dim => dim.name);
   
@@ -53,8 +49,6 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
   const educationRecommendations = useMemo(() => {
     return matchEducationPrograms(topDimensions, 8);
   }, [topDimensions]);
-  
-  console.log("Education recommendations:", educationRecommendations);
   
   return (
     <div className="space-y-10">
@@ -65,10 +59,7 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
       />
       
       {/* Dimension Ranking */}
-      <DimensionRanking 
-        userData={userData} 
-        questionnaire="university" 
-      />
+      <UniversityDimensions userData={userData} />
       
       {/* Basic info cards */}
       <BasicInfoCards 
@@ -78,23 +69,15 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
       />
 
       {/* Education recommendations section */}
-      <RecommendedEducation 
+      <UniversityEducation 
         recommendations={educationRecommendations}
-        nextSteps={[]}
-        showAllRecommendations={true}
-        title={isBachelorStudent ? "Anbefalte masterprogrammer" : "Anbefalte karriereveier"}
-        subtitle={isBachelorStudent 
-          ? "Basert på din profil har vi funnet disse masterprogrammene som kan passe for deg" 
-          : "Basert på din profil har vi funnet disse karriereveiene som kan passe for deg"}
+        isBachelorStudent={isBachelorStudent}
       />
       
       {/* Career opportunities section */}
-      <CareerOpportunities 
-        recommendations={educationRecommendations}
-        showAllOpportunities={true}
-      />
+      <UniversityCareers recommendations={educationRecommendations} />
       
-      {/* Next steps - updated content to match high school view */}
+      {/* Next steps section */}
       <NextSteps />
     </div>
   );
