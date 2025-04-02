@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { Check } from 'lucide-react';
 import ResultCard from '../ResultCard';
@@ -94,6 +93,17 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
   
   console.log("Education recommendations:", educationRecommendations);
   
+  // Transform education recommendations to the format expected by CareerOpportunities
+  const careerRecommendations = useMemo(() => {
+    return educationRecommendations.map(rec => ({
+      title: rec.name,
+      institution: rec.institution,
+      match: rec.match,
+      description: rec.description || '',
+      careers: rec.careers || ['Fagspesialist', 'Rådgiver', 'Prosjektleder'] // Default careers if none provided
+    }));
+  }, [educationRecommendations]);
+
   // Extract favorite and difficult courses - only count explicit true values
   const favoriteCourses = Object.keys(highSchoolData.favoriteCourses || {})
     .filter(key => highSchoolData.favoriteCourses[key] === true);
@@ -187,7 +197,7 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
       
       {/* Career Opportunities based on education recommendations */}
       <CareerOpportunities 
-        recommendations={educationRecommendations}
+        recommendations={careerRecommendations}
         showAllOpportunities={true}
       />
       

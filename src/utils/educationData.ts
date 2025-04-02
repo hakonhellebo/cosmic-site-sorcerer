@@ -7,6 +7,7 @@ export interface EducationRecommendation {
   link?: string;
   requirements?: string;
   description?: string;
+  careers?: string[];
 }
 
 // Interface for dimensjoner
@@ -371,13 +372,39 @@ export function matchEducationPrograms(userDimensions: string[], count: number =
       ? `Passer med dine dimensjoner: ${matchingDimensions.join(' og ')}`
       : `Passer med din ${matchingDimensions[0]}-dimensjon`;
     
+    // Generate relevant careers based on the program name
+    let careers: string[] = [];
+    
+    // Map common careers for different program types
+    if (/medisin|helse|sykepleie|odontologi/i.test(programName)) {
+      careers = ['Lege', 'Spesialist', 'Forsker', 'Konsulent innen helsesektoren'];
+    } else if (/psykologi/i.test(programName)) {
+      careers = ['Klinisk psykolog', 'Organisasjonspsykolog', 'Forsker', 'Terapeut'];
+    } else if (/data|informatikk|teknologi/i.test(programName)) {
+      careers = ['Systemutvikler', 'Prosjektleder', 'IT-konsulent', 'Data scientist', 'UX-designer'];
+    } else if (/økonomi|finans|administrasjon/i.test(programName)) {
+      careers = ['Finansanalytiker', 'Rådgiver', 'Controller', 'Prosjektleder', 'Konsulent'];
+    } else if (/jus|rettsvitenskap/i.test(programName)) {
+      careers = ['Advokat', 'Jurist', 'Dommer', 'Juridisk rådgiver'];
+    } else if (/ingeniør/i.test(programName)) {
+      careers = ['Ingeniør', 'Prosjektleder', 'Teknisk leder', 'Konsulent'];
+    } else if (/kreativ|kunst|design/i.test(programName)) {
+      careers = ['Designer', 'Art Director', 'Kreativ leder', 'Konsulent'];
+    } else if (/stats|samfunn/i.test(programName)) {
+      careers = ['Analytiker', 'Rådgiver', 'Forsker', 'Konsulent'];
+    } else {
+      // Default careers for other programs
+      careers = ['Fagspesialist', 'Rådgiver', 'Prosjektleder', 'Forsker', 'Konsulent'];
+    }
+    
     recommendations.push({
       name: programName,
       institution: allInstitutions,
       match: matchDescription,
       link: firstProgram.link,
       requirements: firstProgram.requirements,
-      description: firstProgram.description
+      description: firstProgram.description,
+      careers: careers
     });
   }
   
