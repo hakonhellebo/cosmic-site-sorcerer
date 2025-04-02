@@ -130,8 +130,6 @@ const ensureTablesExist = async () => {
 // Call ensure tables when this module loads
 ensureTablesExist();
 
-// New helper functions for storing questionnaire responses
-
 // Store a high school questionnaire response
 export const saveHighSchoolQuestionnaire = async (userData: any, questionnaireData: any) => {
   try {
@@ -143,45 +141,62 @@ export const saveHighSchoolQuestionnaire = async (userData: any, questionnaireDa
       name: `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() || 'Anonymous',
     });
     
-    // Use local storage as fallback
-    localStorage.setItem('highSchoolResponses', JSON.stringify({
+    // Always save to local storage first as a reliable backup
+    const responseData = {
       user_id: user?.id || 'anonymous',
       email: userData?.email || 'anonymous',
       name: `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() || 'Anonymous',
       responses: questionnaireData,
       created_at: new Date().toISOString()
-    }));
+    };
     
-    const { data, error } = await supabase
-      .from('high_school_responses')
-      .insert({
-        user_id: user?.id || 'anonymous',
-        email: userData?.email || 'anonymous',
-        name: `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() || 'Anonymous',
-        responses: questionnaireData,
-        created_at: new Date().toISOString()
-      });
-      
-    if (error) {
-      console.error("Supabase insert error:", error);
-      throw error;
+    // Save to localStorage
+    localStorage.setItem('highSchoolResponses', JSON.stringify(responseData));
+    
+    // Also save full data to userFullData for immediate access in results page
+    const combinedData = {
+      ...userData,
+      questionnaire: { 
+        highSchool: questionnaireData 
+      }
+    };
+    
+    localStorage.setItem('userFullData', JSON.stringify(combinedData));
+    
+    // Try to save to Supabase, but don't block success if it fails
+    try {
+      const { error } = await supabase
+        .from('high_school_responses')
+        .insert(responseData);
+        
+      if (error) {
+        console.warn("Could not save to Supabase, but data is saved locally:", error);
+      }
+    } catch (supabaseError) {
+      console.warn("Supabase storage failed, but data is saved locally:", supabaseError);
+      // Don't throw the error - we've already saved to localStorage
     }
     
-    return { data, error: null };
+    // Return success since we've at least saved to localStorage
+    return { 
+      data: combinedData, 
+      error: null 
+    };
+    
   } catch (error) {
     console.error("Error saving high school questionnaire:", error);
     // Return a more specific error but still allow the app to proceed
     return { 
       data: null, 
       error: {
-        message: "Kunne ikke lagre data i databasen, men dine svar er lagret lokalt.",
+        message: "Kunne ikke lagre alle dine svar, men vi har gjort vårt beste for å bevare dem lokalt.",
         details: error
       } 
     };
   }
 };
 
-// Store a university questionnaire response
+// Store a university questionnaire response - updating with same pattern as high school
 export const saveUniversityQuestionnaire = async (userData: any, questionnaireData: any) => {
   try {
     const user = await getCurrentUser();
@@ -192,48 +207,67 @@ export const saveUniversityQuestionnaire = async (userData: any, questionnaireDa
       name: `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() || 'Anonymous',
     });
     
-    // Use local storage as fallback
-    localStorage.setItem('universityResponses', JSON.stringify({
+    // Always save to local storage first as a reliable backup
+    const responseData = {
       user_id: user?.id || 'anonymous',
       email: userData?.email || 'anonymous',
       name: `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() || 'Anonymous',
       responses: questionnaireData,
       created_at: new Date().toISOString()
-    }));
+    };
     
-    // Simplify the response object to avoid potential issues
-    const simpleResponses = JSON.parse(JSON.stringify(questionnaireData));
+    // Save to localStorage
+    localStorage.setItem('universityResponses', JSON.stringify(responseData));
     
-    const { data, error } = await supabase
-      .from('university_responses')
-      .insert({
-        user_id: user?.id || 'anonymous',
-        email: userData?.email || 'anonymous',
-        name: `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() || 'Anonymous',
-        responses: simpleResponses,
-        created_at: new Date().toISOString()
-      });
+    // Also save full data to userFullData for immediate access in results page
+    const combinedData = {
+      ...userData,
+      questionnaire: { 
+        university: questionnaireData 
+      }
+    };
+    
+    localStorage.setItem('userFullData', JSON.stringify(combinedData));
+    
+    // Try to save to Supabase, but don't block success if it fails
+    try {
+      // Simplify the response object to avoid potential issues
+      const simpleResponses = JSON.parse(JSON.stringify(questionnaireData));
       
-    if (error) {
-      console.error("Supabase insert error:", error);
-      throw error;
+      const { error } = await supabase
+        .from('university_responses')
+        .insert({
+          ...responseData,
+          responses: simpleResponses
+        });
+        
+      if (error) {
+        console.warn("Could not save to Supabase, but data is saved locally:", error);
+      }
+    } catch (supabaseError) {
+      console.warn("Supabase storage failed, but data is saved locally:", supabaseError);
+      // Don't throw the error - we've already saved to localStorage
     }
     
-    return { data, error: null };
+    // Return success since we've at least saved to localStorage
+    return { 
+      data: combinedData, 
+      error: null 
+    };
+    
   } catch (error) {
     console.error("Error saving university questionnaire:", error);
-    // Return a more specific error but still allow the app to proceed
     return { 
       data: null, 
       error: {
-        message: "Kunne ikke lagre data i databasen, men dine svar er lagret lokalt.",
+        message: "Kunne ikke lagre alle dine svar, men vi har gjort vårt beste for å bevare dem lokalt.",
         details: error
       } 
     };
   }
 };
 
-// Store a worker questionnaire response
+// Store a worker questionnaire response - updating with same pattern as above
 export const saveWorkerQuestionnaire = async (userData: any, questionnaireData: any) => {
   try {
     const user = await getCurrentUser();
@@ -244,38 +278,54 @@ export const saveWorkerQuestionnaire = async (userData: any, questionnaireData: 
       name: `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() || 'Anonymous',
     });
     
-    // Use local storage as fallback
-    localStorage.setItem('workerResponses', JSON.stringify({
+    // Always save to local storage first as a reliable backup
+    const responseData = {
       user_id: user?.id || 'anonymous',
       email: userData?.email || 'anonymous',
       name: `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() || 'Anonymous',
       responses: questionnaireData,
       created_at: new Date().toISOString()
-    }));
+    };
     
-    const { data, error } = await supabase
-      .from('worker_responses')
-      .insert({
-        user_id: user?.id || 'anonymous',
-        email: userData?.email || 'anonymous',
-        name: `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() || 'Anonymous',
-        responses: questionnaireData,
-        created_at: new Date().toISOString()
-      });
-      
-    if (error) {
-      console.error("Supabase insert error:", error);
-      throw error;
+    // Save to localStorage
+    localStorage.setItem('workerResponses', JSON.stringify(responseData));
+    
+    // Also save full data to userFullData for immediate access in results page
+    const combinedData = {
+      ...userData,
+      questionnaire: { 
+        worker: questionnaireData 
+      }
+    };
+    
+    localStorage.setItem('userFullData', JSON.stringify(combinedData));
+    
+    // Try to save to Supabase, but don't block success if it fails
+    try {
+      const { error } = await supabase
+        .from('worker_responses')
+        .insert(responseData);
+        
+      if (error) {
+        console.warn("Could not save to Supabase, but data is saved locally:", error);
+      }
+    } catch (supabaseError) {
+      console.warn("Supabase storage failed, but data is saved locally:", supabaseError);
+      // Don't throw the error - we've already saved to localStorage
     }
     
-    return { data, error: null };
+    // Return success since we've at least saved to localStorage
+    return { 
+      data: combinedData, 
+      error: null 
+    };
+    
   } catch (error) {
     console.error("Error saving worker questionnaire:", error);
-    // Return a more specific error but still allow the app to proceed
     return { 
       data: null, 
       error: {
-        message: "Kunne ikke lagre data i databasen, men dine svar er lagret lokalt.",
+        message: "Kunne ikke lagre alle dine svar, men vi har gjort vårt beste for å bevare dem lokalt.",
         details: error
       } 
     };

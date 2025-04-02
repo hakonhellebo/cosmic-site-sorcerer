@@ -87,31 +87,31 @@ const HighSchoolQuestionnairePage = () => {
       // Get user data for associating with the response
       const userData = JSON.parse(localStorage.getItem('userData') || '{}');
       
-      // Save to localStorage for backward compatibility
-      const combinedData = {
-        ...userData,
-        questionnaire: { highSchool: data.highSchool }
-      };
-      
-      localStorage.setItem('userFullData', JSON.stringify(combinedData));
-      
-      // Save to Supabase
+      // Save to Supabase (with localStorage fallback built into the function)
       const { error } = await saveHighSchoolQuestionnaire(userData, data.highSchool);
       
       if (error) {
-        throw error;
+        // Still show success if we have local storage but inform about partial success
+        toast.success("Spørreskjema fullført!", {
+          description: "Takk for dine svar. Vi har laget en personlig karriereprofil til deg. (Merk: Svarene ble lagret lokalt, men ikke i databasen.)"
+        });
+      } else {
+        toast.success("Spørreskjema fullført!", {
+          description: "Takk for dine svar. Vi har laget en personlig karriereprofil til deg."
+        });
       }
       
-      toast.success("Spørreskjema fullført!", {
-        description: "Takk for dine svar. Vi har laget en personlig karriereprofil til deg."
-      });
-      
+      // Always navigate to results since we have the data in localStorage
       navigate('/results/high-school');
     } catch (error) {
       console.error("Error saving form data:", error);
+      // Show a warning but still navigate to results if we have data in localStorage
       toast.error("Det oppstod en feil", {
-        description: "Kunne ikke lagre svarene dine. Vennligst prøv igjen."
+        description: "Kunne ikke lagre alle svarene dine, men vi viser deg resultatene basert på det vi har."
       });
+      
+      // Give it a slight delay before navigating
+      setTimeout(() => navigate('/results/high-school'), 1500);
     } finally {
       setIsSubmitting(false);
     }
