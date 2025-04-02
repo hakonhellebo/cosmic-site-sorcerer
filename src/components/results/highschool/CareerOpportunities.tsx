@@ -24,30 +24,60 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
 }) => {
   const [expandedCareer, setExpandedCareer] = useState<string | null>(null);
   
-  // Extract all career paths from recommendations, remove duplicates
-  const allCareers = useMemo(() => {
-    const careers = recommendations.flatMap(rec => rec.careers || []);
-    // Filter out duplicate careers by comparing lowercased strings
-    return careers.filter((career, index, self) => 
-      index === self.findIndex(c => c.toLowerCase() === career.toLowerCase())
-    );
-  }, [recommendations]);
+  // Get education program names from recommendations
+  const educationPrograms = useMemo(() => 
+    recommendations.map(rec => rec.title),
+    [recommendations]
+  );
   
   // Get detailed career info from careerRecommendations utility
   const careerDetails = useMemo(() => {
-    // Get education program names from recommendations
-    const educationPrograms = recommendations.map(rec => rec.title);
-    // Get detailed career info
+    console.log("Getting career details for education programs:", educationPrograms);
     return getCareerRecommendations(educationPrograms);
-  }, [recommendations]);
+  }, [educationPrograms]);
+  
+  // Extract all unique career paths from recommendations with better handling
+  const allCareers = useMemo(() => {
+    console.log("Extracting all careers from recommendations");
+    
+    // First get all careers from education recommendations
+    const recommendedCareers = recommendations.flatMap(rec => rec.careers || []);
+    
+    // Then get all careers from detailed career data (which is more accurate)
+    const detailedCareers = careerDetails.flatMap(detail => 
+      detail.jobs?.map(job => job.title) || []
+    );
+    
+    // Combine both sources and remove duplicates
+    const allSourcesCareers = [...recommendedCareers, ...detailedCareers];
+    
+    return allSourcesCareers.filter((career, index, self) => 
+      index === self.findIndex(c => c.toLowerCase() === career.toLowerCase())
+    );
+  }, [recommendations, careerDetails]);
   
   // Toggle expanded career
   const toggleCareerDetails = (career: string) => {
-    if (expandedCareer === career) {
-      setExpandedCareer(null);
-    } else {
-      setExpandedCareer(career);
+    setExpandedCareer(expandedCareer === career ? null : career);
+  };
+  
+  // Find career details for a specific job title
+  const findCareerDetails = (jobTitle: string) => {
+    // Look through all career details to find which education program has this job
+    for (const detail of careerDetails) {
+      const matchingJob = detail.jobs?.find(job => 
+        job.title.toLowerCase() === jobTitle.toLowerCase()
+      );
+      
+      if (matchingJob) {
+        return {
+          job: matchingJob,
+          program: detail
+        };
+      }
     }
+    
+    return null;
   };
   
   // Limit to specified number of careers (default 5)
@@ -59,14 +89,8 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
       
       <div className="grid grid-cols-1 gap-4 mb-8">
         {displayedCareers.map((career, idx) => {
-          // Find the career details that include this job title
-          const matchingProgram = careerDetails.find(program => 
-            program.jobs && program.jobs.some(job => job.title === career)
-          );
-          
-          // Find the specific job details
-          const jobDetails = matchingProgram?.jobs?.find(job => job.title === career);
-          
+          // Find the details for this career
+          const careerDetail = findCareerDetails(career);
           const isExpanded = expandedCareer === career;
           
           return (
@@ -86,23 +110,23 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  {jobDetails?.description || "Basert på dine interesser og styrker"}
+                  {careerDetail?.job?.description || "Basert på dine interesser og styrker"}
                 </p>
                 
-                {isExpanded && matchingProgram && (
+                {isExpanded && careerDetail && (
                   <div className="mt-4 space-y-4">
-                    {matchingProgram.educationProgram && (
+                    {careerDetail.program.educationProgram && (
                       <div>
                         <h5 className="text-sm font-medium">Relevant utdanning</h5>
-                        <p className="text-sm">{matchingProgram.educationProgram}</p>
+                        <p className="text-sm">{careerDetail.program.educationProgram}</p>
                       </div>
                     )}
                     
-                    {matchingProgram.companies && matchingProgram.companies.length > 0 && (
+                    {careerDetail.program.companies && careerDetail.program.companies.length > 0 && (
                       <div>
                         <h5 className="text-sm font-medium">Eksempler på arbeidsplasser</h5>
                         <ul className="text-sm mt-1 space-y-1">
-                          {matchingProgram.companies.slice(0, 3).map((company, i) => (
+                          {careerDetail.program.companies.slice(0, 3).map((company, i) => (
                             <li key={i} className="flex items-center">
                               <a 
                                 href={company.website} 
@@ -119,9 +143,9 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
                       </div>
                     )}
                     
-                    {matchingProgram.match && (
+                    {careerDetail.program.match && (
                       <div className="bg-primary/10 p-2 rounded-md text-sm mt-2">
-                        {matchingProgram.match}
+                        {careerDetail.program.match}
                       </div>
                     )}
                   </div>

@@ -1,4 +1,3 @@
-
 interface Company {
   name: string;
   website: string;
@@ -260,7 +259,7 @@ function normalizeProgram(program: string): string {
     .toLowerCase()
     .trim()
     .replace(/\s+/g, ' ')
-    .replace(/[^\w\s]/g, '');
+    .replace(/[^\w\såøæéèêëíìîïóòôõúùûüÿýçñ]/g, '');
 }
 
 // Enhanced mapping function to better match education programs to career opportunities
@@ -271,87 +270,87 @@ export function getCareerRecommendations(educationPrograms: string[]): CareerFie
 
   return educationPrograms.map(program => {
     const normalizedProgram = normalizeProgram(program);
+    console.log(`Looking for career matches for: "${program}" (normalized: "${normalizedProgram}")`);
     
-    // Direct matches (exact program names)
-    if (CAREER_DATA["Bachelor i shipping management"] && 
-        normalizedProgram === normalizeProgram("Bachelor i shipping management")) {
-      return CAREER_DATA["Bachelor i shipping management"];
-    }
-    
-    if (CAREER_DATA["Bachelor i finans"] && 
-        normalizedProgram === normalizeProgram("Bachelor i finans")) {
-      return CAREER_DATA["Bachelor i finans"];
-    }
-    
-    if (CAREER_DATA["Master i finans"] && 
-        normalizedProgram === normalizeProgram("Master i finans")) {
-      return CAREER_DATA["Master i finans"];
-    }
-
-    // Keyword-based matches for specific fields
-    if (normalizedProgram.includes("finans") && !normalizedProgram.includes("shipping")) {
-      return CAREER_DATA["Finans"];
-    }
-    
-    if (normalizedProgram.includes("regnskap") && normalizedProgram.includes("revisjon")) {
-      return CAREER_DATA["Regnskap og revisjon"];
-    }
-    
-    if (normalizedProgram.includes("odontologi") || normalizedProgram.includes("tannlege")) {
-      return CAREER_DATA["Odontologi"];
-    }
-
-    if (normalizedProgram.includes("shipping") || normalizedProgram.includes("maritim")) {
-      return CAREER_DATA["Bachelor i shipping management"];
-    }
-
-    // General category matching based on keywords
+    // Direct match with program name
     for (const key of Object.keys(CAREER_DATA)) {
-      const normalizedKey = normalizeProgram(key);
-      if (normalizedProgram === normalizedKey) {
+      if (normalizeProgram(key) === normalizedProgram) {
+        console.log(`Found direct match: ${key}`);
         return CAREER_DATA[key];
       }
+    }
+    
+    // Check for specific keywords in the program name
+    if (normalizedProgram.includes("medisin") || normalizedProgram.includes("lege")) {
+      console.log("Matched with Medicine based on keywords");
+      return CAREER_DATA["Medisin"];
+    }
+    
+    if (normalizedProgram.includes("psykologi") || normalizedProgram.includes("terapi")) {
+      console.log("Matched with Psychology based on keywords");
+      return CAREER_DATA["Psykologi"];
+    }
+    
+    if (normalizedProgram.includes("odontologi") || normalizedProgram.includes("tann")) {
+      console.log("Matched with Odontology based on keywords");
+      return CAREER_DATA["Odontologi"];
+    }
+    
+    if (normalizedProgram.includes("økonomi") && (normalizedProgram.includes("administrasjon") || normalizedProgram.includes("admin"))) {
+      console.log("Matched with Business Administration based on keywords");
+      return CAREER_DATA["Økonomi og administrasjon"];
+    }
+    
+    if (normalizedProgram.includes("informatikk") || normalizedProgram.includes("data") || 
+        normalizedProgram.includes("it") || normalizedProgram.includes("programmering")) {
+      console.log("Matched with Computer Science based on keywords");
+      return CAREER_DATA["Informatikk"];
+    }
+    
+    if (normalizedProgram.includes("ingeniør") && !normalizedProgram.includes("energi")) {
+      console.log("Matched with Engineering based on keywords");
+      return CAREER_DATA["Ingeniør"];
+    }
+    
+    if ((normalizedProgram.includes("fornybar") && normalizedProgram.includes("energi")) || 
+        (normalizedProgram.includes("energi") && normalizedProgram.includes("ingeniør"))) {
+      console.log("Matched with Renewable Energy based on keywords");
+      return CAREER_DATA["Fornybar energi"];
+    }
+    
+    if (normalizedProgram.includes("finans")) {
+      console.log("Matched with Finance based on keywords");
+      if (normalizedProgram.includes("bachelor")) {
+        return CAREER_DATA["Bachelor i finans"];
+      } else if (normalizedProgram.includes("master")) {
+        return CAREER_DATA["Master i finans"];
+      } else {
+        return CAREER_DATA["Finans"];
+      }
+    }
+    
+    if (normalizedProgram.includes("shipping") || normalizedProgram.includes("maritim")) {
+      console.log("Matched with Shipping Management based on keywords");
+      return CAREER_DATA["Bachelor i shipping management"];
+    }
+    
+    if ((normalizedProgram.includes("regnskap") && normalizedProgram.includes("revisjon")) || 
+        normalizedProgram.includes("revisor")) {
+      console.log("Matched with Accounting based on keywords");
+      return CAREER_DATA["Regnskap og revisjon"];
     }
     
     // Partial matches if no exact match found
     for (const key of Object.keys(CAREER_DATA)) {
       const normalizedKey = normalizeProgram(key);
-      if (normalizedProgram.includes(normalizedKey)) {
+      if (normalizedProgram.includes(normalizedKey) || normalizedKey.includes(normalizedProgram)) {
+        console.log(`Found partial match: ${key}`);
         return CAREER_DATA[key];
       }
     }
 
-    // Keyword matching if no direct matches are found
-    const keywordMatches: Record<string, number> = {
-      "Medisin": normalizedProgram.includes("medisin") || normalizedProgram.includes("helse") ? 1 : 0,
-      "Psykologi": normalizedProgram.includes("psykolog") || normalizedProgram.includes("terapi") ? 1 : 0,
-      "Økonomi og administrasjon": normalizedProgram.includes("økonom") || normalizedProgram.includes("administrasjon") ? 1 : 0,
-      "Informatikk": normalizedProgram.includes("data") || normalizedProgram.includes("it") || normalizedProgram.includes("teknolog") ? 1 : 0,
-      "Ingeniør": normalizedProgram.includes("ingeniør") || normalizedProgram.includes("bygg") ? 1 : 0,
-      "Fornybar energi": normalizedProgram.includes("energi") || normalizedProgram.includes("miljø") ? 1 : 0,
-      "Økonomi og ledelse": normalizedProgram.includes("leder") || normalizedProgram.includes("organisasjon") ? 1 : 0,
-      "Bachelor i shipping management": normalizedProgram.includes("shipping") || normalizedProgram.includes("maritim") ? 1 : 0,
-      "Bachelor i finans": normalizedProgram.includes("finans") && normalizedProgram.includes("bachelor") ? 1 : 0,
-      "Master i finans": normalizedProgram.includes("finans") && normalizedProgram.includes("master") ? 1 : 0,
-      "Odontologi": normalizedProgram.includes("tann") || normalizedProgram.includes("odontologi") ? 1 : 0,
-      "Regnskap og revisjon": normalizedProgram.includes("regnskap") || normalizedProgram.includes("revisjon") ? 1 : 0
-    };
-
-    // Find the best match based on keywords
-    let bestMatch: string | null = null;
-    let highestScore = 0;
+    console.log(`No specific career match found for: ${program}, using default career options`);
     
-    Object.entries(keywordMatches).forEach(([key, score]) => {
-      if (score > highestScore) {
-        highestScore = score;
-        bestMatch = key;
-      }
-    });
-
-    if (bestMatch && highestScore > 0) {
-      return CAREER_DATA[bestMatch];
-    }
-
     // Default generic field if no match found
     return {
       educationProgram: program,
