@@ -143,16 +143,33 @@ const Index: React.FC = () => {
   };
 
   const generateRandomHighSchoolData = () => {
-    const studyDirections = ["studiespesialisering", "idrettsfag", "musikk_dans_drama", "kunst_design", "medier_kommunikasjon", "helse_oppvekst", "teknologi_industri", "elektro_datateknologi", "bygg_anlegg", "restaurant_matfag"];
+    const studyDirections = ["general-studies", "vocational"];
     const grades = ["vg1", "vg2", "vg3"];
     const averageGrades = ["3-4", "4-5", "5-6"];
-    const workPreferences = ["team", "individual", "mixed"];
+    const workPreferences = ["alone", "team", "mixed"];
+    const workEnvironments = ["competitive", "collaborative"];
+    const futureWorkVisions = ["technology", "creative", "secure", "leading", "helping"];
+    const socialImpactLevels = ["very-important", "important", "somewhat-important", "not-important"];
+    const salaryImportanceLevels = ["very-important", "important", "somewhat-important", "not-important"];
+    const aiJobImpacts = ["create-jobs", "replace-jobs", "unknown"];
+    const educationMotivations = ["secure-job", "good-salary", "meaningful-work", "passion", "unknown"];
+    const workLocations = ["norway", "europe", "usa", "asia", "australia", "unknown"];
+    const mentorInterests = ["yes", "no", "maybe"];
     
-    const possibleInterests = ["teknologi", "realfag", "samfunnsfag", "kreativitet", "entrepenørskap", "helse", "språk", "idrett", "teknologi", "okonomi", "reise", "miljø"];
+    const possibleInterests = {
+      technology: "Teknologi",
+      artDesign: "Kunst og design",
+      sports: "Sport",
+      economyFinance: "Økonomi og finans",
+      travelCulture: "Reise og kultur",
+      healthCare: "Helse og omsorg",
+      environmentSustainability: "Miljø og bærekraft"
+    };
+    
     const interests: Record<string, boolean> = {};
     let selectedInterestsCount = 0;
     
-    possibleInterests.forEach(interest => {
+    Object.keys(possibleInterests).forEach(interest => {
       if (selectedInterestsCount < 3 && randomBool(0.4)) {
         interests[interest] = true;
         selectedInterestsCount++;
@@ -162,7 +179,7 @@ const Index: React.FC = () => {
     });
     
     if (selectedInterestsCount < 3) {
-      const remainingInterests = possibleInterests.filter(interest => !interests[interest]);
+      const remainingInterests = Object.keys(possibleInterests).filter(interest => !interests[interest]);
       while (selectedInterestsCount < 3 && remainingInterests.length > 0) {
         const randomIndex = Math.floor(Math.random() * remainingInterests.length);
         const selectedInterest = remainingInterests.splice(randomIndex, 1)[0];
@@ -171,11 +188,20 @@ const Index: React.FC = () => {
       }
     }
     
-    const possibleSkills = ["logicalThinking", "creativity", "communication", "leadership", "collaboration", "problemSolving", "technicalUnderstanding"];
+    const possibleSkills = {
+      logicalThinking: "Logisk tenkning",
+      creativity: "Kreativitet",
+      communication: "Kommunikasjon",
+      leadership: "Lederskap",
+      collaboration: "Samarbeid",
+      problemSolving: "Problemløsning",
+      technicalUnderstanding: "Teknisk forståelse"
+    };
+    
     const goodSkills: Record<string, boolean> = {};
     let selectedSkillsCount = 0;
     
-    possibleSkills.forEach(skill => {
+    Object.keys(possibleSkills).forEach(skill => {
       if (selectedSkillsCount < 2 && randomBool(0.4)) {
         goodSkills[skill] = true;
         selectedSkillsCount++;
@@ -185,7 +211,7 @@ const Index: React.FC = () => {
     });
     
     if (selectedSkillsCount < 2) {
-      const remainingSkills = possibleSkills.filter(skill => !goodSkills[skill]);
+      const remainingSkills = Object.keys(possibleSkills).filter(skill => !goodSkills[skill]);
       while (selectedSkillsCount < 2 && remainingSkills.length > 0) {
         const randomIndex = Math.floor(Math.random() * remainingSkills.length);
         const selectedSkill = remainingSkills.splice(randomIndex, 1)[0];
@@ -194,34 +220,56 @@ const Index: React.FC = () => {
       }
     }
     
-    const possibleCourses = ["matematikk", "norsk", "engelsk", "naturfag", "samfunnsfag", "historie", "geografi", "kroppsøving", "teknologi", "kunst"];
+    const possibleCourses = {
+      mathematics: "Matematikk",
+      norwegian: "Norsk",
+      english: "Engelsk",
+      socialStudies: "Samfunnsfag",
+      science: "Naturfag",
+      physEd: "Gym",
+      artsCrafts: "Kunst og håndverk",
+      foreignLanguage: "Fremmedspråk"
+    };
+    
     const favoriteCourses: Record<string, boolean> = {};
     const difficultCourses: Record<string, boolean> = {};
     
-    const favoriteCoursesCount = Math.floor(Math.random() * 3) + 1;
+    const favoriteCoursesCount = Math.floor(Math.random() * 2) + 1;
     const favoriteIndices = new Set<number>();
     while (favoriteIndices.size < favoriteCoursesCount) {
-      favoriteIndices.add(Math.floor(Math.random() * possibleCourses.length));
+      favoriteIndices.add(Math.floor(Math.random() * Object.keys(possibleCourses).length));
     }
-    possibleCourses.forEach((course, index) => {
+    
+    Object.keys(possibleCourses).forEach((course, index) => {
       favoriteCourses[course] = favoriteIndices.has(index);
     });
     
     const difficultCoursesCount = Math.floor(Math.random() * 2) + 1;
-    const nonFavoriteCourses = possibleCourses.filter(course => !favoriteCourses[course]);
+    const nonFavoriteCourses = Object.keys(possibleCourses).filter(course => !favoriteCourses[course]);
     const difficultIndices = new Set<number>();
-    while (difficultIndices.size < difficultCoursesCount && difficultIndices.size < nonFavoriteCourses.length) {
+    
+    while (difficultIndices.size < difficultCoursesCount && nonFavoriteCourses.length > 0) {
       difficultIndices.add(Math.floor(Math.random() * nonFavoriteCourses.length));
     }
-    possibleCourses.forEach((course) => {
-      difficultCourses[course] = difficultIndices.has(nonFavoriteCourses.indexOf(course)) && nonFavoriteCourses.includes(course);
+    
+    Object.keys(possibleCourses).forEach((course) => {
+      const indexInNonFavorites = nonFavoriteCourses.indexOf(course);
+      difficultCourses[course] = indexInNonFavorites >= 0 && difficultIndices.has(indexInNonFavorites);
     });
     
-    const possibleWorkTasks = ["problemSolving", "creativity", "leadership", "teamwork", "technical", "communication"];
+    const possibleWorkTasks = {
+      numbers: "Jobbe med tall",
+      practical: "Praktisk arbeid",
+      writing: "Skriving",
+      leadership: "Lederskap",
+      creative: "Kreativt arbeid",
+      supportive: "Hjelpe andre"
+    };
+    
     const workTasks: Record<string, boolean> = {};
     let selectedWorkTasksCount = 0;
     
-    possibleWorkTasks.forEach(task => {
+    Object.keys(possibleWorkTasks).forEach(task => {
       if (selectedWorkTasksCount < 2 && randomBool(0.5)) {
         workTasks[task] = true;
         selectedWorkTasksCount++;
@@ -231,7 +279,7 @@ const Index: React.FC = () => {
     });
     
     if (selectedWorkTasksCount < 2) {
-      const remainingTasks = possibleWorkTasks.filter(task => !workTasks[task]);
+      const remainingTasks = Object.keys(possibleWorkTasks).filter(task => !workTasks[task]);
       while (selectedWorkTasksCount < 2 && remainingTasks.length > 0) {
         const randomIndex = Math.floor(Math.random() * remainingTasks.length);
         const selectedTask = remainingTasks.splice(randomIndex, 1)[0];
@@ -240,23 +288,78 @@ const Index: React.FC = () => {
       }
     }
     
-    const learningStyleOptions = ["visual", "auditory", "writing", "practical"];
-    const learningStylePrefs: Record<string, boolean> = {};
+    const learningStyleOptions = {
+      reading: "Lesing",
+      listening: "Lytting",
+      practical: "Praktisk",
+      discussing: "Diskusjon",
+      watching: "Observasjon"
+    };
+    
+    const learningStyle: Record<string, boolean> = {};
     let selectedLearningStylesCount = 0;
     
-    learningStyleOptions.forEach(style => {
-      if (selectedLearningStylesCount < 1 && randomBool(0.6)) {
-        learningStylePrefs[style] = true;
+    Object.keys(learningStyleOptions).forEach(style => {
+      if (selectedLearningStylesCount < 2 && randomBool(0.6)) {
+        learningStyle[style] = true;
         selectedLearningStylesCount++;
       } else {
-        learningStylePrefs[style] = false;
+        learningStyle[style] = false;
       }
     });
     
     if (selectedLearningStylesCount === 0) {
-      const randomStyle = randomItem(learningStyleOptions);
-      learningStylePrefs[randomStyle] = true;
+      const randomStyle = randomItem(Object.keys(learningStyleOptions));
+      learningStyle[randomStyle] = true;
     }
+    
+    const jobChallengesOptions = ["fewJobs", "highRequirements", "lackOfExperience", "competition", "careerUncertainty", "unknown"];
+    const jobChallenges: Record<string, boolean> = {};
+    const selectedJobChallengesCount = Math.floor(Math.random() * 2) + 1;
+    
+    jobChallengesOptions.forEach(challenge => {
+      jobChallenges[challenge] = false;
+    });
+    
+    for (let i = 0; i < selectedJobChallengesCount; i++) {
+      const availableChallenges = jobChallengesOptions.filter(ch => !jobChallenges[ch]);
+      if (availableChallenges.length > 0) {
+        const selected = randomItem(availableChallenges);
+        jobChallenges[selected] = true;
+      }
+    }
+    
+    const careerSupportNeedsOptions = ["careerInsight", "workExperience", "careerGuidance", "industryContacts", "betterGrades"];
+    const careerSupportNeeds: Record<string, boolean> = {};
+    const selectedSupportNeedsCount = Math.floor(Math.random() * 2) + 1;
+    
+    careerSupportNeedsOptions.forEach(need => {
+      careerSupportNeeds[need] = false;
+    });
+    
+    for (let i = 0; i < selectedSupportNeedsCount; i++) {
+      const availableNeeds = careerSupportNeedsOptions.filter(n => !careerSupportNeeds[n]);
+      if (availableNeeds.length > 0) {
+        const selected = randomItem(availableNeeds);
+        careerSupportNeeds[selected] = true;
+      }
+    }
+    
+    const industries = {
+      technology: randomBool(0.6),
+      healthcare: randomBool(0.4),
+      finance: randomBool(0.3),
+      logistics: randomBool(0.2),
+      education: randomBool(0.4),
+      creative: randomBool(0.5)
+    };
+    
+    const workEnvironmentPreferences = {
+      structure: randomBool(0.5),
+      creativity: randomBool(0.6),
+      stability: randomBool(0.4),
+      flexibility: randomBool(0.7)
+    };
     
     return {
       firstName: "Test",
@@ -276,8 +379,20 @@ const Index: React.FC = () => {
           favoriteCoursesOther: randomBool(0.3) ? "Programmering" : "",
           difficultCoursesOther: randomBool(0.3) ? "Fysikk" : "",
           workPreference: randomItem(workPreferences),
-          learningStyle: learningStylePrefs,
-          workTasks: workTasks
+          learningStyle: learningStyle,
+          workTasks: workTasks,
+          workEnvironment: randomItem(workEnvironments),
+          futureWorkVision: randomItem(futureWorkVisions),
+          socialImpactImportance: randomItem(socialImpactLevels),
+          salaryImportance: randomItem(salaryImportanceLevels),
+          interestingIndustries: industries,
+          workEnvironmentPreferences: workEnvironmentPreferences,
+          workLocation: randomItem(workLocations),
+          jobChallenges: jobChallenges,
+          careerSupportNeeds: careerSupportNeeds,
+          educationMotivation: randomItem(educationMotivations),
+          aiJobMarketImpact: randomItem(aiJobImpacts),
+          industryMentorInterest: randomItem(mentorInterests)
         }
       }
     };

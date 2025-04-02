@@ -1,213 +1,60 @@
 
 import React from 'react';
-import { ExternalLink } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger
-} from "@/components/ui/accordion";
-import { getCareerRecommendations } from '@/utils/careerRecommendations';
-
-interface Company {
-  name: string;
-  website: string;
-}
-
-interface JobOpportunity {
-  title: string;
-  description: string;
-}
-
-interface CareerField {
-  educationProgram: string;
-  jobs: JobOpportunity[];
-  companies: Company[];
-  match?: string;
-}
+import { ExternalLink } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
 interface CareerOpportunitiesProps {
-  recommendations: any[];
+  recommendations: {
+    title: string;
+    institution: string;
+    match: string;
+    description: string;
+    careers: string[];
+  }[];
   showAllOpportunities?: boolean;
 }
 
-// Helper function to simplify education program titles
-const simplifyProgramTitle = (title: string): string => {
-  // Special cases
-  if (title.includes("finans")) return "Finans";
-  if (title.includes("shipping management")) return "Shipping";
-  if (title.includes("økonomi og administrasjon") || title.includes("Økonomi og administrasjon")) return "Økonomi";
-  if (title.includes("matematikk")) return "Matematikk";
-  if (title.includes("ingeniør")) return "Ingeniør";
-  if (title.includes("medisin")) return "Medisin";
-  if (title.includes("informatikk")) return "Informatikk";
-  if (title.includes("psykologi")) return "Psykologi";
-  if (title.includes("jus") || title.includes("rettsvitenskap")) return "Jus";
-  if (title.includes("fornybar energi")) return "Energi";
-  if (title.includes("odontologi")) return "Odontologi";
-  if (title.includes("regnskap og revisjon")) return "Regnskap";
-  if (title.includes("kunstig intelligens")) return "AI";
+const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({ recommendations, showAllOpportunities = false }) => {
+  // Extract all career paths from recommendations, remove duplicates
+  const allCareers = recommendations.flatMap(rec => rec.careers || [])
+    // Filter out duplicate careers by comparing lowercased strings
+    .filter((career, index, self) => 
+      index === self.findIndex(c => c.toLowerCase() === career.toLowerCase())
+    );
   
-  // Generic fallbacks
-  if (title.includes("Bachelor i")) {
-    return title.replace("Bachelor i", "").trim();
-  }
-  if (title.includes("Master i")) {
-    return title.replace("Master i", "").trim();
-  }
+  // Limit to 6 careers unless showAllOpportunities is true
+  const displayedCareers = showAllOpportunities ? allCareers : allCareers.slice(0, 6);
   
-  // For other cases, take the first part of the title until a space or dash
-  const firstWord = title.split(/[\s-]/)[0];
-  if (firstWord.length > 3) {
-    return firstWord;
-  }
-  
-  // If all else fails, return first 10 chars of the title
-  return title.length > 10 ? title.substring(0, 10) + "..." : title;
-};
-
-// Helper function to clean up match text
-const cleanMatchText = (matchText: string, programName: string): string => {
-  let cleanText = matchText.toLowerCase()
-    .replace("denne utdanningen passer godt med din", "")
-    .replace("denne utdanningen passer for din", "")
-    .replace(programName.toLowerCase(), "")
-    .replace("bachelor i", "")
-    .replace("master i", "")
-    .replace("  ", " ")
-    .trim();
-  
-  // Remove any leftover "og " or "med " at the start after replacements
-  return cleanText.replace(/^(og|med)\s+/, "").trim();
-};
-
-const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({ 
-  recommendations, 
-  showAllOpportunities = false 
-}) => {
-  // Remove duplicate recommendations by name
-  const uniqueRecommendations = recommendations.filter(
-    (rec, index, self) => index === self.findIndex(r => r.name === rec.name)
-  );
-  
-  // Get career fields from the utility function with unique recommendations
-  const careerFields = getCareerRecommendations(uniqueRecommendations.map(rec => rec.name));
-  
-  // Deduplicate career fields by educationProgram
-  const uniqueCareerFields = careerFields.filter(
-    (field, index, self) => index === self.findIndex(
-      f => f.educationProgram === field.educationProgram
-    )
-  );
-  
-  // Deduplicate by simplified title to avoid having multiple "Informatikk" entries
-  const deduplicatedBySimplifiedTitle: CareerField[] = [];
-  const seenSimplifiedTitles = new Set<string>();
-  
-  uniqueCareerFields.forEach(field => {
-    const simplifiedTitle = simplifyProgramTitle(field.educationProgram);
-    if (!seenSimplifiedTitles.has(simplifiedTitle)) {
-      seenSimplifiedTitles.add(simplifiedTitle);
-      deduplicatedBySimplifiedTitle.push(field);
-    }
-  });
-  
-  // Limit to only 4 career fields
-  const displayedCareerFields = deduplicatedBySimplifiedTitle.slice(0, 4);
-  
-  // Generate simplified IDs and titles for the tabs
-  const tabData = displayedCareerFields.map(field => ({
-    originalTitle: field.educationProgram,
-    simplifiedTitle: simplifyProgramTitle(field.educationProgram),
-    tabId: field.educationProgram.replace(/\s+/g, '-').toLowerCase(),
-    field: field
-  }));
-
   return (
-    <div className="space-y-6 animate-fade-up">
-      <h3 className="text-2xl font-semibold">Karrieremuligheter</h3>
+    <div className="animate-fade-up">
+      <h3 className="text-2xl font-semibold mb-6">Karrieremuligheter</h3>
       
-      {tabData.length > 0 ? (
-        <Tabs defaultValue={tabData[0]?.tabId} className="w-full">
-          <TabsList className="mb-6 flex flex-wrap h-auto gap-2">
-            {tabData.map((tab) => (
-              <TabsTrigger 
-                key={tab.tabId} 
-                value={tab.tabId}
-                className="px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-white"
-              >
-                {tab.simplifiedTitle}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          
-          {tabData.map((tab) => (
-            <TabsContent 
-              key={tab.tabId} 
-              value={tab.tabId}
-              className="border rounded-lg p-6"
-            >
-              <h4 className="text-lg font-semibold mb-2">{tab.originalTitle}</h4>
-              
-              {tab.field.match && (
-                <div className="mb-6 p-4 bg-muted/30 rounded-lg">
-                  <p className="italic">Disse karrieremulighetene passer godt for personer med {tab.originalTitle.toLowerCase()} og {cleanMatchText(tab.field.match, tab.originalTitle)}. Se aktuelle stillinger og relevante bedrifter under.</p>
-                </div>
-              )}
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div>
-                  <h4 className="text-lg font-semibold mb-4">Stillinger</h4>
-                  <Accordion type="multiple" className="w-full">
-                    {tab.field.jobs.slice(0, 5).map((job, idx) => (
-                      <AccordionItem key={idx} value={`job-${idx}`}>
-                        <AccordionTrigger className="text-base font-medium hover:no-underline">
-                          {job.title}
-                        </AccordionTrigger>
-                        <AccordionContent className="text-sm text-muted-foreground">
-                          {job.description}
-                        </AccordionContent>
-                      </AccordionItem>
-                    ))}
-                  </Accordion>
-                </div>
-                
-                <div>
-                  <h4 className="text-lg font-semibold mb-4">Relevante bedrifter</h4>
-                  <ul className="space-y-3">
-                    {tab.field.companies.slice(0, 5).map((company, idx) => (
-                      <li key={idx} className="flex items-center justify-between border-b pb-2">
-                        <span>{company.name}</span>
-                        <a 
-                          href={company.website} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-primary hover:text-primary/80 flex items-center gap-1 text-sm"
-                        >
-                          <span>Besøk</span>
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-              
-              <div className="mt-6 pt-4 border-t">
-                <p className="text-sm text-muted-foreground">
-                  Dette er en oversikt over mulige karriereveier basert på din profil og valgt utdanning. 
-                  Faktiske jobbtilbud vil avhenge av flere faktorer som erfaring, kompetanse og arbeidsmarkedet.
-                </p>
-              </div>
-            </TabsContent>
-          ))}
-        </Tabs>
-      ) : (
-        <div className="p-6 border rounded-lg">
-          <p>Ingen karrieremuligheter funnet basert på dine valg. Vennligst fullfør spørreskjemaet for flere anbefalinger.</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        {displayedCareers.map((career, idx) => (
+          <div key={idx} className="bg-card border rounded-lg p-5 hover:shadow-md transition-shadow">
+            <h4 className="font-semibold text-lg">{career}</h4>
+            <p className="text-sm text-muted-foreground mt-2">
+              Basert på dine interesser og styrker
+            </p>
+          </div>
+        ))}
+      </div>
+      
+      {!showAllOpportunities && allCareers.length > 6 && (
+        <div className="mt-4">
+          <Button variant="outline">
+            Se flere karrieremuligheter
+          </Button>
         </div>
       )}
+      
+      <div className="mt-8 p-4 bg-muted/30 rounded-lg">
+        <p className="text-sm">
+          <span className="font-medium">Tips:</span> Disse yrkene er basert på 
+          utdanningene som matcher din profil. Du kan klikke på utdanningene over 
+          for å lese mer om dem.
+        </p>
+      </div>
     </div>
   );
 };
