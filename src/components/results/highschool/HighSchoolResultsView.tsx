@@ -87,65 +87,141 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
   // Get dimension names from dimension objects
   const topDimensions = dimensions.map(dim => dim.name);
   
-  // Match education programs based on dimensions - show exactly 6 recommendations
+  // Match education programs based on dimensions - show exactly 6 recommendations with specific dimension combinations
   const educationRecommendations = useMemo(() => {
-    // Get base recommendations (more than we need)
-    const baseRecommendations = matchEducationPrograms(topDimensions, 10);
+    // Get a larger pool of recommendations to filter from
+    const allPossibleRecommendations = matchEducationPrograms(topDimensions, 20);
+    console.log("All possible recommendations:", allPossibleRecommendations);
     
-    // We want exactly 6 recommendations with specific dimension combinations:
-    // 3 with dimensions 1 & 2, 1 with dimensions 1 & 3, 1 with dimensions 2 & 3, 1 with any other good match
+    // Extract the top 3 dimensions
     const dim1 = topDimensions[0];
     const dim2 = topDimensions[1];
     const dim3 = topDimensions[2];
     
-    // Filter for different dimension combinations
-    const dim1And2Matches = baseRecommendations.filter(rec => {
-      const matchText = rec.match.toLowerCase();
-      return matchText.includes(dim1.toLowerCase()) && matchText.includes(dim2.toLowerCase());
-    }).slice(0, 3);
+    console.log(`Using dimensions: 1) ${dim1}, 2) ${dim2}, 3) ${dim3}`);
     
-    const dim1And3Matches = baseRecommendations.filter(rec => {
-      const matchText = rec.match.toLowerCase();
-      return matchText.includes(dim1.toLowerCase()) && matchText.includes(dim3.toLowerCase()) &&
-             !dim1And2Matches.some(r => r.name === rec.name);
-    }).slice(0, 1);
+    // Create collections for each combination type
+    let dim1And2Matches = [];
+    let dim1And3Matches = [];
+    let dim2And3Matches = [];
+    let otherGoodMatches = [];
     
-    const dim2And3Matches = baseRecommendations.filter(rec => {
-      const matchText = rec.match.toLowerCase();
-      return matchText.includes(dim2.toLowerCase()) && matchText.includes(dim3.toLowerCase()) &&
-             !dim1And2Matches.some(r => r.name === rec.name) && 
-             !dim1And3Matches.some(r => r.name === rec.name);
-    }).slice(0, 1);
+    // Helper function to check if a program contains specific dimensions
+    const hasDimensions = (program, dim1Value, dim2Value) => {
+      const matchText = program.match.toLowerCase();
+      return matchText.includes(dim1Value.toLowerCase()) && 
+             matchText.includes(dim2Value.toLowerCase());
+    };
     
-    // Any other good matches
-    const otherMatches = baseRecommendations.filter(rec => 
-      !dim1And2Matches.some(r => r.name === rec.name) &&
-      !dim1And3Matches.some(r => r.name === rec.name) &&
-      !dim2And3Matches.some(r => r.name === rec.name)
-    ).slice(0, 1);
+    // First pass: categorize all recommendations
+    for (const rec of allPossibleRecommendations) {
+      // Skip any program we've already categorized
+      if (dim1And2Matches.some(r => r.name === rec.name) ||
+          dim1And3Matches.some(r => r.name === rec.name) ||
+          dim2And3Matches.some(r => r.name === rec.name) ||
+          otherGoodMatches.some(r => r.name === rec.name)) {
+        continue;
+      }
+      
+      // Check for dimension 1 & 2 combination
+      if (hasDimensions(rec, dim1, dim2)) {
+        dim1And2Matches.push(rec);
+      }
+      // Check for dimension 1 & 3 combination
+      else if (hasDimensions(rec, dim1, dim3)) {
+        dim1And3Matches.push(rec);
+      }
+      // Check for dimension 2 & 3 combination
+      else if (hasDimensions(rec, dim2, dim3)) {
+        dim2And3Matches.push(rec);
+      }
+      // Any other match goes to other good matches
+      else {
+        otherGoodMatches.push(rec);
+      }
+    }
     
-    // Combine all matches to get exactly 6 recommendations
+    console.log(`Found: ${dim1And2Matches.length} for dim1+2, ${dim1And3Matches.length} for dim1+3, ${dim2And3Matches.length} for dim2+3`);
+    
+    // Take exactly 3 programs that match dimensions 1 & 2
+    const finalDim1And2 = dim1And2Matches.slice(0, 3);
+    
+    // Take exactly 1 program that matches dimensions 1 & 3
+    const finalDim1And3 = dim1And3Matches.slice(0, 1);
+    
+    // Take exactly 1 program that matches dimensions 2 & 3
+    const finalDim2And3 = dim2And3Matches.slice(0, 1);
+    
+    // If we're missing any combinations, fill from other categories
+    if (finalDim1And2.length < 3) {
+      console.log("Not enough dim1+2 matches, filling from other categories");
+      const needed = 3 - finalDim1And2.length;
+      
+      // Try to fill from other categories in priority order
+      const fillers = [
+        ...dim1And3Matches.filter(r => !finalDim1And3.some(f => f.name === r.name)).slice(0, needed),
+        ...dim2And3Matches.filter(r => !finalDim2And3.some(f => f.name === r.name)).slice(0, needed - finalDim1And2.length),
+        ...otherGoodMatches.slice(0, needed - finalDim1And2.length)
+      ].slice(0, needed);
+      
+      finalDim1And2.push(...fillers);
+    }
+    
+    if (finalDim1And3.length < 1) {
+      console.log("Missing dim1+3 match, filling from other categories");
+      // Try to fill from other categories
+      const filler = [...dim2And3Matches, ...otherGoodMatches].find(r => 
+        !finalDim1And2.some(f => f.name === r.name) && 
+        !finalDim2And3.some(f => f.name === r.name)
+      );
+      
+      if (filler) finalDim1And3.push(filler);
+    }
+    
+    if (finalDim2And3.length < 1) {
+      console.log("Missing dim2+3 match, filling from other categories");
+      // Try to fill from other combinations
+      const filler = [...dim1And3Matches, ...otherGoodMatches].find(r => 
+        !finalDim1And2.some(f => f.name === r.name) && 
+        !finalDim1And3.some(f => f.name === r.name)
+      );
+      
+      if (filler) finalDim2And3.push(filler);
+    }
+    
+    // Take 1 other good match to complete the 6 recommendations
+    const finalOther = otherGoodMatches
+      .filter(r => 
+        !finalDim1And2.some(f => f.name === r.name) &&
+        !finalDim1And3.some(f => f.name === r.name) &&
+        !finalDim2And3.some(f => f.name === r.name)
+      )
+      .slice(0, 1);
+    
+    // Combine all matches
     const combinedRecommendations = [
-      ...dim1And2Matches,
-      ...dim1And3Matches,
-      ...dim2And3Matches,
-      ...otherMatches
+      ...finalDim1And2,
+      ...finalDim1And3,
+      ...finalDim2And3,
+      ...finalOther
     ];
     
-    // If we still don't have 6, add more from the base recommendations
+    // If we still don't have exactly 6 recommendations, add more from other good matches
     if (combinedRecommendations.length < 6) {
+      console.log(`Only have ${combinedRecommendations.length} recommendations, filling to get 6`);
       const remainingNeeded = 6 - combinedRecommendations.length;
-      const additionalRecs = baseRecommendations.filter(rec => 
+      const additionalRecs = allPossibleRecommendations.filter(rec => 
         !combinedRecommendations.some(r => r.name === rec.name)
       ).slice(0, remainingNeeded);
       
       combinedRecommendations.push(...additionalRecs);
     }
     
+    console.log("Final recommendations:", combinedRecommendations);
     return combinedRecommendations.slice(0, 6); // Ensure we have exactly 6
   }, [topDimensions]);
   
-  console.log("Education recommendations:", educationRecommendations);
+  console.log("Final education recommendations:", educationRecommendations);
   
   // Transform education recommendations to the format expected by CareerOpportunities
   const careerRecommendations = useMemo(() => {
