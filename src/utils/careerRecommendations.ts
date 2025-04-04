@@ -355,11 +355,11 @@ export function getCareerRecommendations(educationPrograms: string[]): CareerFie
     return {
       educationProgram: program,
       jobs: [
-        { title: "Fagspesialist", description: "Jobber som spesialist innen ditt fagfelt." },
-        { title: "Prosjektleder", description: "Leder prosjekter relatert til din fagkompetanse." },
         { title: "Rådgiver", description: "Gir faglige råd og veiledning basert på din kompetanse." },
         { title: "Forsker", description: "Utfører forskningsarbeid innenfor relevante fagområder." },
-        { title: "Faglærer", description: "Underviser andre i ditt spesialområde." }
+        { title: "Faglærer", description: "Underviser andre i ditt spesialområde." },
+        { title: "Bransjeanalytiker", description: "Analyserer trender og utvikling innen relevante bransjer." },
+        { title: "Produktspesialist", description: "Utvikler, implementerer eller markedsfører spesialiserte produkter innen ditt fagfelt." }
       ],
       companies: [
         { name: "Universiteter og høyskoler", website: "https://www.samordnaopptak.no" },
