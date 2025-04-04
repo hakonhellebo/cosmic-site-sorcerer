@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { getCareerRecommendations } from "@/utils/careerRecommendations";
 
 interface CareerOpportunitiesProps {
   recommendations: any[];
@@ -47,6 +48,51 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
     ? recommendations 
     : recommendations.slice(0, maxCount);
     
+  // Ensure career data is enriched with full information from the utility
+  const enhancedRecommendations = React.useMemo(() => {
+    // Get education program names to fetch career data
+    const educationProgramNames = recommendations.map(rec => rec.title);
+    
+    // Get complete career data from our utility
+    const careerData = getCareerRecommendations(educationProgramNames);
+    
+    // Merge the career data with our recommendations
+    return displayRecommendations.map(rec => {
+      // Find matching career data by program name
+      const matchingCareerData = careerData.find(career => 
+        (career.educationProgram.toLowerCase().includes(rec.title.toLowerCase()) ||
+        rec.title.toLowerCase().includes(career.educationProgram.toLowerCase()))
+      );
+      
+      if (matchingCareerData) {
+        // Map jobs to include company data
+        const careersWithCompanies = matchingCareerData.jobs.map((job, idx) => {
+          // Assign relevant companies to each job
+          const startIdx = idx * 3 % Math.max(matchingCareerData.companies?.length || 1, 1);
+          const jobSpecificCompanies = matchingCareerData.companies?.length 
+            ? [
+                ...matchingCareerData.companies.slice(startIdx, startIdx + 3),
+                ...matchingCareerData.companies.slice(0, Math.max(0, 3 - (matchingCareerData.companies.length - startIdx)))
+              ].slice(0, 3)
+            : [];
+            
+          return {
+            title: job.title,
+            description: job.description,
+            companies: jobSpecificCompanies
+          };
+        });
+        
+        return {
+          ...rec,
+          careers: careersWithCompanies.length > 0 ? careersWithCompanies : rec.careers
+        };
+      }
+      
+      return rec;
+    });
+  }, [displayRecommendations]);
+  
   return (
     <div className="space-y-6 animate-fade-up">
       <Card>
@@ -78,7 +124,7 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
         
         <CardContent>
           <div className="space-y-4">
-            {displayRecommendations.map((rec, index) => (
+            {enhancedRecommendations.map((rec, index) => (
               <Collapsible 
                 key={index}
                 open={expandedProgram === rec.title} 
@@ -112,55 +158,67 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
                     </h4>
                     
                     <div className="space-y-2 mb-4">
-                      {rec.careers?.map((career: any, careerIndex: number) => {
-                        const jobId = `${rec.title}-${careerIndex}`;
-                        
-                        return (
-                          <div key={careerIndex} className="bg-muted/30 p-3 rounded-md">
-                            <div 
-                              className="flex justify-between items-center cursor-pointer" 
-                              onClick={() => toggleCompanies(jobId)}
-                            >
-                              <span className="font-medium text-sm">{career.title}</span>
-                              <Button variant="ghost" size="icon">
-                                {expandedCompanies[jobId] ? 
-                                  <ChevronUp size={16} /> : 
-                                  <ChevronDown size={16} />
-                                }
-                              </Button>
-                            </div>
-                            
-                            {expandedCompanies[jobId] && career.companies?.length > 0 && (
-                              <div className="mt-2 pl-2 border-l-2 border-muted">
-                                <h5 className="text-xs font-medium mb-1 flex items-center gap-1">
-                                  <Building className="h-3 w-3 text-muted-foreground" />
-                                  Eksempler på arbeidsplasser
-                                </h5>
-                                <ul className="space-y-1">
-                                  {career.companies.map((company: any, idx: number) => (
-                                    <li key={idx} className="text-xs flex items-center">
-                                      <ChevronRight className="h-3 w-3 text-muted-foreground mr-1" />
-                                      {typeof company === 'string' 
-                                        ? company 
-                                        : company.name ? company.name : JSON.stringify(company)}
-                                      {company.website && (
-                                        <a 
-                                          href={company.website} 
-                                          target="_blank" 
-                                          rel="noopener noreferrer" 
-                                          className="ml-1 inline-flex items-center text-primary hover:underline"
-                                        >
-                                          <ExternalLink className="h-3 w-3" />
-                                        </a>
-                                      )}
-                                    </li>
-                                  ))}
-                                </ul>
+                      {rec.careers && rec.careers.length > 0 ? (
+                        rec.careers.map((career: any, careerIndex: number) => {
+                          const jobId = `${rec.title}-${careerIndex}`;
+                          
+                          return (
+                            <div key={careerIndex} className="bg-muted/30 p-3 rounded-md">
+                              <div 
+                                className="flex justify-between items-center cursor-pointer" 
+                                onClick={() => toggleCompanies(jobId)}
+                              >
+                                <span className="font-medium text-sm">{career.title}</span>
+                                <Button variant="ghost" size="icon">
+                                  {expandedCompanies[jobId] ? 
+                                    <ChevronUp size={16} /> : 
+                                    <ChevronDown size={16} />
+                                  }
+                                </Button>
                               </div>
-                            )}
-                          </div>
-                        );
-                      })}
+                              
+                              {expandedCompanies[jobId] && (
+                                <div className="mt-2 pl-2 border-l-2 border-muted space-y-3">
+                                  {career.description && (
+                                    <p className="text-xs text-muted-foreground">{career.description}</p>
+                                  )}
+                                  
+                                  {career.companies?.length > 0 && (
+                                    <div>
+                                      <h5 className="text-xs font-medium mb-1 flex items-center gap-1">
+                                        <Building className="h-3 w-3 text-muted-foreground" />
+                                        Eksempler på arbeidsplasser
+                                      </h5>
+                                      <ul className="space-y-1">
+                                        {career.companies.map((company: any, idx: number) => (
+                                          <li key={idx} className="text-xs flex items-center">
+                                            <ChevronRight className="h-3 w-3 text-muted-foreground mr-1" />
+                                            {typeof company === 'string' 
+                                              ? company 
+                                              : company.name ? company.name : JSON.stringify(company)}
+                                            {company.website && (
+                                              <a 
+                                                href={company.website} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer" 
+                                                className="ml-1 inline-flex items-center text-primary hover:underline"
+                                              >
+                                                <ExternalLink className="h-3 w-3" />
+                                              </a>
+                                            )}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <p className="text-sm text-muted-foreground">Ingen spesifikke stillingsbeskrivelser tilgjengelig for denne utdanningen.</p>
+                      )}
                     </div>
                     
                     {rec.institution && (
