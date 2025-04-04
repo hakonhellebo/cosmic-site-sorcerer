@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList } from 'recharts';
 import { 
   Trophy, Brain, Lightbulb, ClipboardList, Hammer, User, Leaf, Users, Heart, Cpu
 } from "lucide-react";
@@ -72,6 +72,22 @@ const dimensionMeta = {
     icon: Users,
     description: 'Evne til å samarbeide, kommunisere og bygge relasjoner'
   }
+};
+
+// Custom Bar Label component that includes the icon
+const CustomBarLabel = (props: any) => {
+  const { x, y, width, value, dimension } = props;
+  const Icon = dimensionMeta[dimension as keyof typeof dimensionMeta]?.icon;
+  
+  return (
+    <g>
+      {Icon && (
+        <foreignObject x={width + x + 5} y={y - 9} width={18} height={18}>
+          <Icon size={18} color={dimensionMeta[dimension as keyof typeof dimensionMeta]?.color} />
+        </foreignObject>
+      )}
+    </g>
+  );
 };
 
 const DimensionRanking: React.FC<DimensionRankingProps> = ({ userData, questionnaire }) => {
@@ -487,13 +503,13 @@ const DimensionRanking: React.FC<DimensionRankingProps> = ({ userData, questionn
             <BarChart
               layout="vertical"
               data={dimensionScores}
-              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              margin={{ top: 5, right: 60, left: 120, bottom: 5 }}
             >
               <XAxis type="number" domain={[0, 'dataMax + 2']} />
               <YAxis 
                 dataKey="label" 
                 type="category" 
-                width={120}
+                width={100}
                 tick={{ fontSize: 12 }}
               />
               <Tooltip 
@@ -507,48 +523,14 @@ const DimensionRanking: React.FC<DimensionRankingProps> = ({ userData, questionn
                 {dimensionScores.map((entry) => (
                   <rect key={`rect-${entry.dimension}`} fill={entry.color} />
                 ))}
+                <LabelList 
+                  dataKey="dimension" 
+                  position="right" 
+                  content={<CustomBarLabel />} 
+                />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </div>
-      </div>
-      
-      {/* Dimension details */}
-      <div className="space-y-4">
-        <h3 className="text-xl font-semibold">Alle dimensjoner</h3>
-        
-        <div className="space-y-3">
-          {dimensionScores.map((dim) => {
-            const Icon = dim.icon;
-            return (
-              <div 
-                key={dim.dimension}
-                className="flex items-center justify-between p-3 border rounded-lg"
-              >
-                <div className="flex items-center space-x-3">
-                  <div 
-                    className="p-2 rounded-full" 
-                    style={{ backgroundColor: `${dim.color}20` }}
-                  >
-                    <Icon className="h-4 w-4" style={{ color: dim.color }} />
-                  </div>
-                  <div>
-                    <h4 className="font-medium">{dim.label}</h4>
-                    <p className="text-xs text-muted-foreground">{dim.description}</p>
-                  </div>
-                </div>
-                <span 
-                  className="font-bold px-3 py-1 rounded-full text-sm"
-                  style={{ 
-                    backgroundColor: `${dim.color}15`,
-                    color: dim.color 
-                  }}
-                >
-                  {dim.score}
-                </span>
-              </div>
-            );
-          })}
         </div>
       </div>
       
