@@ -55,14 +55,31 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
     
     // Get complete career data from our utility
     const careerData = getCareerRecommendations(educationProgramNames);
+    console.log("Complete career data for all programs:", careerData);
     
     // Merge the career data with our recommendations
     return displayRecommendations.map(rec => {
       // Find matching career data by program name
-      const matchingCareerData = careerData.find(career => 
+      let matchingCareerData = careerData.find(career => 
         (career.educationProgram.toLowerCase().includes(rec.title.toLowerCase()) ||
         rec.title.toLowerCase().includes(career.educationProgram.toLowerCase()))
       );
+      
+      // If we still can't find a match, try a more flexible approach
+      if (!matchingCareerData) {
+        console.log(`No direct match found for ${rec.title}, searching with keywords...`);
+        
+        // Look for HR-related programs
+        if (rec.title.toLowerCase().includes("hr") || 
+            rec.title.toLowerCase().includes("personal") || 
+            rec.title.toLowerCase().includes("organisasjon")) {
+          matchingCareerData = careerData.find(career => 
+            career.educationProgram.toLowerCase().includes("hr") || 
+            career.educationProgram.toLowerCase().includes("personal"));
+        }
+      }
+      
+      console.log(`Career data matched for ${rec.title}:`, matchingCareerData);
       
       if (matchingCareerData) {
         // Ensure the career data includes all available jobs and companies
@@ -93,7 +110,8 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
         };
       }
       
-      // If no matching data, return what we already have
+      console.warn(`Failed to find career data for ${rec.title}`);
+      // Return what we already have without adding empty careers
       return rec;
     });
   }, [displayRecommendations]);

@@ -425,6 +425,29 @@ const CAREER_DATA: Record<string, CareerField> = {
     ],
     match: "Rettsvitenskap passer godt med din analytiske evne og interesse for samfunnsspørsmål."
   },
+  "Bachelor i HR og personalledelse": {
+    educationProgram: "Bachelor i HR og personalledelse",
+    jobs: [
+      { title: "HR-koordinator", description: "Håndterer daglige HR-oppgaver som ansettelser, opplæring og medarbeiderutvikling." },
+      { title: "Personalkonsulent", description: "Gir råd og veiledning i personalspørsmål til ledere og ansatte." },
+      { title: "Rekrutteringsansvarlig", description: "Leder rekrutteringsprosesser fra jobbanalyse til ansettelse." },
+      { title: "Arbeidsmiljøspesialist", description: "Jobber med å forbedre og vedlikeholde et godt arbeidsmiljø." },
+      { title: "Lønn- og personalrådgiver", description: "Håndterer lønnsprosesser og gir råd om personalspørsmål." }
+    ],
+    companies: [
+      { name: "NAV", website: "https://www.nav.no" },
+      { name: "Manpower", website: "https://www.manpower.no" },
+      { name: "Adecco", website: "https://www.adecco.no" },
+      { name: "Statens vegvesen", website: "https://www.vegvesen.no" },
+      { name: "Kommunal- og moderniseringsdepartementet", website: "https://www.regjeringen.no/no/dep/kmd/id504/" },
+      { name: "Oslo kommune", website: "https://www.oslo.kommune.no" },
+      { name: "Forsvaret", website: "https://www.forsvaret.no" },
+      { name: "Helse Sør-Øst RHF", website: "https://www.helse-sorost.no" },
+      { name: "DNB", website: "https://www.dnb.no" },
+      { name: "Storebrand", website: "https://www.storebrand.no" }
+    ],
+    match: "Denne utdanningen passer godt med din interesse for mennesker og organisasjonsutvikling."
+  },
   
   // Add more education programs from the dataset provided by user
 };
@@ -447,7 +470,14 @@ export function getCareerRecommendations(educationPrograms: string[]): CareerFie
       }
     }
     
-    // Check for specific keywords in the program name
+    // Check for HR related programs
+    if (normalizedProgram.includes("hr") || normalizedProgram.includes("personal") || 
+        normalizedProgram.includes("organisasjon") || normalizedProgram.includes("ledelse")) {
+      console.log("Matched with HR based on keywords");
+      return CAREER_DATA["Bachelor i HR og personalledelse"];
+    }
+    
+    // Check for medicine, psychology, etc.
     if (normalizedProgram.includes("medisin") || normalizedProgram.includes("lege")) {
       console.log("Matched with Medicine based on keywords");
       return CAREER_DATA["Medisin"];

@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import { Check } from 'lucide-react';
 import ResultCard from '../ResultCard';
@@ -195,14 +196,30 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
     const educationProgramNames = educationRecommendations.map(rec => rec.name);
     console.log("Fetching career data for programs:", educationProgramNames);
     
+    // Get complete career data from our utility
     const careerData = getCareerRecommendations(educationProgramNames);
     console.log("Career data received:", careerData);
     
     return educationRecommendations.map((rec, index) => {
-      const matchingCareerData = careerData.find(career => 
+      // Try to find an exact or partial match for the program name
+      let matchingCareerData = careerData.find(career => 
         career.educationProgram.toLowerCase().includes(rec.name.toLowerCase()) ||
         rec.name.toLowerCase().includes(career.educationProgram.toLowerCase())
       );
+      
+      // If no match was found, try to match by keywords
+      if (!matchingCareerData) {
+        console.log(`No direct match found for ${rec.name}, searching with keywords...`);
+        
+        // Look for HR-related programs
+        if (rec.name.toLowerCase().includes("hr") || 
+            rec.name.toLowerCase().includes("personal") || 
+            rec.name.toLowerCase().includes("organisasjon")) {
+          matchingCareerData = careerData.find(career => 
+            career.educationProgram.toLowerCase().includes("hr") || 
+            career.educationProgram.toLowerCase().includes("personal"));
+        }
+      }
       
       console.log(`Matching career data for ${rec.name}:`, matchingCareerData);
       
@@ -231,6 +248,7 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
         };
       }
       
+      // If still no match, return basic structure with empty careers
       return {
         title: rec.name,
         institution: rec.institution,
