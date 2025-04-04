@@ -27,7 +27,7 @@ const UniversityEducation: React.FC<UniversityEducationProps> = ({
     title: rec.title,
     institution: rec.institution || rec.location,
     description: rec.description || rec.match,
-    link: rec.link
+    link: rec.link || "" // Ensure link always has a default value
   })) || [];
   
   return (
