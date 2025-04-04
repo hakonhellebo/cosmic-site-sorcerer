@@ -1,13 +1,14 @@
-
-import React from 'react';
-import ResultCard from './ResultCard';
-import { getFormattedValue } from '@/utils/resultFormatters';
-import { Badge } from "@/components/ui/badge";
-import { Check, Briefcase } from "lucide-react";
-import DimensionRanking from './DimensionRanking';
+import React, { useMemo } from 'react';
+import { Check } from 'lucide-react';
+import ResultCard from '../ResultCard';
 import CareerOpportunities from './worker/CareerOpportunities';
-import { getCareerRecommendations } from '@/utils/careerRecommendations';
-import RecommendedEducation from './highschool/RecommendedEducation';
+import {
+  formatInterests,
+  formatSkills,
+  formatWorkPreference,
+  formatDevelopmentPreference
+} from '@/utils/workerDataFormatters';
+import { CareerField } from './worker/CareerOpportunities';
 
 interface WorkerResultsViewProps {
   userData: any;
@@ -15,27 +16,58 @@ interface WorkerResultsViewProps {
 
 export const WorkerResultsView: React.FC<WorkerResultsViewProps> = ({ userData }) => {
   const workerData = userData?.questionnaire?.worker;
-  
+
   if (!workerData) {
-    return <div>Ingen arbeidstakerdata funnet</div>;
+    return <div>Ingen data funnet</div>;
   }
-  
-  // Extract strengths and skills
-  const strengths = Object.keys(workerData.strengths || {})
-    .filter(key => workerData.strengths[key]);
-  
+
+  console.log("WorkerResultsView - Raw workerData:", workerData);
+
+  const interests = Object.keys(workerData.interests || {})
+    .filter(key => workerData.interests[key] === true);
+
+  console.log("Filtered interests:", interests);
+
   const skills = Object.keys(workerData.skills || {})
-    .filter(key => workerData.skills[key]);
-  
-  // Get education data if available
-  const educationPrograms = workerData.educationBackground ? 
-    [workerData.educationBackground] : 
-    ["Økonomi og administrasjon"]; // Default if no education data is available
-  
-  // Get career recommendations based on education
-  const careerRecommendations = getCareerRecommendations(educationPrograms);
-  
-  // Create worker info cards
+    .filter(key => workerData.skills[key] === true);
+
+  console.log("Filtered skills:", skills);
+
+  const strengths = Object.keys(workerData.strengths || {})
+    .filter(key => workerData.strengths[key] === true);
+
+  console.log("Filtered strengths:", strengths);
+
+  const developmentOpportunities = [
+    { title: "Lederstilling", company: "Større bedrifter i samme bransje", match: "Bygger videre på din erfaring og lederegenskaper" },
+    { title: "Spesialisering", company: "Fagmiljøer", match: "Fordyper deg i ditt ekspertiseområde" },
+    { title: "Rådgivning", company: "Konsulentvirksomheter", match: "Deler din kompetanse med andre" }
+  ];
+
+  const careerOpportunities = [
+    {
+      title: "Prosjektleder",
+      careers: [
+        { title: "Prosjektleder", description: "Leder prosjekter fra start til slutt", companies: ["Accenture", "IBM"] },
+        { title: "Teamleder", description: "Leder et team av utviklere", companies: ["Microsoft", "Google"] }
+      ]
+    },
+    {
+      title: "Dataanalytiker",
+      careers: [
+        { title: "Dataanalytiker", description: "Analyserer data for å finne trender", companies: ["Deloitte", "KPMG"] },
+        { title: "Business Intelligence", description: "Bruker data til å ta bedre beslutninger", companies: ["PwC", "EY"] }
+      ]
+    },
+    {
+      title: "Systemutvikler",
+      careers: [
+        { title: "Frontend utvikler", description: "Utvikler brukergrensesnitt", companies: ["Facebook", "Apple"] },
+        { title: "Backend utvikler", description: "Utvikler server-side logikk", companies: ["Amazon", "Netflix"] }
+      ]
+    }
+  ];
+
   const workerInfoCards = [
     {
       title: "Din jobb og erfaring",
@@ -43,166 +75,88 @@ export const WorkerResultsView: React.FC<WorkerResultsViewProps> = ({ userData }
       items: [
         { label: "Nåværende stilling", value: workerData.currentRole },
         { label: "Bransje", value: workerData.industry },
-        { label: "Erfaring", value: workerData.experience + " år" },
-        { label: "Utdanningsbakgrunn", value: workerData.educationBackground || "Ikke spesifisert" }
+        { label: "Erfaring", value: workerData.experience + " år" }
       ]
     },
     {
       title: "Dine styrker og ferdigheter",
       icon: "award",
       items: [
-        { 
-          label: "Styrker", 
+        {
+          label: "Styrker",
           value: strengths.join(', ') || "Ingen oppgitt"
         },
-        { 
-          label: "Ferdigheter", 
+        {
+          label: "Ferdigheter",
           value: skills.join(', ') || "Ingen oppgitt"
         }
       ]
     }
   ];
-  
-  // Define further education recommendations
-  const furtherEducationRecommendations = [
-    {
-      name: "Master i ledelse",
-      description: "Fordyp deg i ledelsesfag for å ta neste steg i karrieren din.",
-      highlights: [
-        "Bygger på din eksisterende fagkompetanse",
-        "Gir lederverktøy for større ansvar",
-        "Kan tas på deltid ved siden av jobb"
-      ]
-    },
-    {
-      name: "Spesialisering innen fagfeltet",
-      description: "Bli en ekspert på ditt område gjennom spesialiserte kurs og sertifiseringer.",
-      highlights: [
-        "Styrker din posisjon som fagperson",
-        "Øker verdien din for arbeidsgivere",
-        "Praktisk anvendbar kunnskap"
-      ]
-    },
-    {
-      name: "Executive Education",
-      description: "Kortere, intensive programmer for erfarne fagpersoner.",
-      highlights: [
-        "Skreddersydd for yrkesaktive",
-        "Fokus på praktiske ferdigheter",
-        "Nettverksbygging med andre fagfolk"
-      ]
-    }
-  ];
-  
-  // Define next steps for education
-  const educationNextSteps = [
-    "Undersøk deltidsstudier ved universitet/høyskoler",
-    "Vurder nettbaserte kurs som passer med din timeplan",
-    "Sjekk om arbeidsgiveren din tilbyr støtte til videreutdanning",
-    "Ta kontakt med studierådgivere for personlig veiledning"
-  ];
-  
-  // Define development opportunities
-  const developmentOpportunities = [
-    { title: "Lederstilling", company: "Større bedrifter i samme bransje", match: "Bygger videre på din erfaring og lederegenskaper" },
-    { title: "Spesialisering", company: "Fagmiljøer", match: "Fordyper deg i ditt ekspertiseområde" },
-    { title: "Rådgivning", company: "Konsulentvirksomheter", match: "Deler din kompetanse med andre" }
-  ];
-  
-  // Define next steps
-  const nextSteps = [
-    "Utforsk videreutdanningsmuligheter innen ditt felt",
-    "Bygg nettverk med bransjeeksperter",
-    "Delta på kurs for å styrke dine ferdigheter",
-    "Vurder mentorordninger for karriereveiledning"
-  ];
-  
+
+  const formattedInterests = formatInterests(workerData.interests);
+  const formattedSkills = formatSkills(workerData.skills);
+  const formattedWorkPreference = formatWorkPreference(workerData.workPreference);
+  const formattedDevelopmentPreference = formatDevelopmentPreference(workerData.developmentImportance);
+
+  const transformedCareerFields: CareerField[] = careerOpportunities.map(career => ({
+    educationProgram: career.title,
+    jobs: career.careers.map(job => ({
+      title: job.title,
+      description: job.description
+    })),
+    companies: career.careers.flatMap(job =>
+      // Convert Company objects to strings (company names)
+      typeof job.companies === 'string'
+        ? [job.companies]
+        : Array.isArray(job.companies)
+          ? job.companies.map(company => typeof company === 'string' ? company : company.name)
+          : []
+    )
+  }));
+
   return (
     <div className="space-y-10">
-      {/* Personalized intro for workers */}
-      <div className="bg-card p-6 rounded-lg border animate-fade-up relative overflow-hidden">
-        <div className="absolute top-0 left-0 h-full w-1 bg-primary"></div>
-        <div className="relative">
-          <div className="flex items-center mb-4">
-            <Briefcase className="h-6 w-6 mr-2 text-primary" />
-            <h2 className="text-xl font-semibold">Arbeidstaker</h2>
-          </div>
-          <p className="text-lg mb-6">
-            Basert på svarene dine har vi laget en personlig profil som viser dine styrker, ferdigheter og 
-            potensielle karrieremuligheter. Dette er ment som et utgangspunkt for videre karriereutvikling.
+      <div className="bg-muted/30 p-6 rounded-lg animate-fade-up">
+        <p className="text-lg mb-6">
+          Basert på svarene dine, har vi laget en personlig profil som viser dine styrker,
+          interesser og mulige veier videre i arbeidslivet. Dette er ikke en fasit – men en start på reisen
+          mot noe som passer deg.
+        </p>
+
+        <h3 className="text-xl font-semibold mb-4">Dine nøkkelområder</h3>
+        <div className="flex flex-wrap gap-3 mb-6">
+          {strengths.map((strength, idx) => (
+            <span key={idx} className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-sm font-medium">
+              {strength}
+            </span>
+          ))}
+        </div>
+        <div className="space-y-2">
+          <p className="text-muted-foreground">
+            <span className="font-medium">Interesser:</span> {formattedInterests}
           </p>
-          
-          {/* Worker dimensions */}
-          <div className="flex flex-wrap gap-3 mb-6">
-            <Badge className="px-3 py-1.5 text-base bg-purple-100 hover:bg-purple-200 text-purple-800 border-purple-300">
-              Ekspertise
-            </Badge>
-            <Badge className="px-3 py-1.5 text-base bg-blue-100 hover:bg-blue-200 text-blue-800 border-blue-300">
-              Lederskap
-            </Badge>
-            <Badge className="px-3 py-1.5 text-base bg-green-100 hover:bg-green-200 text-green-800 border-green-300">
-              Tilpasningsdyktighet
-            </Badge>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-3 border rounded-md">
-              <h4 className="font-medium text-purple-800">Ekspertise</h4>
-              <p className="text-sm">Du har opparbeidet verdifull fagkompetanse i din bransje.</p>
-            </div>
-            <div className="p-3 border rounded-md">
-              <h4 className="font-medium text-blue-800">Lederskap</h4>
-              <p className="text-sm">Du viser evne til å ta ansvar og lede andre.</p>
-            </div>
-            <div className="p-3 border rounded-md">
-              <h4 className="font-medium text-green-800">Tilpasningsdyktighet</h4>
-              <p className="text-sm">Du er god til å tilpasse deg nye situasjoner og utfordringer.</p>
-            </div>
-          </div>
+          <p className="text-muted-foreground">
+            <span className="font-medium">Ferdigheter:</span> {formattedSkills}
+          </p>
+          <p className="text-muted-foreground">
+            <span className="font-medium">Arbeidspreferanse:</span> {formattedWorkPreference}
+          </p>
+          <p className="text-muted-foreground">
+            <span className="font-medium">Utviklingsønsker:</span> {formattedDevelopmentPreference}
+          </p>
         </div>
       </div>
-      
-      {/* Dimension Ranking */}
-      <DimensionRanking userData={userData} questionnaire="worker" />
-      
-      {/* Worker info cards */}
+
       {workerInfoCards.map((card, index) => (
-        <ResultCard 
-          key={index} 
-          title={card.title} 
-          icon={card.icon} 
-          items={card.items} 
+        <ResultCard
+          key={index}
+          title={card.title}
+          icon={card.icon}
+          items={card.items}
         />
       ))}
-      
-      {/* Career goal card */}
-      <ResultCard 
-        title="Karrieremål" 
-        icon="target" 
-        items={[
-          { 
-            label: "Karrieremål", 
-            value: workerData.careerGoal || "Ikke angitt"
-          },
-          { 
-            label: "Utviklingsmuligheter", 
-            value: getFormattedValue(workerData.developmentImportance)
-          }
-        ]}
-      />
-      
-      {/* Recommended Further Education - NEW SECTION */}
-      <RecommendedEducation 
-        recommendations={furtherEducationRecommendations} 
-        nextSteps={educationNextSteps} 
-        showAllRecommendations={true}
-        title="Anbefalt videreutdanning"
-        subtitle="Basert på din profil, her er noen utdanningsmuligheter som kan styrke din karriere" 
-      />
-      
-      {/* Career Opportunities */}
-      <CareerOpportunities careerFields={careerRecommendations} />
-      
-      {/* Development opportunities */}
+
       <div className="animate-fade-up">
         <h3 className="text-2xl font-semibold mb-6">Karriereutvikling</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -216,21 +170,42 @@ export const WorkerResultsView: React.FC<WorkerResultsViewProps> = ({ userData }
             </div>
           ))}
         </div>
-        
-        {/* Next steps */}
-        <div className="bg-gradient-to-r from-muted/20 to-muted/5 p-6 rounded-lg border">
-          <h3 className="text-xl font-semibold mb-4">Anbefalte tiltak</h3>
-          <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {nextSteps.map((step, idx) => (
-              <li key={idx} className="flex items-start">
-                <div className="mr-2 mt-1 bg-primary/20 rounded-full p-0.5">
-                  <Check className="h-4 w-4 text-primary" />
-                </div>
-                <span>{step}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+      </div>
+
+      <CareerOpportunities careerFields={transformedCareerFields} />
+
+      <div className="bg-muted/10 p-6 rounded-lg border animate-fade-up">
+        <h3 className="text-xl font-semibold mb-4">Neste steg – dette får du snart tilgang til</h3>
+        <p className="mb-4">EdPath blir mer enn bare anbefalinger. Du vil snart kunne:</p>
+
+        <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <li className="flex items-start">
+            <Check className="h-5 w-5 mr-2 mt-0.5 text-primary flex-shrink-0" />
+            <span>Se hva andre med lik profil har valgt – og hvor de fikk jobb</span>
+          </li>
+          <li className="flex items-start">
+            <Check className="h-5 w-5 mr-2 mt-0.5 text-primary flex-shrink-0" />
+            <span>Utforske bedrifter og stillinger som passer akkurat deg, basert på dine styrker og interesser</span>
+          </li>
+          <li className="flex items-start">
+            <Check className="h-5 w-5 mr-2 mt-0.5 text-primary flex-shrink-0" />
+            <span>Få ferdige forslag til hva du kan skrive i en CV – og hvordan du matcher en jobb</span>
+          </li>
+          <li className="flex items-start">
+            <Check className="h-5 w-5 mr-2 mt-0.5 text-primary flex-shrink-0" />
+            <span>Få anbefalte kurs og ferdigheter som gjør deg mer attraktiv for arbeidsgivere</span>
+          </li>
+          <li className="flex items-start">
+            <Check className="h-5 w-5 mr-2 mt-0.5 text-primary flex-shrink-0" />
+            <span>Snakke med vår AI-rådgiver og få veiledning døgnet rundt</span>
+          </li>
+          <li className="flex items-start">
+            <Check className="h-5 w-5 mr-2 mt-0.5 text-primary flex-shrink-0" />
+            <span>Bygge din egen profil som oppdateres etter hvert som du lærer og utvikler deg</span>
+          </li>
+        </ul>
+
+        <p className="mt-4">Alt dette er basert på dine svar – og vil tilpasse seg deg, ikke motsatt.</p>
       </div>
     </div>
   );
