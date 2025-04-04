@@ -9,6 +9,7 @@ import DimensionsCard from './DimensionsCard';
 import RecommendedEducation from './RecommendedEducation';
 import CareerOpportunities from './CareerOpportunities';
 import { User } from '@supabase/supabase-js';
+import { Dimension } from '@/utils/dimensions/types';
 
 interface HighSchoolResultsViewProps {
   userData: any;
@@ -40,10 +41,20 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
   }, []);
 
   // Extract high school data from userData
-  const highSchoolData = userData.questionnaire?.highSchool;
+  const highSchoolData = userData?.questionnaire?.highSchool || {};
   
   // Calculate dimensions based on high school data
-  const dimensions = highSchoolData ? calculateHighSchoolDimensions(highSchoolData) : [];
+  const dimensions: Dimension[] = Object.keys(highSchoolData).length > 0 
+    ? calculateHighSchoolDimensions(highSchoolData) 
+    : [];
+  
+  // Extract key data points from userData
+  const interests = highSchoolData?.interests 
+    ? Object.keys(highSchoolData.interests).filter(key => highSchoolData.interests[key]).join(', ')
+    : 'Ikke spesifisert';
+    
+  const learningStyle = highSchoolData?.learningStyle || 'Ikke spesifisert';
+  const workPreference = highSchoolData?.workPreference || 'Ikke spesifisert';
   
   // Function to handle login with Google
   const handleGoogleLogin = async () => {
@@ -167,15 +178,27 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
       </div>
 
       {/* Main content */}
-      <HighSchoolIntro />
+      <HighSchoolIntro 
+        dimensions={dimensions}
+        interests={interests}
+        learningStyle={learningStyle}
+        workPreference={workPreference}
+      />
       
       {dimensions.length > 0 && (
         <DimensionsCard dimensions={dimensions} />
       )}
       
-      <RecommendedEducation dimensions={dimensions} />
+      <RecommendedEducation 
+        dimensions={dimensions}
+        recommendations={[]}
+        nextSteps={[]}
+      />
       
-      <CareerOpportunities dimensions={dimensions} />
+      <CareerOpportunities 
+        dimensions={dimensions}
+        careers={[]}
+      />
     </div>
   );
 };

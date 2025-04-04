@@ -1,279 +1,83 @@
 
-import React, { useState } from 'react';
-import { 
-  Briefcase, 
-  ChevronDown, 
-  ChevronUp, 
-  ExternalLink, 
-  Building, 
-  ChevronRight,
-  UserCircle2
-} from "lucide-react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { getCareerRecommendations } from "@/utils/careerRecommendations";
+import React from 'react';
+import { Dimension } from '@/utils/dimensions/types';
 
 interface CareerOpportunitiesProps {
-  recommendations: any[];
-  showAllOpportunities?: boolean;
-  maxCount?: number;
+  dimensions?: Dimension[];
+  careers?: any[];
 }
 
 const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({ 
-  recommendations, 
-  showAllOpportunities = false, 
-  maxCount = 3 
+  dimensions = [],
+  careers = []
 }) => {
-  const [expandedProgram, setExpandedProgram] = useState<string | null>(null);
-  const [showAll, setShowAll] = useState(showAllOpportunities);
-  const [expandedCompanies, setExpandedCompanies] = useState<Record<string, boolean>>({});
+  // Generate sample careers based on dimensions if none provided
+  const defaultCareers = [
+    {
+      title: "Ingeniør",
+      description: "Planlegger og utfører tekniske løsninger innen forskjellige felt.",
+      fields: ["Bygg og anlegg", "IT", "Miljø", "Petroleum"]
+    },
+    {
+      title: "Designer",
+      description: "Skaper visuelle løsninger og brukeropplevelser for ulike medier.",
+      fields: ["Grafisk design", "UX/UI design", "Produktdesign", "Spilldesign"]
+    },
+    {
+      title: "Helsefagarbeider",
+      description: "Jobber med pasientomsorg og behandling i helsevesenet.",
+      fields: ["Eldreomsorg", "Sykehus", "Hjemmetjeneste", "Psykiatri"]
+    },
+    {
+      title: "Lærer",
+      description: "Underviser og veileder elever i ulike fag og på ulike nivåer.",
+      fields: ["Barneskole", "Ungdomsskole", "Videregående", "Spesialpedagogikk"]
+    }
+  ];
   
-  // Toggle expanded career
-  const toggleProgramDetails = (programName: string) => {
-    setExpandedProgram(expandedProgram === programName ? null : programName);
-  };
-  
-  // Toggle company list visibility
-  const toggleCompanies = (jobId: string) => {
-    setExpandedCompanies(prev => ({
-      ...prev,
-      [jobId]: !prev[jobId]
-    }));
-  };
-  
-  // Determine how many careers to show
-  const displayRecommendations = showAll 
-    ? recommendations 
-    : recommendations.slice(0, maxCount);
-    
-  // Ensure career data is enriched with full information from the utility
-  const enhancedRecommendations = React.useMemo(() => {
-    // Get education program names to fetch career data
-    const educationProgramNames = recommendations.map(rec => rec.title);
-    
-    // Get complete career data from our utility
-    const careerData = getCareerRecommendations(educationProgramNames);
-    console.log("Complete career data for all programs:", careerData);
-    
-    // Merge the career data with our recommendations
-    return displayRecommendations.map(rec => {
-      // Find matching career data by program name
-      let matchingCareerData = careerData.find(career => 
-        (career.educationProgram.toLowerCase().includes(rec.title.toLowerCase()) ||
-        rec.title.toLowerCase().includes(career.educationProgram.toLowerCase()))
-      );
-      
-      // If we still can't find a match, try a more flexible approach
-      if (!matchingCareerData) {
-        console.log(`No direct match found for ${rec.title}, searching with keywords...`);
-        
-        // Look for HR-related programs
-        if (rec.title.toLowerCase().includes("hr") || 
-            rec.title.toLowerCase().includes("personal") || 
-            rec.title.toLowerCase().includes("organisasjon")) {
-          matchingCareerData = careerData.find(career => 
-            career.educationProgram.toLowerCase().includes("hr") || 
-            career.educationProgram.toLowerCase().includes("personal"));
-        }
-      }
-      
-      console.log(`Career data matched for ${rec.title}:`, matchingCareerData);
-      
-      if (matchingCareerData) {
-        // Ensure the career data includes all available jobs and companies
-        const careersWithCompanies = matchingCareerData.jobs && matchingCareerData.jobs.length > 0 
-          ? matchingCareerData.jobs.map((job, idx) => {
-              // Distribute companies more evenly across jobs
-              const allCompanies = matchingCareerData.companies || [];
-              // We want to show 3 relevant companies per job, rotating through all available companies
-              const startIdx = idx % Math.max(allCompanies.length, 1);
-              const jobSpecificCompanies = allCompanies.length > 0
-                ? [
-                    ...allCompanies.slice(startIdx, startIdx + 3),
-                    ...allCompanies.slice(0, Math.max(0, 3 - (allCompanies.length - startIdx)))
-                  ].slice(0, 3)
-                : [];
-                
-              return {
-                title: job.title,
-                description: job.description,
-                companies: jobSpecificCompanies
-              };
-            })
-          : [];
-        
-        return {
-          ...rec,
-          careers: careersWithCompanies
-        };
-      }
-      
-      console.warn(`Failed to find career data for ${rec.title}`);
-      // Return what we already have without adding empty careers
-      return rec;
-    });
-  }, [displayRecommendations]);
+  const careersList = careers.length > 0 ? careers : defaultCareers;
   
   return (
-    <div className="space-y-6 animate-fade-up">
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <Briefcase className="h-5 w-5 text-primary" />
-              <h2 className="text-xl font-semibold">Karrieremuligheter</h2>
-            </div>
-            {recommendations.length > maxCount && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => setShowAll(!showAll)}
-                className="flex items-center gap-1"
-              >
-                {showAll ? (
-                  <>Vis topp {maxCount} <ChevronUp className="h-4 w-4" /></>
-                ) : (
-                  <>Vis alle {recommendations.length} <ChevronDown className="h-4 w-4" /></>
-                )}
-              </Button>
+    <div className="bg-card p-6 rounded-lg border animate-fade-up">
+      <h2 className="text-xl font-semibold mb-4">Mulige karriereveier</h2>
+      <p className="text-muted-foreground mb-6">
+        Disse karriereveiene kan være relevante basert på din profil. Dette er langsiktige muligheter 
+        som krever videre utdanning etter videregående skole.
+      </p>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {careersList.map((career, index) => (
+          <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+            <h3 className="font-semibold text-lg">{career.title}</h3>
+            <p className="text-sm text-muted-foreground mb-3">{career.description}</p>
+            {career.fields && career.fields.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium mb-1">Spesialiseringer:</h4>
+                <div className="flex flex-wrap gap-1">
+                  {career.fields.map((field: string, i: number) => (
+                    <span 
+                      key={i} 
+                      className="inline-block bg-muted px-2 py-1 rounded text-xs"
+                    >
+                      {field}
+                    </span>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
-          <p className="text-muted-foreground">
-            Dette er mulige karriereveier etter fullført utdanning. Husk at mange yrkesveier er mulige og dette er bare eksempler.
-          </p>
-        </CardHeader>
-        
-        <CardContent>
-          <div className="space-y-4">
-            {enhancedRecommendations.map((rec, index) => (
-              <Collapsible 
-                key={index}
-                open={expandedProgram === rec.title} 
-                onOpenChange={() => toggleProgramDetails(rec.title)}
-                className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow"
-              >
-                <CollapsibleTrigger className="w-full" asChild>
-                  <div className="flex justify-between items-center p-4 cursor-pointer bg-muted/30">
-                    <div className="text-left">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold">{rec.title}</h3>
-                        {index < 3 && <Badge variant="default" className="text-xs">Topp match</Badge>}
-                      </div>
-                      <p className="text-sm text-muted-foreground">{rec.match}</p>
-                    </div>
-                    <Button variant="ghost" size="sm" className="ml-2">
-                      {expandedProgram === rec.title ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                    </Button>
-                  </div>
-                </CollapsibleTrigger>
-                
-                <CollapsibleContent className="border-t">
-                  <div className="p-4">
-                    {rec.description && (
-                      <p className="text-sm mb-4">{rec.description}</p>
-                    )}
-                    
-                    <h4 className="text-sm font-medium mb-2 flex items-center gap-1">
-                      <UserCircle2 className="h-4 w-4 text-primary" />
-                      Mulige stillinger etter utdanningen
-                    </h4>
-                    
-                    <div className="space-y-2 mb-4">
-                      {rec.careers && rec.careers.length > 0 ? (
-                        rec.careers.map((career: any, careerIndex: number) => {
-                          const jobId = `${rec.title}-${careerIndex}`;
-                          
-                          return (
-                            <div key={careerIndex} className="bg-muted/30 p-3 rounded-md">
-                              <div 
-                                className="flex justify-between items-center cursor-pointer" 
-                                onClick={() => toggleCompanies(jobId)}
-                              >
-                                <span className="font-medium text-sm">{career.title}</span>
-                                <Button variant="ghost" size="icon">
-                                  {expandedCompanies[jobId] ? 
-                                    <ChevronUp size={16} /> : 
-                                    <ChevronDown size={16} />
-                                  }
-                                </Button>
-                              </div>
-                              
-                              {expandedCompanies[jobId] && (
-                                <div className="mt-2 pl-2 border-l-2 border-muted space-y-3">
-                                  {career.description && (
-                                    <p className="text-xs text-muted-foreground">{career.description}</p>
-                                  )}
-                                  
-                                  {career.companies?.length > 0 && (
-                                    <div>
-                                      <h5 className="text-xs font-medium mb-1 flex items-center gap-1">
-                                        <Building className="h-3 w-3 text-muted-foreground" />
-                                        Eksempler på arbeidsplasser
-                                      </h5>
-                                      <ul className="space-y-1">
-                                        {career.companies.map((company: any, idx: number) => (
-                                          <li key={idx} className="text-xs flex items-center">
-                                            <ChevronRight className="h-3 w-3 text-muted-foreground mr-1" />
-                                            {typeof company === 'string' 
-                                              ? company 
-                                              : company.name ? company.name : JSON.stringify(company)}
-                                            {company.website && (
-                                              <a 
-                                                href={company.website} 
-                                                target="_blank" 
-                                                rel="noopener noreferrer" 
-                                                className="ml-1 inline-flex items-center text-primary hover:underline"
-                                              >
-                                                <ExternalLink className="h-3 w-3" />
-                                              </a>
-                                            )}
-                                          </li>
-                                        ))}
-                                      </ul>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })
-                      ) : (
-                        <div className="p-3 bg-muted/10 rounded-md text-sm text-muted-foreground">
-                          Kan ikke vise karrieremuligheter for dette programmet akkurat nå.
-                        </div>
-                      )}
-                    </div>
-                    
-                    {rec.institution && (
-                      <div className="mt-4">
-                        <h4 className="text-sm font-medium mb-1">Utdanningsinstitusjoner</h4>
-                        <p className="text-sm">{rec.institution}</p>
-                      </div>
-                    )}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-            ))}
-          </div>
-          
-          <div className="flex justify-center mt-6">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setShowAll(!showAll)}
-              className="flex items-center gap-1"
-            >
-              {showAll ? (
-                <>Vis færre karrieremuligheter <ChevronUp className="h-4 w-4" /></>
-              ) : (
-                <>Vis flere karrieremuligheter <ChevronDown className="h-4 w-4" /></>
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+        ))}
+      </div>
+      
+      <div className="mt-6 p-4 bg-muted/40 rounded-md">
+        <h3 className="font-medium mb-2">Tips for karriereplanlegging</h3>
+        <ul className="space-y-2 text-sm">
+          <li>• Utforsk utdanninger og yrker gjennom utdanning.no</li>
+          <li>• Snakk med en karriereveileder om dine interesser og muligheter</li>
+          <li>• Vurder å ta kontakt med aktuelle arbeidsplasser for å høre mer om yrket</li>
+          <li>• Hold deg oppdatert på fremtidige jobbmuligheter og trender i arbeidsmarkedet</li>
+        </ul>
+      </div>
     </div>
   );
 };
