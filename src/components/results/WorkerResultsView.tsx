@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Check } from 'lucide-react';
-import ResultCard from '../ResultCard';
+import ResultCard from '../results/ResultCard';
 import CareerOpportunities from './worker/CareerOpportunities';
 import {
   formatInterests,
@@ -105,13 +105,10 @@ export const WorkerResultsView: React.FC<WorkerResultsViewProps> = ({ userData }
       title: job.title,
       description: job.description
     })),
-    companies: career.careers.flatMap(job =>
-      // Convert Company objects to strings (company names)
-      typeof job.companies === 'string'
-        ? [job.companies]
-        : Array.isArray(job.companies)
-          ? job.companies.map(company => typeof company === 'string' ? company : company.name)
-          : []
+    companies: career.careers.flatMap(job => 
+      Array.isArray(job.companies) 
+        ? job.companies 
+        : []
     )
   }));
 
