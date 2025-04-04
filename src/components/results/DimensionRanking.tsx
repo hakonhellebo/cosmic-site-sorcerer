@@ -519,10 +519,8 @@ const DimensionRanking: React.FC<DimensionRankingProps> = ({ userData, questionn
               <Bar 
                 dataKey="score" 
                 radius={[0, 4, 4, 0]}
+                fill="#0EA5E9"
               >
-                {dimensionScores.map((entry) => (
-                  <rect key={`rect-${entry.dimension}`} fill={entry.color} />
-                ))}
                 <LabelList 
                   dataKey="dimension" 
                   position="insideLeft" 
