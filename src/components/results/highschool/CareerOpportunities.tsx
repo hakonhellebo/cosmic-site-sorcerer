@@ -137,10 +137,22 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
                                   Eksempler på arbeidsplasser
                                 </h5>
                                 <ul className="space-y-1">
-                                  {career.companies.map((company: string, idx: number) => (
+                                  {career.companies.map((company: any, idx: number) => (
                                     <li key={idx} className="text-xs flex items-center">
                                       <ChevronRight className="h-3 w-3 text-muted-foreground mr-1" />
-                                      {company}
+                                      {typeof company === 'string' 
+                                        ? company 
+                                        : company.name ? company.name : JSON.stringify(company)}
+                                      {company.website && (
+                                        <a 
+                                          href={company.website} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer" 
+                                          className="ml-1 inline-flex items-center text-primary hover:underline"
+                                        >
+                                          <ExternalLink className="h-3 w-3" />
+                                        </a>
+                                      )}
                                     </li>
                                   ))}
                                 </ul>
