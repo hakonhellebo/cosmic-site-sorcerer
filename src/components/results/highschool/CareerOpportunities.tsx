@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Briefcase, 
@@ -50,7 +51,7 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
   // Ensure career data is enriched with full information from the utility
   const enhancedRecommendations = React.useMemo(() => {
     // Get education program names to fetch career data
-    const educationProgramNames = recommendations.map(rec => rec.name || rec.title);
+    const educationProgramNames = recommendations.map(rec => rec.title);
     
     // Get complete career data from our utility
     const careerData = getCareerRecommendations(educationProgramNames);
@@ -58,69 +59,60 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
     
     // Merge the career data with our recommendations
     return displayRecommendations.map(rec => {
-      // Use program name from either name or title property
-      const programName = rec.name || rec.title;
-      console.log(`Looking for career data for: ${programName}`);
-      
-      // First try exact match on educationProgram
+      // Find matching career data by program name
       let matchingCareerData = careerData.find(career => 
-        career.educationProgram.toLowerCase() === programName.toLowerCase()
+        (career.educationProgram.toLowerCase().includes(rec.title.toLowerCase()) ||
+        rec.title.toLowerCase().includes(career.educationProgram.toLowerCase()))
       );
       
-      // If not found, try partial match
+      // If we still can't find a match, try a more flexible approach
       if (!matchingCareerData) {
-        matchingCareerData = careerData.find(career => 
-          career.educationProgram.toLowerCase().includes(programName.toLowerCase()) ||
-          programName.toLowerCase().includes(career.educationProgram.toLowerCase())
-        );
-      }
-      
-      // If still not found, try keyword matching
-      if (!matchingCareerData) {
-        console.log(`No direct match found for ${programName}, trying keyword matching...`);
+        console.log(`No direct match found for ${rec.title}, searching with keywords...`);
         
-        // HR specific matching
-        if (programName.toLowerCase().includes("hr") || 
-            programName.toLowerCase().includes("personal") || 
-            programName.toLowerCase().includes("organisasjon")) {
+        // Look for HR-related programs
+        if (rec.title.toLowerCase().includes("hr") || 
+            rec.title.toLowerCase().includes("personal") || 
+            rec.title.toLowerCase().includes("organisasjon")) {
           matchingCareerData = careerData.find(career => 
             career.educationProgram.toLowerCase().includes("hr") || 
-            career.educationProgram.toLowerCase().includes("personal") ||
-            career.educationProgram.toLowerCase().includes("human resource")
-          );
+            career.educationProgram.toLowerCase().includes("personal"));
         }
-        
-        // Other specific matchings can be added here
       }
       
-      console.log(`Career data matched for ${programName}:`, matchingCareerData);
+      console.log(`Career data matched for ${rec.title}:`, matchingCareerData);
       
       if (matchingCareerData) {
         // Ensure the career data includes all available jobs and companies
         const careersWithCompanies = matchingCareerData.jobs && matchingCareerData.jobs.length > 0 
           ? matchingCareerData.jobs.map((job, idx) => {
-              // Use the exact companies that are provided for this job
+              // Distribute companies more evenly across jobs
+              const allCompanies = matchingCareerData.companies || [];
+              // We want to show 3 relevant companies per job, rotating through all available companies
+              const startIdx = idx % Math.max(allCompanies.length, 1);
+              const jobSpecificCompanies = allCompanies.length > 0
+                ? [
+                    ...allCompanies.slice(startIdx, startIdx + 3),
+                    ...allCompanies.slice(0, Math.max(0, 3 - (allCompanies.length - startIdx)))
+                  ].slice(0, 3)
+                : [];
+                
               return {
                 title: job.title,
                 description: job.description,
-                companies: matchingCareerData.companies || []
+                companies: jobSpecificCompanies
               };
             })
           : [];
         
         return {
           ...rec,
-          careers: careersWithCompanies,
-          title: rec.name || rec.title // Ensure title is set correctly
+          careers: careersWithCompanies
         };
       }
       
-      console.warn(`Failed to find career data for ${programName}`);
+      console.warn(`Failed to find career data for ${rec.title}`);
       // Return what we already have without adding empty careers
-      return {
-        ...rec,
-        title: rec.name || rec.title // Ensure title is set correctly
-      };
+      return rec;
     });
   }, [displayRecommendations]);
   
