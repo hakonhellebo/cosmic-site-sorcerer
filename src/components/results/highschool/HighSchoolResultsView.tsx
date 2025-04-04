@@ -10,6 +10,7 @@ import RecommendedEducation from './RecommendedEducation';
 import CareerOpportunities from './CareerOpportunities';
 import { User } from '@supabase/supabase-js';
 import { Dimension } from '@/utils/dimensions/types';
+import { formatInterests, formatLearningStyle, formatWorkPreference } from '@/utils/highschoolDataFormatters';
 
 interface HighSchoolResultsViewProps {
   userData: any;
@@ -40,7 +41,7 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
     return () => subscription.unsubscribe();
   }, []);
 
-  // Extract high school data from userData
+  // Extract high school data from userData with fallback
   const highSchoolData = userData?.questionnaire?.highSchool || {};
   
   // Calculate dimensions based on high school data
@@ -48,13 +49,63 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
     ? calculateHighSchoolDimensions(highSchoolData) 
     : [];
   
-  // Extract key data points from userData
-  const interests = highSchoolData?.interests 
-    ? Object.keys(highSchoolData.interests).filter(key => highSchoolData.interests[key]).join(', ')
-    : 'Ikke spesifisert';
+  // Ensure dimensions is an array (never undefined)
+  const safeDimensions = dimensions || [];
+  
+  // Format interests from object to string
+  const formattedInterests = formatInterests(highSchoolData?.interests);
     
-  const learningStyle = highSchoolData?.learningStyle || 'Ikke spesifisert';
-  const workPreference = highSchoolData?.workPreference || 'Ikke spesifisert';
+  // Format learning style - could be object or string
+  const learningStyle = formatLearningStyle(highSchoolData?.learningStyle);
+  
+  // Format work preference
+  const workPreference = formatWorkPreference(highSchoolData?.workPreference);
+  
+  // Sample data for education recommendations
+  const recommendedEducations = [
+    {
+      title: "Studiespesialisering med realfag",
+      institution: "Videregående skoler",
+      description: "Fokus på matematikk, fysikk og naturfag, egnet for teknologi-interesserte elever."
+    },
+    {
+      title: "Medieproduksjon",
+      institution: "Videregående skoler",
+      description: "Kreativ utdanning med fokus på visuell kommunikasjon og digitale medier."
+    },
+    {
+      title: "Helse- og oppvekstfag",
+      institution: "Videregående skoler",
+      description: "For deg som vil jobbe med mennesker innen helsesektoren."
+    }
+  ];
+  
+  // Sample data for next steps
+  const nextSteps = [
+    "Snakk med rådgiver på skolen din om mulighetene innen fagene du er interessert i",
+    "Undersøk aktuelle utdanningsprogrammer på utdanning.no",
+    "Delta på åpen dag på videregående skoler du er interessert i",
+    "Ta en praksisdag hos bedrifter du synes virker spennende"
+  ];
+  
+  // Sample data for career opportunities
+  const careerOpportunities = [
+    {
+      title: "Ingeniør",
+      description: "Planlegger og utfører tekniske løsninger innen forskjellige felt.",
+      fields: ["Bygg og anlegg", "IT", "Miljø", "Petroleum"]
+    },
+    {
+      title: "Designer",
+      description: "Skaper visuelle løsninger og brukeropplevelser for ulike medier.",
+      fields: ["Grafisk design", "UX/UI design", "Produktdesign", "Spilldesign"]
+    },
+    {
+      title: "Helsefagarbeider",
+      description: "Jobber med pasientomsorg og behandling i helsevesenet.",
+      fields: ["Eldreomsorg", "Sykehus", "Hjemmetjeneste", "Psykiatri"]
+    }
+  ];
   
   // Function to handle login with Google
   const handleGoogleLogin = async () => {
@@ -179,25 +230,25 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
 
       {/* Main content */}
       <HighSchoolIntro 
-        dimensions={dimensions}
-        interests={interests}
+        dimensions={safeDimensions.slice(0, 3)}
+        interests={formattedInterests}
         learningStyle={learningStyle}
         workPreference={workPreference}
       />
       
-      {dimensions.length > 0 && (
-        <DimensionsCard dimensions={dimensions} />
+      {safeDimensions.length > 0 && (
+        <DimensionsCard dimensions={safeDimensions} />
       )}
       
       <RecommendedEducation 
-        dimensions={dimensions}
-        recommendations={[]}
-        nextSteps={[]}
+        dimensions={safeDimensions}
+        recommendations={recommendedEducations}
+        nextSteps={nextSteps}
       />
       
       <CareerOpportunities 
-        dimensions={dimensions}
-        careers={[]}
+        dimensions={safeDimensions}
+        careers={careerOpportunities}
       />
     </div>
   );

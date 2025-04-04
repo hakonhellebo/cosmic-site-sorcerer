@@ -2,11 +2,12 @@
 import React from 'react';
 import { BookOpen } from "lucide-react";
 import { Dimension } from '@/utils/dimensions/types';
+import { formatLearningStyle } from '@/utils/highschoolDataFormatters';
 
 interface HighSchoolIntroProps {
   dimensions?: Array<{ name: string; description: string }>;
   interests?: string;
-  learningStyle?: string;
+  learningStyle?: string | Record<string, boolean>;
   workPreference?: string;
 }
 
@@ -16,6 +17,11 @@ const HighSchoolIntro: React.FC<HighSchoolIntroProps> = ({
   learningStyle = 'Ikke spesifisert', 
   workPreference = 'Ikke spesifisert' 
 }) => {
+  // Format learning style if it's an object
+  const formattedLearningStyle = typeof learningStyle === 'object'
+    ? formatLearningStyle(learningStyle)
+    : learningStyle;
+
   return (
     <div className="bg-card p-6 rounded-lg border animate-fade-up relative overflow-hidden">
       <div className="absolute top-0 left-0 h-full w-1 bg-primary"></div>
@@ -53,7 +59,7 @@ const HighSchoolIntro: React.FC<HighSchoolIntroProps> = ({
           </div>
           <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-md">
             <h4 className="font-medium">Læringsstil</h4>
-            <p className="text-sm">{learningStyle}</p>
+            <p className="text-sm">{formattedLearningStyle}</p>
           </div>
           <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-md">
             <h4 className="font-medium">Arbeidspreferanser</h4>
