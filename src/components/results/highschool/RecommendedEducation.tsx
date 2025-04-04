@@ -1,9 +1,10 @@
 
 import React, { useState } from 'react';
-import { Check, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, ExternalLink, Filter } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Badge } from "@/components/ui/badge";
 
 interface RecommendedEducationProps {
   recommendations: any[];
@@ -20,9 +21,10 @@ const RecommendedEducation: React.FC<RecommendedEducationProps> = ({
   showAllRecommendations = false,
   title = "Anbefalte utdanningsprogrammer",
   subtitle = "Basert på din profil, her er noen utdanningsprogrammer som kan passe for deg",
-  maxCount = 6
+  maxCount = 3
 }) => {
   const [expandedProgram, setExpandedProgram] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(showAllRecommendations);
   
   // Toggle expanded education program
   const toggleProgramDetails = (programName: string) => {
@@ -30,14 +32,30 @@ const RecommendedEducation: React.FC<RecommendedEducationProps> = ({
   };
   
   // Determine how many recommendations to show (all, or just the specified max)
-  const displayRecommendations = showAllRecommendations 
+  const displayRecommendations = showAll 
     ? recommendations 
     : recommendations.slice(0, maxCount);
   
   return (
     <div className="space-y-6 animate-fade-up">
       <div className="bg-card p-6 rounded-lg border">
-        <h2 className="text-xl font-semibold mb-2">{title}</h2>
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-xl font-semibold">{title}</h2>
+          {recommendations.length > maxCount && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setShowAll(!showAll)}
+              className="flex items-center gap-1"
+            >
+              {showAll ? (
+                <>Vis topp {maxCount} <ChevronUp className="h-4 w-4" /></>
+              ) : (
+                <>Vis alle {recommendations.length} <ChevronDown className="h-4 w-4" /></>
+              )}
+            </Button>
+          )}
+        </div>
         <p className="text-muted-foreground mb-6">{subtitle}</p>
         
         <div className="space-y-4">
@@ -51,7 +69,10 @@ const RecommendedEducation: React.FC<RecommendedEducationProps> = ({
               <CollapsibleTrigger className="w-full" asChild>
                 <div className="flex justify-between items-center p-4 cursor-pointer">
                   <div className="text-left">
-                    <h3 className="font-semibold">{rec.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold">{rec.name}</h3>
+                      {index < 3 && <Badge variant="default" className="text-xs">Topp match</Badge>}
+                    </div>
                     <p className="text-sm text-muted-foreground">{rec.match}</p>
                   </div>
                   <Button variant="ghost" size="sm" className="ml-2">
@@ -75,6 +96,13 @@ const RecommendedEducation: React.FC<RecommendedEducationProps> = ({
                       <p className="text-sm">{rec.requirements}</p>
                     </div>
                   )}
+                  
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Hvorfor passer dette deg?</h4>
+                    <p className="text-sm">
+                      Dette programmet matcher godt med dine {rec.match.toLowerCase()}
+                    </p>
+                  </div>
                   
                   {rec.link && (
                     <div>

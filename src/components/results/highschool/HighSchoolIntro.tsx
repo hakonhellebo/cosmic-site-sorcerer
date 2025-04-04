@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { BookOpen } from "lucide-react";
+import DimensionsCard from './DimensionsCard';
 
 interface HighSchoolIntroProps {
   dimensions: Array<{ name: string; description: string }>;
@@ -21,25 +22,14 @@ const HighSchoolIntro: React.FC<HighSchoolIntroProps> = ({
       <div className="relative">
         <div className="flex items-center mb-4">
           <BookOpen className="h-6 w-6 mr-2 text-primary" />
-          <h2 className="text-xl font-semibold">Videregåendeskole-elev</h2>
+          <h2 className="text-xl font-semibold">Din personlige profil</h2>
         </div>
         <p className="text-lg mb-6">
           Basert på svarene dine har vi laget en personlig profil som viser dine styrker, interesser 
-          og mulige utdanningsveier. Dette er ikke en fasit – men en start på reisen mot noe som passer deg.
+          og mulige utdanningsveier. Dette er et utgangspunkt for å utforske muligheter som passer deg.
         </p>
         
-        {/* Dimensions section */}
-        <div className="bg-muted/50 p-4 rounded-lg">
-          <h3 className="font-semibold mb-2">Dine topp dimensjoner</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-            {dimensions.slice(0, 3).map((dim, index) => (
-              <div key={index} className="p-3 bg-primary/10 rounded-md">
-                <h4 className="font-medium">{dim.name}</h4>
-                <p className="text-sm">{dim.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+        <DimensionsCard dimensions={dimensions} />
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
           <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-md">
