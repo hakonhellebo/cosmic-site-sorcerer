@@ -18,6 +18,28 @@ export const supabase = createClient(
   supabaseAnonKey
 );
 
+// Helper function for Google sign-in
+export const signInWithGoogle = async () => {
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+      }
+    });
+    
+    return { data, error };
+  } catch (error) {
+    console.error("Google sign-in error:", error);
+    return { 
+      data: null, 
+      error: {
+        message: "Kunne ikke logge inn med Google. Vennligst prøv igjen."
+      } 
+    };
+  }
+};
+
 // Helper function for email sign-up (without verification)
 export const signUpWithEmail = async (email: string, password: string) => {
   try {
