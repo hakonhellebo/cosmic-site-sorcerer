@@ -1,4 +1,3 @@
-
 interface Company {
   name: string;
   website: string;
@@ -384,7 +383,7 @@ const CAREER_DATA: Record<string, CareerField> = {
       { title: "Revisor", description: "Kontrollerer og godkjenner regnskapene til bedrifter og organisasjoner." },
       { title: "Regnskapsrådgiver", description: "Gir råd om regnskapsføring og økonomistyring." },
       { title: "Regnskapssjef", description: "Leder regnskapsavdelingen i en bedrift." },
-      { title: "Skatterådgiver", description: "Gir råd om skattemessige forhold for bedrifter og privatpersoner." },
+      { title: "Skatterådgiver", description: "Kontrollerer skattemessige forhold for skattemyndighetene." },
       { title: "Compliance-ansvarlig", description: "Sikrer at bedriften overholder lover og regler innen regnskap og finans." }
     ],
     companies: [
@@ -401,6 +400,32 @@ const CAREER_DATA: Record<string, CareerField> = {
     ],
     match: "Regnskap og revisjon passer for din nøyaktighet og analytiske tilnærming til tall og systemer."
   },
+  "Rettsvitenskap": {
+    educationProgram: "Rettsvitenskap (jus)",
+    jobs: [
+      { title: "Advokat", description: "Gir juridisk rådgivning og representerer klienter i rettsforhandlinger." },
+      { title: "Dommerfullmektig", description: "Arbeider under opplæring i domstolene." },
+      { title: "Juridisk rådgiver", description: "Gir juridiske råd til bedrifter eller privatpersoner." },
+      { title: "Compliance Officer", description: "Sikrer at en virksomhet opererer i samsvar med lover og regler." },
+      { title: "Jurist i offentlig forvaltning", description: "Arbeider med juridiske spørsmål i offentlig sektor." },
+      { title: "Advokat i påtalemyndigheten", description: "Arbeider med straffesaker på vegne av det offentlige." },
+      { title: "Juridisk utreder", description: "Utfører juridiske utredninger og analyser." }
+    ],
+    companies: [
+      { name: "Wiersholm", website: "https://www.wiersholm.no" },
+      { name: "Thommessen", website: "https://www.thommessen.no" },
+      { name: "Arntzen de Besche", website: "https://www.adeb.no" },
+      { name: "Wikborg Rein", website: "https://www.wr.no" },
+      { name: "BAHR", website: "https://bahr.no" },
+      { name: "Kluge Advokatfirma", website: "https://www.kluge.no" },
+      { name: "Høyesterett", website: "https://www.hoyesterett.no" },
+      { name: "Oslo tingrett", website: "https://www.domstol.no/oslo-tingrett" },
+      { name: "FN-organisasjoner", website: "https://www.fn.no/om-fn/fn-systemet" },
+      { name: "Amnesty International", website: "https://www.amnesty.no" }
+    ],
+    match: "Rettsvitenskap passer godt med din analytiske evne og interesse for samfunnsspørsmål."
+  },
+  
   // Add more education programs from the dataset provided by user
 };
 
@@ -480,6 +505,13 @@ export function getCareerRecommendations(educationPrograms: string[]): CareerFie
         normalizedProgram.includes("revisor")) {
       console.log("Matched with Accounting based on keywords");
       return CAREER_DATA["Regnskap og revisjon"];
+    }
+    
+    // Add specific check for law-related keywords
+    if (normalizedProgram.includes("jus") || normalizedProgram.includes("rett") || 
+        normalizedProgram.includes("juridisk") || normalizedProgram.includes("rettsvitenskap")) {
+      console.log("Matched with Law based on keywords");
+      return CAREER_DATA["Rettsvitenskap"];
     }
     
     // Partial matches if no exact match found
