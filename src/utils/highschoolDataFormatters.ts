@@ -69,11 +69,8 @@ export const formatCourses = (
   return mappedCourses.length > 0 ? mappedCourses.join(', ') : "Ingen valgt";
 };
 
-export const formatLearningStyle = (learningStyle: Record<string, boolean> | string | undefined): string => {
+export const formatLearningStyle = (learningStyle: Record<string, boolean> | undefined): string => {
   if (!learningStyle) return "Ikke spesifisert";
-  
-  // If learningStyle is already a string, return it
-  if (typeof learningStyle === 'string') return learningStyle;
   
   const mappedStyles = Object.keys(learningStyle)
     .filter(key => learningStyle[key] === true)
@@ -103,7 +100,7 @@ export const formatWorkPreference = (workPreference: string | undefined): string
     case 'team': return 'Jobbe i team';
     case 'individual': return 'Jobbe alene';
     case 'mixed': return 'Kombinasjon av alene og i team';
-    default: return workPreference || 'Kombinasjon av alene og i team';
+    default: return 'Kombinasjon av alene og i team';
   }
 };
 

@@ -1,147 +1,154 @@
 
-import React from 'react';
+import React, { useState } from 'react';
+import { Check, ChevronDown, ChevronUp, ExternalLink, Filter } from "lucide-react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
-import { Check, ExternalLink } from "lucide-react";
-import { Dimension } from '@/utils/dimensions/types';
 
 interface RecommendedEducationProps {
-  dimensions?: Dimension[];
-  recommendations?: {
-    title: string;
-    institution: string;
-    description: string;
-    link?: string; // Make link optional with ?
-  }[];
-  nextSteps?: string[];
+  recommendations: any[];
+  nextSteps: string[];
+  showAllRecommendations?: boolean;
   title?: string;
   subtitle?: string;
-  maxRecommendations?: number;
+  maxCount?: number;
 }
 
-const RecommendedEducation: React.FC<RecommendedEducationProps> = ({
-  dimensions,
-  recommendations = [],
-  nextSteps = [],
-  title = "Anbefalte utdanninger",
-  subtitle = "Basert på din profil",
-  maxRecommendations = 4
+const RecommendedEducation: React.FC<RecommendedEducationProps> = ({ 
+  recommendations, 
+  nextSteps,
+  showAllRecommendations = false,
+  title = "Anbefalte utdanningsprogrammer",
+  subtitle = "Basert på din profil, her er noen utdanningsprogrammer som kan passe for deg",
+  maxCount = 3
 }) => {
-  // Ensure recommendations is an array and limit the number shown
-  const displayRecommendations = recommendations.slice(0, maxRecommendations);
+  const [expandedProgram, setExpandedProgram] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(showAllRecommendations);
+  
+  // Toggle expanded education program
+  const toggleProgramDetails = (programName: string) => {
+    setExpandedProgram(expandedProgram === programName ? null : programName);
+  };
+  
+  // Determine how many recommendations to show (all, or just the specified max)
+  const displayRecommendations = showAll 
+    ? recommendations 
+    : recommendations.slice(0, maxCount);
   
   return (
     <div className="space-y-6 animate-fade-up">
-      <div className="flex flex-col md:flex-row md:items-end justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold mb-1">{title}</h2>
-          <p className="text-muted-foreground">{subtitle}</p>
+      <div className="bg-card p-6 rounded-lg border">
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-xl font-semibold">{title}</h2>
+          {recommendations.length > maxCount && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setShowAll(!showAll)}
+              className="flex items-center gap-1"
+            >
+              {showAll ? (
+                <>Vis topp {maxCount} <ChevronUp className="h-4 w-4" /></>
+              ) : (
+                <>Vis alle {recommendations.length} <ChevronDown className="h-4 w-4" /></>
+              )}
+            </Button>
+          )}
+        </div>
+        <p className="text-muted-foreground mb-6">{subtitle}</p>
+        
+        <div className="space-y-4">
+          {displayRecommendations.map((rec, index) => (
+            <Collapsible 
+              key={index}
+              open={expandedProgram === rec.name} 
+              onOpenChange={() => toggleProgramDetails(rec.name)}
+              className="border rounded-lg overflow-hidden bg-muted/30 hover:shadow-md transition-shadow"
+            >
+              <CollapsibleTrigger className="w-full" asChild>
+                <div className="flex justify-between items-center p-4 cursor-pointer">
+                  <div className="text-left">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold">{rec.name}</h3>
+                      {index < 3 && <Badge variant="default" className="text-xs">Topp match</Badge>}
+                    </div>
+                    <p className="text-sm text-muted-foreground">{rec.match}</p>
+                  </div>
+                  <Button variant="ghost" size="sm" className="ml-2">
+                    {expandedProgram === rec.name ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                  </Button>
+                </div>
+              </CollapsibleTrigger>
+              
+              <CollapsibleContent className="border-t">
+                <div className="p-4 space-y-4">
+                  <p className="text-sm">{rec.description || 'Dette studieprogrammet passer med din profil.'}</p>
+                  
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Utdanningsinstitusjoner</h4>
+                    <p className="text-sm">{rec.institution}</p>
+                  </div>
+                  
+                  {rec.requirements && (
+                    <div>
+                      <h4 className="text-sm font-medium mb-2">Opptakskrav</h4>
+                      <p className="text-sm">{rec.requirements}</p>
+                    </div>
+                  )}
+                  
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Hvorfor passer dette deg?</h4>
+                    <p className="text-sm">
+                      Dette programmet matcher godt med dine {rec.match.toLowerCase()}
+                    </p>
+                  </div>
+                  
+                  {rec.link && (
+                    <div>
+                      <h4 className="text-sm font-medium mb-2">Les mer</h4>
+                      <a 
+                        href={rec.link} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-primary hover:underline inline-flex items-center text-sm"
+                      >
+                        Se utdanningen <ExternalLink size={14} className="ml-1" />
+                      </a>
+                    </div>
+                  )}
+                  
+                  {rec.highlights && (
+                    <div className="mt-3">
+                      <h4 className="text-sm font-medium mb-2">Fordeler</h4>
+                      {rec.highlights?.map((highlight: string, idx: number) => (
+                        <div key={idx} className="text-sm flex items-start mb-1">
+                          <Check className="h-4 w-4 mr-1 mt-0.5 text-green-500 flex-shrink-0" />
+                          <span>{highlight}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          ))}
         </div>
         
-        {/* Dimension badges */}
-        {dimensions && dimensions.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-3 md:mt-0">
-            {dimensions.slice(0, 3).map((dim, idx) => (
-              <Badge 
-                key={idx} 
-                variant="outline" 
-                className="bg-muted/30"
-              >
-                {dim.name}
-              </Badge>
-            ))}
+        {nextSteps.length > 0 && (
+          <div className="mt-6 bg-muted/40 p-4 rounded-md">
+            <h3 className="font-medium mb-2">Neste steg</h3>
+            <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {nextSteps.map((step, index) => (
+                <li key={index} className="flex items-start">
+                  <Check className="h-5 w-5 mr-2 mt-0.5 text-primary flex-shrink-0" />
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
       </div>
-      
-      {displayRecommendations.length > 0 ? (
-        <>
-          {/* Table version for larger screens */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-3 font-medium">Utdanning</th>
-                  <th className="text-left py-3 font-medium">Lærested</th>
-                  <th className="text-left py-3 font-medium">Hvorfor passer det deg?</th>
-                  <th className="text-left py-3"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {displayRecommendations.map((rec, idx) => (
-                  <tr key={idx} className="border-b hover:bg-muted/20">
-                    <td className="py-3 font-medium">{rec.title}</td>
-                    <td className="py-3">{rec.institution}</td>
-                    <td className="py-3">{rec.description}</td>
-                    <td className="py-3 text-right">
-                      {rec.link && (
-                        <a 
-                          href={rec.link} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="inline-flex items-center gap-1 text-primary hover:underline"
-                        >
-                          <span>Les mer</span>
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          
-          {/* Card version for mobile */}
-          <div className="grid grid-cols-1 gap-4 md:hidden">
-            {displayRecommendations.map((rec, idx) => (
-              <div key={idx} className="border rounded-lg p-4 hover:bg-muted/10">
-                <h3 className="font-medium text-lg">{rec.title}</h3>
-                <p className="text-sm text-muted-foreground mb-2">{rec.institution}</p>
-                <p className="mb-3">{rec.description}</p>
-                {rec.link && (
-                  <a 
-                    href={rec.link}
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="inline-flex items-center gap-1 text-primary hover:underline text-sm"
-                  >
-                    <span>Les mer</span>
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
-                )}
-              </div>
-            ))}
-          </div>
-          
-          {/* Show more button */}
-          <div className="flex justify-end">
-            <Button variant="outline" className="flex items-center gap-2 mt-2">
-              <span>Se flere muligheter</span>
-              <ExternalLink className="h-4 w-4" />
-            </Button>
-          </div>
-        </>
-      ) : (
-        <div className="p-6 border rounded-lg bg-muted/10 text-center">
-          <p>Ingen anbefalte utdanninger funnet. Prøv å oppdatere profilen din.</p>
-        </div>
-      )}
-      
-      {/* Next steps section */}
-      {nextSteps.length > 0 && (
-        <div className="bg-card p-6 rounded-lg border-border border mt-6">
-          <h3 className="font-semibold text-lg mb-4">Anbefalte neste steg</h3>
-          <ul className="space-y-2">
-            {nextSteps.map((step, idx) => (
-              <li key={idx} className="flex items-start">
-                <Check className="h-5 w-5 text-primary shrink-0 mr-2 mt-0.5" />
-                <span>{step}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
     </div>
   );
 };

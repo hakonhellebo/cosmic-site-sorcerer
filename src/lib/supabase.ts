@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 
 // Get environment variables or use provided project URL
@@ -14,37 +15,8 @@ if (!supabaseAnonKey) {
 // Create a Supabase client with the available credentials
 export const supabase = createClient(
   supabaseUrl,
-  supabaseAnonKey,
-  {
-    auth: {
-      storage: localStorage,
-      persistSession: true,
-      autoRefreshToken: true
-    }
-  }
+  supabaseAnonKey
 );
-
-// Helper function for Google sign-in
-export const signInWithGoogle = async (redirectUrl?: string) => {
-  try {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: redirectUrl || `${window.location.origin}/dashboard`,
-      }
-    });
-    
-    return { data, error };
-  } catch (error) {
-    console.error("Google sign-in error:", error);
-    return { 
-      data: null, 
-      error: {
-        message: "Kunne ikke logge inn med Google. Vennligst prøv igjen."
-      } 
-    };
-  }
-};
 
 // Helper function for email sign-up (without verification)
 export const signUpWithEmail = async (email: string, password: string) => {

@@ -16,11 +16,7 @@ interface CareerField {
 }
 
 // Helper function to clean and normalize a program name for comparison
-function normalizeProgram(program: string | undefined | null): string {
-  if (!program) {
-    return '';
-  }
-  
+function normalizeProgram(program: string): string {
   return program
     .toLowerCase()
     .trim()
@@ -429,258 +425,226 @@ const CAREER_DATA: Record<string, CareerField> = {
     ],
     match: "Rettsvitenskap passer godt med din analytiske evne og interesse for samfunnsspørsmål."
   },
-  "Bachelor i HR og personalledelse": {
-    educationProgram: "Bachelor i HR og personalledelse",
-    jobs: [
-      { title: "HR-koordinator", description: "Håndterer daglige HR-oppgaver som ansettelser, opplæring og medarbeiderutvikling." },
-      { title: "Personalkonsulent", description: "Gir råd og veiledning i personalspørsmål til ledere og ansatte." },
-      { title: "Rekrutteringsansvarlig", description: "Leder rekrutteringsprosesser fra jobbanalyse til ansettelse." },
-      { title: "Arbeidsmiljøspesialist", description: "Jobber med å forbedre og vedlikeholde et godt arbeidsmiljø." },
-      { title: "Lønn- og personalrådgiver", description: "Håndterer lønnsprosesser og gir råd om personalspørsmål." }
-    ],
-    companies: [
-      { name: "NAV", website: "https://www.nav.no" },
-      { name: "Manpower", website: "https://www.manpower.no" },
-      { name: "Adecco", website: "https://www.adecco.no" },
-      { name: "Statens vegvesen", website: "https://www.vegvesen.no" },
-      { name: "Kommunal- og moderniseringsdepartementet", website: "https://www.regjeringen.no/no/dep/kmd/id504/" },
-      { name: "Oslo kommune", website: "https://www.oslo.kommune.no" },
-      { name: "Forsvaret", website: "https://www.forsvaret.no" },
-      { name: "Helse Sør-Øst RHF", website: "https://www.helse-sorost.no" },
-      { name: "DNB", website: "https://www.dnb.no" },
-      { name: "Storebrand", website: "https://www.storebrand.no" }
-    ],
-    match: "Denne utdanningen passer godt med din interesse for mennesker og organisasjonsutvikling."
-  },
   
   // Add more education programs from the dataset provided by user
 };
 
 // Enhanced mapping function to better match education programs to career opportunities
-export function getCareerRecommendations(educationPrograms: (string | undefined | null)[]): CareerField[] {
+export function getCareerRecommendations(educationPrograms: string[]): CareerField[] {
   if (!educationPrograms || educationPrograms.length === 0) {
     return [];
   }
 
-  return educationPrograms
-    .filter(program => program !== undefined && program !== null)
-    .map(program => {
-      const normalizedProgram = normalizeProgram(program);
-      console.log(`Looking for career matches for: "${program}" (normalized: "${normalizedProgram}")`);
-      
-      // Direct match with program name
-      for (const key of Object.keys(CAREER_DATA)) {
-        if (normalizeProgram(key) === normalizedProgram) {
-          console.log(`Found direct match: ${key}`);
-          return CAREER_DATA[key];
-        }
+  return educationPrograms.map(program => {
+    const normalizedProgram = normalizeProgram(program);
+    console.log(`Looking for career matches for: "${program}" (normalized: "${normalizedProgram}")`);
+    
+    // Direct match with program name
+    for (const key of Object.keys(CAREER_DATA)) {
+      if (normalizeProgram(key) === normalizedProgram) {
+        console.log(`Found direct match: ${key}`);
+        return CAREER_DATA[key];
       }
-      
-      // Check for HR related programs
-      if (normalizedProgram.includes("hr") || normalizedProgram.includes("personal") || 
-          normalizedProgram.includes("organisasjon") || normalizedProgram.includes("ledelse")) {
-        console.log("Matched with HR based on keywords");
-        return CAREER_DATA["Bachelor i HR og personalledelse"];
+    }
+    
+    // Check for specific keywords in the program name
+    if (normalizedProgram.includes("medisin") || normalizedProgram.includes("lege")) {
+      console.log("Matched with Medicine based on keywords");
+      return CAREER_DATA["Medisin"];
+    }
+    
+    if (normalizedProgram.includes("psykologi") || normalizedProgram.includes("terapi")) {
+      console.log("Matched with Psychology based on keywords");
+      return CAREER_DATA["Psykologi"];
+    }
+    
+    if (normalizedProgram.includes("odontologi") || normalizedProgram.includes("tann")) {
+      console.log("Matched with Odontology based on keywords");
+      return CAREER_DATA["Odontologi"];
+    }
+    
+    if (normalizedProgram.includes("økonomi") && (normalizedProgram.includes("administrasjon") || normalizedProgram.includes("admin"))) {
+      console.log("Matched with Business Administration based on keywords");
+      return CAREER_DATA["Økonomi og administrasjon"];
+    }
+    
+    if (normalizedProgram.includes("informatikk") || normalizedProgram.includes("data") || 
+        normalizedProgram.includes("it") || normalizedProgram.includes("programmering")) {
+      console.log("Matched with Computer Science based on keywords");
+      return CAREER_DATA["Informatikk"];
+    }
+    
+    if (normalizedProgram.includes("ingeniør") && !normalizedProgram.includes("energi")) {
+      console.log("Matched with Engineering based on keywords");
+      return CAREER_DATA["Ingeniør"];
+    }
+    
+    if ((normalizedProgram.includes("fornybar") && normalizedProgram.includes("energi")) || 
+        (normalizedProgram.includes("energi") && normalizedProgram.includes("ingeniør"))) {
+      console.log("Matched with Renewable Energy based on keywords");
+      return CAREER_DATA["Fornybar energi"];
+    }
+    
+    if (normalizedProgram.includes("finans")) {
+      console.log("Matched with Finance based on keywords");
+      if (normalizedProgram.includes("bachelor")) {
+        return CAREER_DATA["Bachelor i finans"];
+      } else if (normalizedProgram.includes("master")) {
+        return CAREER_DATA["Master i finans"];
+      } else {
+        return CAREER_DATA["Bachelor i finans"];
       }
-      
-      // Check for medicine, psychology, etc.
-      if (normalizedProgram.includes("medisin") || normalizedProgram.includes("lege")) {
-        console.log("Matched with Medicine based on keywords");
-        return CAREER_DATA["Medisin"];
+    }
+    
+    if (normalizedProgram.includes("shipping") || normalizedProgram.includes("maritim")) {
+      console.log("Matched with Shipping Management based on keywords");
+      return CAREER_DATA["Bachelor i shipping management"];
+    }
+    
+    if ((normalizedProgram.includes("regnskap") && normalizedProgram.includes("revisjon")) || 
+        normalizedProgram.includes("revisor")) {
+      console.log("Matched with Accounting based on keywords");
+      return CAREER_DATA["Regnskap og revisjon"];
+    }
+    
+    // Add specific check for law-related keywords
+    if (normalizedProgram.includes("jus") || normalizedProgram.includes("rett") || 
+        normalizedProgram.includes("juridisk") || normalizedProgram.includes("rettsvitenskap")) {
+      console.log("Matched with Law based on keywords");
+      return CAREER_DATA["Rettsvitenskap"];
+    }
+    
+    // Partial matches if no exact match found
+    for (const key of Object.keys(CAREER_DATA)) {
+      const normalizedKey = normalizeProgram(key);
+      if (normalizedProgram.includes(normalizedKey) || normalizedKey.includes(normalizedProgram)) {
+        console.log(`Found partial match: ${key}`);
+        return CAREER_DATA[key];
       }
-      
-      if (normalizedProgram.includes("psykologi") || normalizedProgram.includes("terapi")) {
-        console.log("Matched with Psychology based on keywords");
-        return CAREER_DATA["Psykologi"];
-      }
-      
-      if (normalizedProgram.includes("odontologi") || normalizedProgram.includes("tann")) {
-        console.log("Matched with Odontology based on keywords");
-        return CAREER_DATA["Odontologi"];
-      }
-      
-      if (normalizedProgram.includes("økonomi") && (normalizedProgram.includes("administrasjon") || normalizedProgram.includes("admin"))) {
-        console.log("Matched with Business Administration based on keywords");
-        return CAREER_DATA["Økonomi og administrasjon"];
-      }
-      
-      if (normalizedProgram.includes("informatikk") || normalizedProgram.includes("data") || 
-          normalizedProgram.includes("it") || normalizedProgram.includes("programmering")) {
-        console.log("Matched with Computer Science based on keywords");
-        return CAREER_DATA["Informatikk"];
-      }
-      
-      if (normalizedProgram.includes("ingeniør") && !normalizedProgram.includes("energi")) {
-        console.log("Matched with Engineering based on keywords");
-        return CAREER_DATA["Ingeniør"];
-      }
-      
-      if ((normalizedProgram.includes("fornybar") && normalizedProgram.includes("energi")) || 
-          (normalizedProgram.includes("energi") && normalizedProgram.includes("ingeniør"))) {
-        console.log("Matched with Renewable Energy based on keywords");
-        return CAREER_DATA["Fornybar energi"];
-      }
-      
-      if (normalizedProgram.includes("finans")) {
-        console.log("Matched with Finance based on keywords");
-        if (normalizedProgram.includes("bachelor")) {
-          return CAREER_DATA["Bachelor i finans"];
-        } else if (normalizedProgram.includes("master")) {
-          return CAREER_DATA["Master i finans"];
-        } else {
-          return CAREER_DATA["Bachelor i finans"];
-        }
-      }
-      
-      if (normalizedProgram.includes("shipping") || normalizedProgram.includes("maritim")) {
-        console.log("Matched with Shipping Management based on keywords");
-        return CAREER_DATA["Bachelor i shipping management"];
-      }
-      
-      if ((normalizedProgram.includes("regnskap") && normalizedProgram.includes("revisjon")) || 
-          normalizedProgram.includes("revisor")) {
-        console.log("Matched with Accounting based on keywords");
-        return CAREER_DATA["Regnskap og revisjon"];
-      }
-      
-      // Add specific check for law-related keywords
-      if (normalizedProgram.includes("jus") || normalizedProgram.includes("rett") || 
-          normalizedProgram.includes("juridisk") || normalizedProgram.includes("rettsvitenskap")) {
-        console.log("Matched with Law based on keywords");
-        return CAREER_DATA["Rettsvitenskap"];
-      }
-      
-      // Partial matches if no exact match found
-      for (const key of Object.keys(CAREER_DATA)) {
-        const normalizedKey = normalizeProgram(key);
-        if (normalizedProgram.includes(normalizedKey) || normalizedKey.includes(normalizedProgram)) {
-          console.log(`Found partial match: ${key}`);
-          return CAREER_DATA[key];
-        }
-      }
+    }
 
-      console.log(`No specific career match found for: ${program}, using education-specific default career options`);
-      
-      // Default careers based on education field
-      if (normalizedProgram.includes('design') || normalizedProgram.includes('kunst') || normalizedProgram.includes('arkitekt')) {
-        return {
-          educationProgram: program,
-          jobs: [
-            { title: "Designer", description: "Skaper visuelle løsninger og konsepter basert på klienters behov." },
-            { title: "Konseptutvikler", description: "Utvikler kreative konsepter for produkter, tjenester eller kommunikasjon." },
-            { title: "Kreativ leder", description: "Leder kreative prosesser og team i designprosjekter." },
-            { title: "Art Director", description: "Ansvarlig for det visuelle uttrykket i markedsføring og kommunikasjon." },
-            { title: "Interiørkonsulent", description: "Gir råd om romløsninger og interiørdesign for private og kommersielle kunder." }
-          ],
-          companies: [
-            { name: "Snøhetta", website: "https://snohetta.com" },
-            { name: "Designit", website: "https://www.designit.com" },
-            { name: "EGGS Design", website: "https://eggsdesign.com" },
-            { name: "Scandinavian Design Group", website: "https://sdg.no" },
-            { name: "Bekk Consulting", website: "https://www.bekk.no" }
-          ],
-          match: "Dette utdanningsprogrammet passer godt med din kreative profil."
-        };
-      } 
-      else if (normalizedProgram.includes('jus') || normalizedProgram.includes('rett')) {
-        return {
-          educationProgram: program,
-          jobs: [
-            { title: "Advokatfullmektig", description: "Jobber under opplæring hos erfaren advokat." },
-            { title: "Juridisk rådgiver", description: "Gir juridiske råd til bedrifter eller privatpersoner." },
-            { title: "Compliance Officer", description: "Sikrer at en virksomhet opererer i samsvar med lover og regler." },
-            { title: "Jurist i offentlig forvaltning", description: "Arbeider med juridiske spørsmål i offentlig sektor." },
-            { title: "Dommerfullmektig", description: "Arbeider under opplæring i domstolene." }
-          ],
-          companies: [
-            { name: "Wikborg Rein", website: "https://www.wr.no" },
-            { name: "Schjødt", website: "https://www.schjodt.no" },
-            { name: "BAHR", website: "https://bahr.no" },
-            { name: "Thommessen", website: "https://www.thommessen.no" },
-            { name: "Domstolsadministrasjonen", website: "https://www.domstol.no" }
-          ],
-          match: "Dette juridiske programmet matcher din strukturerte og analytiske tilnærming."
-        };
-      }
-      else if (normalizedProgram.includes('farmasi') || normalizedProgram.includes('apotek')) {
-        return {
-          educationProgram: program,
-          jobs: [
-            { title: "Farmasøyt", description: "Gir råd om og selger medisiner i apotek." },
-            { title: "Klinisk farmasøyt", description: "Jobber med pasientsikkerhet og legemiddelbruk i helseinstitusjoner." },
-            { title: "Produktspesialist i legemiddelindustrien", description: "Gir informasjon om legemidler til helsepersonell." },
-            { title: "Regulatory Affairs-spesialist", description: "Sikrer at legemidler oppfyller myndighetskrav." },
-            { title: "Forsker i legemiddelutvikling", description: "Arbeider med utvikling av nye medisiner." }
-          ],
-          companies: [
-            { name: "Apotek 1", website: "https://www.apotek1.no" },
-            { name: "Boots Apotek", website: "https://www.boots.no" },
-            { name: "Vitus Apotek", website: "https://www.vitusapotek.no" },
-            { name: "Pfizer", website: "https://www.pfizer.no" },
-            { name: "Statens Legemiddelverk", website: "https://legemiddelverket.no" }
-          ],
-          match: "Farmasi passer godt med din strukturerte og analytiske tilnærming."
-        };
-      }
-      else if (normalizedProgram.includes('statsvitenskap') || normalizedProgram.includes('politikk')) {
-        return {
-          educationProgram: program,
-          jobs: [
-            { title: "Politisk rådgiver", description: "Gir faglige råd til politikere eller politiske organisasjoner." },
-            { title: "Utredningskonsulent", description: "Analyserer samfunnsspørsmål og utarbeider beslutningsgrunnlag." },
-            { title: "Kommunikasjonsrådgiver", description: "Arbeider med kommunikasjon i offentlig eller privat sektor." },
-            { title: "Organisasjonskonsulent", description: "Jobber med organisasjonsutvikling og -analyse." },
-            { title: "Internasjonal koordinator", description: "Koordinerer internasjonale prosjekter eller samarbeid." }
-          ],
-          companies: [
-            { name: "Departementene", website: "https://www.regjeringen.no" },
-            { name: "Kommunesektorens organisasjon", website: "https://www.ks.no" },
-            { name: "Norsk Utenrikspolitisk Institutt", website: "https://www.nupi.no" },
-            { name: "Tankesmien Agenda", website: "https://www.tankesmienagenda.no" },
-            { name: "FN-sambandet", website: "https://www.fn.no" }
-          ],
-          match: "Statsvitenskap passer godt med din analytiske og strukturerte tilnærming."
-        };
-      }
-      else if (normalizedProgram.includes('regnskap') || normalizedProgram.includes('revisjon')) {
-        return {
-          educationProgram: program,
-          jobs: [
-            { title: "Revisormedarbeider", description: "Jobber med revisjon under opplæring." },
-            { title: "Regnskapsfører", description: "Fører regnskap for bedrifter eller organisasjoner." },
-            { title: "Financial Controller", description: "Kontrollerer økonomiske prosesser i en virksomhet." },
-            { title: "Skatterevisor", description: "Kontrollerer skattemessige forhold for skattemyndighetene." },
-            { title: "Økonomiansvarlig", description: "Har overordnet ansvar for økonomifunksjonen i en mindre virksomhet." }
-          ],
-          companies: [
-            { name: "Deloitte", website: "https://www2.deloitte.com/no/" },
-            { name: "EY", website: "https://www.ey.com/no_no" },
-            { name: "PwC", website: "https://www.pwc.no" },
-            { name: "KPMG", website: "https://home.kpmg/no/nb/home.html" },
-            { name: "BDO", website: "https://www.bdo.no" }
-          ],
-          match: "Regnskap og revisjon matcher din struktur og analytiske evner."
-        };
-      }
-      
-      // Default generic field if no specific match found
+    console.log(`No specific career match found for: ${program}, using education-specific default career options`);
+    
+    // Default careers based on education field
+    if (normalizedProgram.includes('design') || normalizedProgram.includes('kunst') || normalizedProgram.includes('arkitekt')) {
       return {
         educationProgram: program,
         jobs: [
-          { title: "Rådgiver", description: "Gir faglige råd og veiledning basert på din kompetanse." },
-          { title: "Forsker", description: "Utfører forskningsarbeid innenfor relevante fagområder." },
-          { title: "Faglærer", description: "Underviser andre i ditt spesialområde." },
-          { title: "Bransjeanalytiker", description: "Analyserer trender og utvikling innen relevante bransjer." },
-          { title: "Produktspesialist", description: "Utvikler, implementerer eller markedsfører spesialiserte produkter innen ditt fagfelt." }
+          { title: "Designer", description: "Skaper visuelle løsninger og konsepter basert på klienters behov." },
+          { title: "Konseptutvikler", description: "Utvikler kreative konsepter for produkter, tjenester eller kommunikasjon." },
+          { title: "Kreativ leder", description: "Leder kreative prosesser og team i designprosjekter." },
+          { title: "Art Director", description: "Ansvarlig for det visuelle uttrykket i markedsføring og kommunikasjon." },
+          { title: "Interiørkonsulent", description: "Gir råd om romløsninger og interiørdesign for private og kommersielle kunder." }
         ],
         companies: [
-          { name: "Universiteter og høyskoler", website: "https://www.samordnaopptak.no" },
-          { name: "Forskningsinstitusjoner", website: "https://www.forskningsradet.no" },
-          { name: "Offentlige virksomheter", website: "https://www.nav.no" },
-          { name: "Konsulentselskaper", website: "https://www.finn.no/job" },
-          { name: "Bransjeorganisasjoner", website: "https://www.nho.no" }
+          { name: "Snøhetta", website: "https://snohetta.com" },
+          { name: "Designit", website: "https://www.designit.com" },
+          { name: "EGGS Design", website: "https://eggsdesign.com" },
+          { name: "Scandinavian Design Group", website: "https://sdg.no" },
+          { name: "Bekk Consulting", website: "https://www.bekk.no" }
         ],
-        match: "Dette utdanningsprogrammet kan åpne for mange ulike karrieremuligheter."
+        match: "Dette utdanningsprogrammet passer godt med din kreative profil."
       };
-    });
+    } 
+    else if (normalizedProgram.includes('jus') || normalizedProgram.includes('rett')) {
+      return {
+        educationProgram: program,
+        jobs: [
+          { title: "Advokatfullmektig", description: "Jobber under opplæring hos erfaren advokat." },
+          { title: "Juridisk rådgiver", description: "Gir juridiske råd til bedrifter eller privatpersoner." },
+          { title: "Compliance Officer", description: "Sikrer at en virksomhet opererer i samsvar med lover og regler." },
+          { title: "Jurist i offentlig forvaltning", description: "Arbeider med juridiske spørsmål i offentlig sektor." },
+          { title: "Dommerfullmektig", description: "Arbeider under opplæring i domstolene." }
+        ],
+        companies: [
+          { name: "Wikborg Rein", website: "https://www.wr.no" },
+          { name: "Schjødt", website: "https://www.schjodt.no" },
+          { name: "BAHR", website: "https://bahr.no" },
+          { name: "Thommessen", website: "https://www.thommessen.no" },
+          { name: "Domstolsadministrasjonen", website: "https://www.domstol.no" }
+        ],
+        match: "Dette juridiske programmet matcher din strukturerte og analytiske tilnærming."
+      };
+    }
+    else if (normalizedProgram.includes('farmasi') || normalizedProgram.includes('apotek')) {
+      return {
+        educationProgram: program,
+        jobs: [
+          { title: "Farmasøyt", description: "Gir råd om og selger medisiner i apotek." },
+          { title: "Klinisk farmasøyt", description: "Jobber med pasientsikkerhet og legemiddelbruk i helseinstitusjoner." },
+          { title: "Produktspesialist i legemiddelindustrien", description: "Gir informasjon om legemidler til helsepersonell." },
+          { title: "Regulatory Affairs-spesialist", description: "Sikrer at legemidler oppfyller myndighetskrav." },
+          { title: "Forsker i legemiddelutvikling", description: "Arbeider med utvikling av nye medisiner." }
+        ],
+        companies: [
+          { name: "Apotek 1", website: "https://www.apotek1.no" },
+          { name: "Boots Apotek", website: "https://www.boots.no" },
+          { name: "Vitus Apotek", website: "https://www.vitusapotek.no" },
+          { name: "Pfizer", website: "https://www.pfizer.no" },
+          { name: "Statens Legemiddelverk", website: "https://legemiddelverket.no" }
+        ],
+        match: "Farmasi passer godt med din strukturerte og analytiske tilnærming."
+      };
+    }
+    else if (normalizedProgram.includes('statsvitenskap') || normalizedProgram.includes('politikk')) {
+      return {
+        educationProgram: program,
+        jobs: [
+          { title: "Politisk rådgiver", description: "Gir faglige råd til politikere eller politiske organisasjoner." },
+          { title: "Utredningskonsulent", description: "Analyserer samfunnsspørsmål og utarbeider beslutningsgrunnlag." },
+          { title: "Kommunikasjonsrådgiver", description: "Arbeider med kommunikasjon i offentlig eller privat sektor." },
+          { title: "Organisasjonskonsulent", description: "Jobber med organisasjonsutvikling og -analyse." },
+          { title: "Internasjonal koordinator", description: "Koordinerer internasjonale prosjekter eller samarbeid." }
+        ],
+        companies: [
+          { name: "Departementene", website: "https://www.regjeringen.no" },
+          { name: "Kommunesektorens organisasjon", website: "https://www.ks.no" },
+          { name: "Norsk Utenrikspolitisk Institutt", website: "https://www.nupi.no" },
+          { name: "Tankesmien Agenda", website: "https://www.tankesmienagenda.no" },
+          { name: "FN-sambandet", website: "https://www.fn.no" }
+        ],
+        match: "Statsvitenskap passer godt med din analytiske og strukturerte tilnærming."
+      };
+    }
+    else if (normalizedProgram.includes('regnskap') || normalizedProgram.includes('revisjon')) {
+      return {
+        educationProgram: program,
+        jobs: [
+          { title: "Revisormedarbeider", description: "Jobber med revisjon under opplæring." },
+          { title: "Regnskapsfører", description: "Fører regnskap for bedrifter eller organisasjoner." },
+          { title: "Financial Controller", description: "Kontrollerer økonomiske prosesser i en virksomhet." },
+          { title: "Skatterevisor", description: "Kontrollerer skattemessige forhold for skattemyndighetene." },
+          { title: "Økonomiansvarlig", description: "Har overordnet ansvar for økonomifunksjonen i en mindre virksomhet." }
+        ],
+        companies: [
+          { name: "Deloitte", website: "https://www2.deloitte.com/no/" },
+          { name: "EY", website: "https://www.ey.com/no_no" },
+          { name: "PwC", website: "https://www.pwc.no" },
+          { name: "KPMG", website: "https://home.kpmg/no/nb/home.html" },
+          { name: "BDO", website: "https://www.bdo.no" }
+        ],
+        match: "Regnskap og revisjon matcher din struktur og analytiske evner."
+      };
+    }
+    
+    // Default generic field if no specific match found
+    return {
+      educationProgram: program,
+      jobs: [
+        { title: "Rådgiver", description: "Gir faglige råd og veiledning basert på din kompetanse." },
+        { title: "Forsker", description: "Utfører forskningsarbeid innenfor relevante fagområder." },
+        { title: "Faglærer", description: "Underviser andre i ditt spesialområde." },
+        { title: "Bransjeanalytiker", description: "Analyserer trender og utvikling innen relevante bransjer." },
+        { title: "Produktspesialist", description: "Utvikler, implementerer eller markedsfører spesialiserte produkter innen ditt fagfelt." }
+      ],
+      companies: [
+        { name: "Universiteter og høyskoler", website: "https://www.samordnaopptak.no" },
+        { name: "Forskningsinstitusjoner", website: "https://www.forskningsradet.no" },
+        { name: "Offentlige virksomheter", website: "https://www.nav.no" },
+        { name: "Konsulentselskaper", website: "https://www.finn.no/job" },
+        { name: "Bransjeorganisasjoner", website: "https://www.nho.no" }
+      ],
+      match: "Dette utdanningsprogrammet kan åpne for mange ulike karrieremuligheter."
+    };
+  });
 }
