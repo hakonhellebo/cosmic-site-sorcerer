@@ -1,121 +1,47 @@
 
 import React from 'react';
-import { ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger
-} from "@/components/ui/accordion";
 
-interface Company {
-  name: string;
-  website: string;
-}
-
-interface JobOpportunity {
-  title: string;
-  description: string;
-}
-
-interface CareerField {
+export interface CareerField {
   educationProgram: string;
-  jobs: JobOpportunity[];
-  companies: Company[];
-  match?: string;
+  jobs: { title: string; description: string }[];
+  companies: string[];
 }
 
 interface CareerOpportunitiesProps {
-  careerFields: CareerField[];
+  careerFields?: CareerField[];
 }
 
-const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({ careerFields }) => {
-  if (!careerFields || careerFields.length === 0) {
-    return (
-      <div className="p-6 bg-muted/30 rounded-lg">
-        <p>Ingen karrieremuligheter funnet for din profil.</p>
-      </div>
-    );
-  }
-
+const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({ careerFields = [] }) => {
   return (
-    <div className="space-y-6 animate-fade-up">
-      <h3 className="text-2xl font-semibold">Karrieremuligheter</h3>
+    <div className="animate-fade-up">
+      <h3 className="text-2xl font-semibold mb-6">Karrieremuligheter</h3>
       
-      <Tabs defaultValue={careerFields[0].educationProgram.replace(/\s+/g, '-').toLowerCase()} className="w-full">
-        <TabsList className="mb-6 flex flex-wrap h-auto gap-2">
-          {careerFields.map((field) => (
-            <TabsTrigger 
-              key={field.educationProgram} 
-              value={field.educationProgram.replace(/\s+/g, '-').toLowerCase()}
-              className="px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-white"
-            >
-              {field.educationProgram}
-            </TabsTrigger>
+      {careerFields.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          {careerFields.map((field, idx) => (
+            <div key={idx} className="bg-card border rounded-lg p-5 hover:shadow-md transition-shadow">
+              <h4 className="font-semibold text-lg mb-2">{field.educationProgram}</h4>
+              <div className="space-y-4">
+                {field.jobs.slice(0, 3).map((job, jobIdx) => (
+                  <div key={jobIdx} className="bg-muted/40 p-3 rounded">
+                    <p className="font-medium mb-1">{job.title}</p>
+                    <p className="text-sm text-muted-foreground">{job.description}</p>
+                    {field.companies.length > 0 && (
+                      <div className="mt-2 pt-2 border-t border-border/40">
+                        <p className="text-xs text-muted-foreground">Eksempel på bedrifter: {field.companies.slice(0, 3).join(', ')}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           ))}
-        </TabsList>
-        
-        {careerFields.map((field) => (
-          <TabsContent 
-            key={field.educationProgram} 
-            value={field.educationProgram.replace(/\s+/g, '-').toLowerCase()}
-            className="border rounded-lg p-6"
-          >
-            {field.match && (
-              <div className="mb-6 p-4 bg-muted/30 rounded-lg">
-                <p className="italic">{field.match}</p>
-              </div>
-            )}
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <h4 className="text-lg font-semibold mb-4">Stillinger</h4>
-                <Accordion type="multiple" className="w-full">
-                  {field.jobs.map((job, idx) => (
-                    <AccordionItem key={idx} value={`job-${idx}`}>
-                      <AccordionTrigger className="text-base font-medium hover:no-underline">
-                        {job.title}
-                      </AccordionTrigger>
-                      <AccordionContent className="text-sm text-muted-foreground">
-                        {job.description}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </div>
-              
-              <div>
-                <h4 className="text-lg font-semibold mb-4">Relevante bedrifter</h4>
-                <ul className="space-y-3">
-                  {field.companies.map((company, idx) => (
-                    <li key={idx} className="flex items-center justify-between border-b pb-2">
-                      <span>{company.name}</span>
-                      <a 
-                        href={company.website} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-primary hover:text-primary/80 flex items-center gap-1 text-sm"
-                      >
-                        <span>Besøk</span>
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-            
-            <div className="mt-6 pt-4 border-t">
-              <p className="text-sm text-muted-foreground">
-                Dette er en oversikt over mulige karriereveier basert på din profil og valgt utdanning. 
-                Faktiske jobbtilbud vil avhenge av flere faktorer som erfaring, kompetanse og arbeidsmarkedet.
-              </p>
-            </div>
-          </TabsContent>
-        ))}
-      </Tabs>
+        </div>
+      ) : (
+        <div className="bg-muted/30 p-6 rounded-lg mb-6">
+          <p>Vi har ikke nok informasjon til å vise karrieremuligheter ennå.</p>
+        </div>
+      )}
     </div>
   );
 };
