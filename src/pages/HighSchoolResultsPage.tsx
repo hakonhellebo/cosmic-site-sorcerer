@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import NoResultsView from '@/components/results/NoResultsView';
 import TestDataNotice from '@/components/results/TestDataNotice';
-import { HighSchoolResultsView } from '@/components/results/HighSchoolResultsView';
+import { HighSchoolResultsView } from '@/components/results/highschool/HighSchoolResultsView';
 
 const HighSchoolResultsPage: React.FC = () => {
   const navigate = useNavigate();

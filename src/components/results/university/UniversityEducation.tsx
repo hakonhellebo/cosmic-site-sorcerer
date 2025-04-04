@@ -10,6 +10,7 @@ interface UniversityEducationProps {
   title?: string;
   subtitle?: string;
   showAllRecommendations?: boolean;
+  isBachelorStudent?: boolean;
 }
 
 const UniversityEducation: React.FC<UniversityEducationProps> = ({ 
@@ -18,7 +19,8 @@ const UniversityEducation: React.FC<UniversityEducationProps> = ({
   nextSteps,
   title = "Anbefalte utdanninger",
   subtitle = "Basert på din profil",
-  showAllRecommendations = false
+  showAllRecommendations = false,
+  isBachelorStudent
 }) => {
   // Format recommendations to match expected structure
   const formattedRecommendations = recommendations?.map(rec => ({
