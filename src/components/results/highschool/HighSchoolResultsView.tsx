@@ -56,7 +56,9 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
   const formattedInterests = formatInterests(highSchoolData?.interests);
     
   // Format learning style - could be object or string
-  const learningStyle = formatLearningStyle(highSchoolData?.learningStyle);
+  const learningStyle = highSchoolData?.learningStyle 
+    ? formatLearningStyle(highSchoolData.learningStyle)
+    : 'Ikke spesifisert';
   
   // Format work preference
   const workPreference = formatWorkPreference(highSchoolData?.workPreference);

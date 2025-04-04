@@ -4,7 +4,11 @@ import { Dimension } from '@/utils/dimensions/types';
 
 interface CareerOpportunitiesProps {
   dimensions?: Dimension[];
-  careers?: any[];
+  careers?: Array<{
+    title: string;
+    description: string;
+    fields?: string[];
+  }>;
 }
 
 const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({ 
