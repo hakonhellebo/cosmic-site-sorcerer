@@ -207,9 +207,9 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
       console.log(`Matching career data for ${rec.name}:`, matchingCareerData);
       
       if (matchingCareerData) {
-        const careersWithCompanies = (matchingCareerData.jobs || []).map((job, idx) => {
-          const startIdx = idx * 3 % Math.max(matchingCareerData.companies?.length || 1, 1);
-          const jobSpecificCompanies = matchingCareerData.companies?.length 
+        const careersWithCompanies = matchingCareerData.jobs.map((job, idx) => {
+          const startIdx = idx % Math.max(matchingCareerData.companies.length, 1);
+          const jobSpecificCompanies = matchingCareerData.companies.length > 0
             ? [
                 ...matchingCareerData.companies.slice(startIdx, startIdx + 3),
                 ...matchingCareerData.companies.slice(0, Math.max(0, 3 - (matchingCareerData.companies.length - startIdx)))
@@ -236,7 +236,7 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
         institution: rec.institution,
         match: rec.match,
         description: rec.description || '',
-        careers: rec.careers || []
+        careers: []
       };
     });
   }, [educationRecommendations]);
