@@ -1,16 +1,36 @@
 
 import React from 'react';
+import { Dimension } from '@/utils/dimensions/types';
 import CareerOpportunities from '../highschool/CareerOpportunities';
 
 interface UniversityCareersProps {
-  recommendations: any[];
+  dimensions?: Dimension[];
+  careers?: Array<{
+    title: string;
+    description: string;
+    fields?: string[];
+  }>;
+  recommendations?: any[];
+  showAllOpportunities?: boolean;
 }
 
-const UniversityCareers: React.FC<UniversityCareersProps> = ({ recommendations }) => {
+const UniversityCareers: React.FC<UniversityCareersProps> = ({ 
+  dimensions, 
+  careers,
+  recommendations,
+  showAllOpportunities = false 
+}) => {
+  // Convert recommendations to the format expected by CareerOpportunities
+  const formattedCareers = recommendations?.map(rec => ({
+    title: rec.title,
+    description: rec.description || rec.match,
+    fields: rec.fields || [rec.location].filter(Boolean)
+  })) || careers || [];
+  
   return (
     <CareerOpportunities 
-      recommendations={recommendations}
-      showAllOpportunities={true}
+      dimensions={dimensions}
+      careers={formattedCareers}
     />
   );
 };
