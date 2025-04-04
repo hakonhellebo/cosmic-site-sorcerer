@@ -14,61 +14,61 @@ interface DimensionRankingProps {
 const dimensionMeta = {
   helseinteresse: {
     label: 'Helseinteresse',
-    color: '#ef4444', // Red
+    color: '#0EA5E9', // Changed to blue
     icon: Heart,
     description: 'Interesse for helse, omsorg og velvære hos mennesker'
   },
   teknologi: {
     label: 'Teknologi',
-    color: '#3b82f6', // Blue
+    color: '#0EA5E9', // Changed to blue
     icon: Cpu,
     description: 'Interesse for og kunnskap om digitale verktøy og teknologiske løsninger'
   },
   ambisjon: {
     label: 'Ambisjon',
-    color: '#8b5cf6', // Purple
+    color: '#0EA5E9', // Changed to blue
     icon: Trophy,
     description: 'Ønske om å oppnå suksess, framgang og anerkjennelse'
   },
   analytisk: {
     label: 'Analytisk',
-    color: '#10b981', // Green
+    color: '#0EA5E9', // Changed to blue
     icon: Brain,
     description: 'Evne til å analysere informasjon, logisk tenkning og problemløsning'
   },
   kreativitet: {
     label: 'Kreativitet',
-    color: '#f59e0b', // Orange
+    color: '#0EA5E9', // Changed to blue
     icon: Lightbulb,
     description: 'Evne til å tenke nytt, skape og uttrykke seg'
   },
   struktur: {
     label: 'Struktur',
-    color: '#6b7280', // Gray
+    color: '#0EA5E9', // Changed to blue
     icon: ClipboardList,
     description: 'Evne til å organisere, planlegge og følge prosesser'
   },
   praktisk: {
     label: 'Praktisk',
-    color: '#d97706', // Amber
+    color: '#0EA5E9', // Changed to blue
     icon: Hammer,
     description: 'Evne til å håndtere konkrete oppgaver og praktisk arbeid'
   },
   selvstendighet: {
     label: 'Selvstendighet',
-    color: '#64748b', // Slate
+    color: '#0EA5E9', // Changed to blue
     icon: User,
     description: 'Evne til å arbeide og ta beslutninger på egenhånd'
   },
   bærekraft: {
     label: 'Bærekraft',
-    color: '#059669', // Emerald
+    color: '#0EA5E9', // Changed to blue
     icon: Leaf,
     description: 'Interesse for miljø, klima og bærekraftig utvikling'
   },
   sosialitet: {
     label: 'Sosialitet',
-    color: '#2dd4bf', // Teal
+    color: '#0EA5E9', // Changed to blue
     icon: Users,
     description: 'Evne til å samarbeide, kommunisere og bygge relasjoner'
   }
@@ -82,7 +82,7 @@ const CustomBarLabel = (props: any) => {
   return (
     <g>
       {Icon && (
-        <foreignObject x={width + x + 5} y={y - 9} width={18} height={18}>
+        <foreignObject x={x - 30} y={y - 9} width={18} height={18}>
           <Icon size={18} color={dimensionMeta[dimension as keyof typeof dimensionMeta]?.color} />
         </foreignObject>
       )}
@@ -503,7 +503,7 @@ const DimensionRanking: React.FC<DimensionRankingProps> = ({ userData, questionn
             <BarChart
               layout="vertical"
               data={dimensionScores}
-              margin={{ top: 5, right: 60, left: 120, bottom: 5 }}
+              margin={{ top: 5, right: 30, left: 120, bottom: 5 }}
             >
               <XAxis type="number" domain={[0, 'dataMax + 2']} />
               <YAxis 
@@ -525,7 +525,7 @@ const DimensionRanking: React.FC<DimensionRankingProps> = ({ userData, questionn
                 ))}
                 <LabelList 
                   dataKey="dimension" 
-                  position="right" 
+                  position="insideLeft" 
                   content={<CustomBarLabel />} 
                 />
               </Bar>
