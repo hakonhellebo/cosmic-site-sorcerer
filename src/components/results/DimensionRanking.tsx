@@ -14,61 +14,61 @@ interface DimensionRankingProps {
 const dimensionMeta = {
   helseinteresse: {
     label: 'Helseinteresse',
-    color: '#0EA5E9', 
+    color: '#D946EF', // Magenta Pink
     icon: Heart,
     description: 'Interesse for helse, omsorg og velvære hos mennesker'
   },
   teknologi: {
     label: 'Teknologi',
-    color: '#0EA5E9', 
+    color: '#0EA5E9', // Ocean Blue
     icon: Cpu,
     description: 'Interesse for og kunnskap om digitale verktøy og teknologiske løsninger'
   },
   ambisjon: {
     label: 'Ambisjon',
-    color: '#0EA5E9', 
+    color: '#F97316', // Bright Orange
     icon: Trophy,
     description: 'Ønske om å oppnå suksess, framgang og anerkjennelse'
   },
   analytisk: {
     label: 'Analytisk',
-    color: '#0EA5E9', 
+    color: '#8B5CF6', // Vivid Purple
     icon: Brain,
     description: 'Evne til å analysere informasjon, logisk tenkning og problemløsning'
   },
   kreativitet: {
     label: 'Kreativitet',
-    color: '#0EA5E9', 
+    color: '#F59E0B', // Amber
     icon: Lightbulb,
     description: 'Evne til å tenke nytt, skape og uttrykke seg'
   },
   struktur: {
     label: 'Struktur',
-    color: '#0EA5E9', 
+    color: '#10B981', // Emerald
     icon: ClipboardList,
     description: 'Evne til å organisere, planlegge og følge prosesser'
   },
   praktisk: {
     label: 'Praktisk',
-    color: '#0EA5E9', 
+    color: '#6366F1', // Indigo
     icon: Hammer,
     description: 'Evne til å håndtere konkrete oppgaver og praktisk arbeid'
   },
   selvstendighet: {
     label: 'Selvstendighet',
-    color: '#0EA5E9', 
+    color: '#EC4899', // Pink
     icon: User,
     description: 'Evne til å arbeide og ta beslutninger på egenhånd'
   },
   bærekraft: {
     label: 'Bærekraft',
-    color: '#0EA5E9', 
+    color: '#22C55E', // Green
     icon: Leaf,
     description: 'Interesse for miljø, klima og bærekraftig utvikling'
   },
   sosialitet: {
     label: 'Sosialitet',
-    color: '#0EA5E9', 
+    color: '#3B82F6', // Blue
     icon: Users,
     description: 'Evne til å samarbeide, kommunisere og bygge relasjoner'
   }
@@ -519,8 +519,10 @@ const DimensionRanking: React.FC<DimensionRankingProps> = ({ userData, questionn
               <Bar 
                 dataKey="score" 
                 radius={[0, 4, 4, 0]}
-                fill="#0EA5E9"
               >
+                {dimensionScores.map((entry) => (
+                  <rect key={`rect-${entry.dimension}`} fill={entry.color} />
+                ))}
                 <LabelList 
                   dataKey="dimension" 
                   position="insideLeft" 
