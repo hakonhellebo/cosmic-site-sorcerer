@@ -12,6 +12,7 @@ interface Company {
 interface Career {
   title: string;
   description: string;
+  companies?: Company[]; // Add companies directly to each career
 }
 
 interface CareerRecommendation {
@@ -20,7 +21,6 @@ interface CareerRecommendation {
   match?: string;
   description?: string;
   careers: Career[];
-  companies?: Company[];
 }
 
 interface CareerOpportunitiesProps {
@@ -83,8 +83,8 @@ const CareerOpportunities: React.FC<CareerOpportunitiesProps> = ({
                   const careerKey = `${rec.title}-${careerIndex}`;
                   const isExpanded = expandedCareers[careerKey] || false;
                   
-                  // Get companies for this education program
-                  const companies = rec.companies || [];
+                  // Get companies for this specific career
+                  const companies = career.companies || [];
                   
                   return (
                     <div key={careerKey} className="p-4">

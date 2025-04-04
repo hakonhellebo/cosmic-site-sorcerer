@@ -207,13 +207,27 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
       console.log(`Matching career data for ${rec.name}:`, matchingCareerData);
       
       if (matchingCareerData) {
+        const careersWithCompanies = (matchingCareerData.jobs || []).map((job, idx) => {
+          const startIdx = idx * 3 % Math.max(matchingCareerData.companies?.length || 1, 1);
+          const jobSpecificCompanies = matchingCareerData.companies?.length 
+            ? [
+                ...matchingCareerData.companies.slice(startIdx, startIdx + 3),
+                ...matchingCareerData.companies.slice(0, Math.max(0, 3 - (matchingCareerData.companies.length - startIdx)))
+              ].slice(0, 3)
+            : [];
+            
+          return {
+            ...job,
+            companies: jobSpecificCompanies
+          };
+        });
+        
         return {
           title: rec.name,
           institution: rec.institution,
           match: rec.match,
           description: rec.description || '',
-          careers: matchingCareerData.jobs || [],
-          companies: matchingCareerData.companies || []
+          careers: careersWithCompanies
         };
       }
       
@@ -222,8 +236,7 @@ export const HighSchoolResultsView: React.FC<HighSchoolResultsViewProps> = ({ us
         institution: rec.institution,
         match: rec.match,
         description: rec.description || '',
-        careers: rec.careers || [],
-        companies: []
+        careers: rec.careers || []
       };
     });
   }, [educationRecommendations]);
