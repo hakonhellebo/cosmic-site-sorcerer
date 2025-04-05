@@ -175,14 +175,14 @@ const Navigation: React.FC = () => {
                 {item.href.startsWith('/') ? (
                   <Link 
                     to={item.href} 
-                    className="link-hover text-sm font-medium"
+                    className="link-hover text-xs font-medium"
                   >
                     {item.name}
                   </Link>
                 ) : (
                   <a 
                     href={item.href} 
-                    className="link-hover text-sm font-medium"
+                    className="link-hover text-xs font-medium"
                   >
                     {item.name}
                   </a>
@@ -198,29 +198,29 @@ const Navigation: React.FC = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="flex items-center gap-2">
                   <User className="h-4 w-4" />
-                  <span>{currentUser.firstName}</span>
+                  <span className="text-xs">{currentUser.firstName}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={goToUserResults}>
+                <DropdownMenuItem onClick={goToUserResults} className="text-xs">
                   Dashboard
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={goToUserResults}>
+                <DropdownMenuItem onClick={goToUserResults} className="text-xs">
                   Min profil
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                  <LogOut className="mr-2 h-4 w-4" /> Logg ut
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive text-xs">
+                  <LogOut className="mr-2 h-3 w-3" /> Logg ut
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         ) : (
           <div className="hidden space-x-4 md:flex">
-            <Link to="/login" className="flex items-center px-5 py-2 text-sm font-medium transition-all duration-200 hover:text-primary">
+            <Link to="/login" className="flex items-center px-5 py-2 text-xs font-medium transition-all duration-200 hover:text-primary">
               Logg inn
             </Link>
-            <Link to="/registrer" className="rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-all duration-200 hover:opacity-90">
+            <Link to="/registrer" className="rounded-full bg-primary px-5 py-2 text-xs font-medium text-primary-foreground transition-all duration-200 hover:opacity-90">
               Kom i gang
             </Link>
           </div>
@@ -257,7 +257,7 @@ const Navigation: React.FC = () => {
                     {item.href.startsWith('/') ? (
                       <Link 
                         to={item.href} 
-                        className="block py-2 text-sm font-medium"
+                        className="block py-2 text-xs font-medium"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         {item.name}
@@ -265,7 +265,7 @@ const Navigation: React.FC = () => {
                     ) : (
                       <a 
                         href={item.href} 
-                        className="block py-2 text-sm font-medium"
+                        className="block py-2 text-xs font-medium"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         {item.name}
@@ -279,7 +279,7 @@ const Navigation: React.FC = () => {
                     <li>
                       <Link 
                         to="/results" 
-                        className="block py-2 text-sm font-medium"
+                        className="block py-2 text-xs font-medium"
                         onClick={() => {
                           goToUserResults();
                           setIsMobileMenuOpen(false);
@@ -291,7 +291,7 @@ const Navigation: React.FC = () => {
                     <li>
                       <Link 
                         to="/results" 
-                        className="block py-2 text-sm font-medium"
+                        className="block py-2 text-xs font-medium"
                         onClick={() => {
                           goToUserResults();
                           setIsMobileMenuOpen(false);
@@ -306,9 +306,9 @@ const Navigation: React.FC = () => {
                           handleLogout();
                           setIsMobileMenuOpen(false);
                         }}
-                        className="flex w-full items-center py-2 text-sm font-medium text-destructive"
+                        className="flex w-full items-center py-2 text-xs font-medium text-destructive"
                       >
-                        <LogOut className="mr-2 h-4 w-4" /> Logg ut
+                        <LogOut className="mr-2 h-3 w-3" /> Logg ut
                       </button>
                     </li>
                   </>
@@ -317,7 +317,7 @@ const Navigation: React.FC = () => {
                     <li>
                       <Link 
                         to="/login"
-                        className="block py-2 text-sm font-medium" 
+                        className="block py-2 text-xs font-medium" 
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         Logg inn
@@ -326,7 +326,7 @@ const Navigation: React.FC = () => {
                     <li>
                       <Link 
                         to="/registrer" 
-                        className="mt-2 w-full rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground"
+                        className="mt-2 w-full rounded-full bg-primary px-5 py-2 text-xs font-medium text-primary-foreground"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         Kom i gang
@@ -344,3 +344,4 @@ const Navigation: React.FC = () => {
 };
 
 export default Navigation;
+
