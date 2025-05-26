@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, CheckCircle, XCircle, FileText, GraduationCap, BookOpen } from 'lucide-react';
 import { getRecommendationsFromApi } from '@/services/edpathApi';
 import { mapUniversityAnswersToApi } from '@/utils/universityApiMapper';
+import { mapHighSchoolAnswersToApi } from '@/utils/highSchoolApiMapper';
 import { useNavigate } from 'react-router-dom';
 
 const ApiTester: React.FC = () => {
@@ -98,20 +99,8 @@ const ApiTester: React.FC = () => {
     try {
       console.log("🧪 Testing High School API with data:", testHighSchoolData);
       
-      // For now, use a simple mapping - this might need to be updated based on the actual API
-      const mappedAnswers = {
-        naturvitenskap: testHighSchoolData.interests.naturvitenskap ? 1 : 0,
-        teknologi: testHighSchoolData.interests.teknologi ? 1 : 0,
-        helse: testHighSchoolData.interests.helse ? 1 : 0,
-        økonomi: testHighSchoolData.interests.økonomi ? 1 : 0,
-        analytisk: testHighSchoolData.strengths.analytisk ? 1 : 0,
-        kreativ: testHighSchoolData.strengths.kreativ ? 1 : 0,
-        samarbeidsvillig: testHighSchoolData.strengths.samarbeidsvillig ? 1 : 0,
-        matematikk: testHighSchoolData.favoriteSubjects.matematikk ? 1 : 0,
-        fysikk: testHighSchoolData.favoriteSubjects.fysikk ? 1 : 0,
-        kjemi: testHighSchoolData.favoriteSubjects.kjemi ? 1 : 0
-      };
-      
+      // Use the new mapper that formats data like university API
+      const mappedAnswers = mapHighSchoolAnswersToApi(testHighSchoolData);
       console.log("📤 Mapped high school answers:", mappedAnswers);
       
       // Call the high school API endpoint on the correct port
