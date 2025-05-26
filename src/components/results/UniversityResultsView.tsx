@@ -63,41 +63,15 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
   // Determine if bachelor or master student
   const isBachelorStudent = universityData.level?.toLowerCase().includes('bachelor');
 
-  // Use API recommendations or fall back to existing logic
-  const dimensionScores = useMemo(() => {
-    if (useApiRecommendations && apiRecommendations) {
-      // Create mock dimension scores based on API response
-      const mockScores = {
-        analytisk: 0,
-        kreativitet: 0,
-        struktur: 0,
-        sosialitet: 0,
-        teknologi: 0,
-        helseinteresse: 0,
-        bærekraft: 0,
-        ambisjon: 0,
-        selvstendighet: 0,
-        praktisk: 0
-      };
-      
-      // Give high scores to the top dimensions from API
-      apiRecommendations.topp_dimensjoner.forEach((dim, index) => {
-        const score = 10 - index; // First dimension gets 10, second gets 9, etc.
-        const dimKey = dim.toLowerCase() as keyof typeof mockScores;
-        if (mockScores.hasOwnProperty(dimKey)) {
-          mockScores[dimKey] = score;
-        }
-      });
-      
-      return mockScores;
-    }
+  // Calculate local dimension scores
+  const localDimensionScores = useMemo(() => {
     return calculateUniversityDimensions(universityData);
-  }, [universityData, useApiRecommendations, apiRecommendations]);
+  }, [universityData]);
   
-  // Get top 3 dimensions
+  // Use local dimensions regardless of API status for consistency
   const dimensions = useMemo(() => {
-    return getTopDimensions(dimensionScores, 3);
-  }, [dimensionScores]);
+    return getTopDimensions(localDimensionScores, 3);
+  }, [localDimensionScores]);
   
   // Get top dimension names for education recommendations
   const topDimensions = dimensions.map(dim => dim.name);
@@ -133,7 +107,10 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
       {useApiRecommendations && apiRecommendations && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <p className="text-green-800 text-sm">
-            ✅ Bruker EdPath AI-anbefalinger basert på dine svar
+            ✅ Bruker EdPath AI-anbefalinger for studier og karrieremuligheter
+          </p>
+          <p className="text-green-700 text-xs mt-1">
+            Dimensjoner beregnes fortsatt lokalt for å sikre konsistens
           </p>
         </div>
       )}
