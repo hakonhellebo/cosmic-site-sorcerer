@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState, useEffect } from 'react';
 import { matchEducationPrograms } from '@/utils/educationData';
 import UniversityIntro from './university/UniversityIntro';
@@ -73,8 +74,19 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
     return getTopDimensions(localDimensionScores, 3);
   }, [localDimensionScores]);
   
-  // Get top dimension names for education recommendations
-  const topDimensions = dimensions.map(dim => dim.name);
+  // Get top dimension names for education recommendations - only use dimensions with scores > 1
+  const topDimensions = useMemo(() => {
+    console.log("All dimension scores:", localDimensionScores);
+    
+    // Filter dimensions with meaningful scores (> 1) and get the top ones
+    const filteredDimensions = dimensions.filter(dim => dim.score > 1);
+    console.log("Filtered dimensions (score > 1):", filteredDimensions);
+    
+    const dimensionNames = filteredDimensions.map(dim => dim.name);
+    console.log("Using dimension names for education matching:", dimensionNames);
+    
+    return dimensionNames;
+  }, [dimensions, localDimensionScores]);
   
   // Match education programs - use API data if available, otherwise fall back to existing logic
   const educationRecommendations = useMemo(() => {
@@ -87,6 +99,8 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
         description: `This program aligns with your top dimensions: ${studie.dimensjoner.join(', ')}`
       }));
     }
+    
+    console.log("Using local education matching with dimensions:", topDimensions);
     return matchEducationPrograms(topDimensions, 8);
   }, [topDimensions, useApiRecommendations, apiRecommendations]);
 
