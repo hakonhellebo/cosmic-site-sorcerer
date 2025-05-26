@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState, useEffect } from 'react';
 import { matchEducationPrograms } from '@/utils/educationData';
 import UniversityIntro from './university/UniversityIntro';
@@ -142,7 +141,7 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
             ✅ Bruker EdPath AI-anbefalinger filtrert basert på lokale dimensjoner
           </p>
           <p className="text-green-700 text-xs mt-1">
-            Viser kun studier som matcher dimensjoner med score > 1
+            Viser kun studier som matcher dimensjoner med score større enn 1
           </p>
         </div>
       )}
@@ -172,7 +171,15 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
       {/* Career opportunities section - enhanced with API data if available */}
       <UniversityCareers 
         recommendations={educationRecommendations}
-        apiCareers={useApiRecommendations && apiRecommendations ? apiRecommendations.studier : undefined}
+        apiCareers={useApiRecommendations && apiRecommendations ? 
+          apiRecommendations.studier.filter(studie => {
+            // Apply same filtering as education recommendations
+            return studie.dimensjoner.some(apiDim => 
+              topDimensions.some(localDim => 
+                localDim.toLowerCase() === apiDim.toLowerCase()
+              )
+            );
+          }) : undefined}
       />
       
       {/* Next steps section */}
