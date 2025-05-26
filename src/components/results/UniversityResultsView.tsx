@@ -91,8 +91,26 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
   // Match education programs - use API data if available, otherwise fall back to existing logic
   const educationRecommendations = useMemo(() => {
     if (useApiRecommendations && apiRecommendations) {
-      // Transform API response to match existing format
-      return apiRecommendations.studier.map(studie => ({
+      console.log("Raw API recommendations:", apiRecommendations.studier);
+      console.log("Valid local dimensions (score > 1):", topDimensions);
+      
+      // Filter API recommendations based on local dimension scores
+      const filteredApiStudies = apiRecommendations.studier.filter(studie => {
+        // Check if the study has at least one dimension that matches our valid local dimensions
+        const hasValidDimension = studie.dimensjoner.some(apiDim => 
+          topDimensions.some(localDim => 
+            localDim.toLowerCase() === apiDim.toLowerCase()
+          )
+        );
+        
+        console.log(`Study: ${studie.navn}, Dimensions: ${studie.dimensjoner}, Has valid dimension: ${hasValidDimension}`);
+        return hasValidDimension;
+      });
+      
+      console.log("Filtered API studies:", filteredApiStudies);
+      
+      // Transform filtered API response to match existing format
+      return filteredApiStudies.map(studie => ({
         name: studie.navn,
         institution: studie.lærested,
         match: `Matches dimensions: ${studie.dimensjoner.join(', ')}`,
@@ -121,10 +139,10 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
       {useApiRecommendations && apiRecommendations && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <p className="text-green-800 text-sm">
-            ✅ Bruker EdPath AI-anbefalinger for studier og karrieremuligheter
+            ✅ Bruker EdPath AI-anbefalinger filtrert basert på lokale dimensjoner
           </p>
           <p className="text-green-700 text-xs mt-1">
-            Dimensjoner beregnes fortsatt lokalt for å sikre konsistens
+            Viser kun studier som matcher dimensjoner med score > 1
           </p>
         </div>
       )}
