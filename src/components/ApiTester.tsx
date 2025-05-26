@@ -1,13 +1,14 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, FileText } from 'lucide-react';
 import { getRecommendationsFromApi } from '@/services/edpathApi';
 import { mapUniversityAnswersToApi } from '@/utils/universityApiMapper';
+import { useNavigate } from 'react-router-dom';
 
 const ApiTester: React.FC = () => {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -64,6 +65,10 @@ const ApiTester: React.FC = () => {
     }
   };
 
+  const handleQuestionnaireTest = () => {
+    navigate('/user-type-selection');
+  };
+
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
@@ -76,14 +81,25 @@ const ApiTester: React.FC = () => {
           Tester API-kommunikasjon med eksempel studentdata
         </div>
         
-        <Button 
-          onClick={testApi} 
-          disabled={isLoading}
-          className="w-full"
-        >
-          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isLoading ? 'Tester API...' : 'Test EdPath API'}
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={testApi} 
+            disabled={isLoading}
+            className="flex-1"
+          >
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isLoading ? 'Tester API...' : 'Test EdPath API'}
+          </Button>
+          
+          <Button 
+            onClick={handleQuestionnaireTest}
+            variant="outline"
+            className="flex-1"
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            Spørreundersøkelse tester
+          </Button>
+        </div>
 
         {error && (
           <div className="flex items-center gap-2 p-3 bg-red-50 rounded-lg">
