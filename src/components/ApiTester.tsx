@@ -99,12 +99,25 @@ const ApiTester: React.FC = () => {
     try {
       console.log("🧪 Testing High School API with data:", testHighSchoolData);
       
-      // Use the same mapper format as university API
+      // Map high school data to elev API format
       const mappedAnswers = mapHighSchoolAnswersToApi(testHighSchoolData);
       console.log("📤 Mapped high school answers:", mappedAnswers);
       
-      // Call the SAME API endpoint as university (port 8000)
-      const recommendations = await getRecommendationsFromApi(mappedAnswers);
+      // Call the HIGH SCHOOL API endpoint on port 8002
+      const response = await fetch("http://127.0.0.1:8002/api/anbefaling-elever", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({ svar: mappedAnswers }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`High School API request failed with status ${response.status}`);
+      }
+
+      const recommendations = await response.json();
       console.log("📥 High School API Response:", recommendations);
       
       setResult(recommendations);

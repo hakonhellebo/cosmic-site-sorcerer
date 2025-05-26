@@ -1,41 +1,36 @@
 
+
 export const mapHighSchoolAnswersToApi = (highSchoolData: any): Record<string, number> => {
   console.log("Mapping high school data to API format:", highSchoolData);
   
   const apiAnswers: Record<string, number> = {};
   
-  // Map high school data to the exact same format as university API
-  // Using the same question numbers and scoring system
+  // Map high school data to elev API format (different from university API)
+  // Using direct field mapping for high school specific questions
   
-  // Interests mapping (same as university)
+  // Interests mapping
   if (highSchoolData.interests) {
-    if (highSchoolData.interests.teknologi) apiAnswers['Spm 6'] = 3;
-    if (highSchoolData.interests.økonomi) apiAnswers['Spm 7'] = 2;
-    if (highSchoolData.interests.naturvitenskap) apiAnswers['Spm 8'] = 3;
-    if (highSchoolData.interests.helse) apiAnswers['Spm 9'] = 3;
+    if (highSchoolData.interests.naturvitenskap) apiAnswers['naturvitenskap'] = 1;
+    if (highSchoolData.interests.teknologi) apiAnswers['teknologi'] = 1;
+    if (highSchoolData.interests.helse) apiAnswers['helse'] = 1;
+    if (highSchoolData.interests.økonomi) apiAnswers['økonomi'] = 1;
   }
   
-  // Strengths mapping (same as university)
+  // Strengths mapping
   if (highSchoolData.strengths) {
-    if (highSchoolData.strengths.analytisk) apiAnswers['Spm 10'] = 3; // kritisk_tenkning equivalent
-    if (highSchoolData.strengths.kreativ) apiAnswers['Spm 11'] = 3; // kreativitet equivalent
-    if (highSchoolData.strengths.samarbeidsvillig) apiAnswers['Spm 12'] = 2; // problemløsning equivalent
+    if (highSchoolData.strengths.analytisk) apiAnswers['analytisk'] = 1;
+    if (highSchoolData.strengths.kreativ) apiAnswers['kreativ'] = 1;
+    if (highSchoolData.strengths.samarbeidsvillig) apiAnswers['samarbeidsvillig'] = 1;
   }
   
-  // Task preferences (map from favorite subjects to task preferences)
+  // Favorite subjects mapping
   if (highSchoolData.favoriteSubjects) {
-    if (highSchoolData.favoriteSubjects.matematikk || highSchoolData.favoriteSubjects.fysikk) {
-      apiAnswers['Spm 13'] = 3; // analytical tasks
-    }
-    if (highSchoolData.favoriteSubjects.kjemi) {
-      apiAnswers['Spm 14'] = 3; // practical tasks
-    }
+    if (highSchoolData.favoriteSubjects.matematikk) apiAnswers['matematikk'] = 1;
+    if (highSchoolData.favoriteSubjects.fysikk) apiAnswers['fysikk'] = 1;
+    if (highSchoolData.favoriteSubjects.kjemi) apiAnswers['kjemi'] = 1;
   }
-  
-  // Default values for remaining questions to match university format
-  apiAnswers['Spm 15'] = 3; // work preference (assume team)
-  apiAnswers['Spm 16'] = 2; // ai usage (assume moderate)
   
   console.log("Mapped high school answers for API:", apiAnswers);
   return apiAnswers;
 };
+
