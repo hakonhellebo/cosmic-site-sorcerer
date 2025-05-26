@@ -4,30 +4,37 @@ export const mapHighSchoolAnswersToApi = (highSchoolData: any): Record<string, n
   
   const apiAnswers: Record<string, number> = {};
   
-  // Map high school data to the same format as university (Spm X)
-  // This assumes the high school API uses the same question numbering
+  // Map high school data to the exact same format as university API
+  // Using the same question numbers and scoring system
   
-  // Interests mapping
+  // Interests mapping (same as university)
   if (highSchoolData.interests) {
-    if (highSchoolData.interests.naturvitenskap) apiAnswers['Spm 1'] = 1;
-    if (highSchoolData.interests.teknologi) apiAnswers['Spm 2'] = 1;
-    if (highSchoolData.interests.helse) apiAnswers['Spm 3'] = 1;
-    if (highSchoolData.interests.økonomi) apiAnswers['Spm 4'] = 1;
+    if (highSchoolData.interests.teknologi) apiAnswers['Spm 6'] = 3;
+    if (highSchoolData.interests.økonomi) apiAnswers['Spm 7'] = 2;
+    if (highSchoolData.interests.naturvitenskap) apiAnswers['Spm 8'] = 3;
+    if (highSchoolData.interests.helse) apiAnswers['Spm 9'] = 3;
   }
   
-  // Strengths mapping
+  // Strengths mapping (same as university)
   if (highSchoolData.strengths) {
-    if (highSchoolData.strengths.analytisk) apiAnswers['Spm 5'] = 1;
-    if (highSchoolData.strengths.kreativ) apiAnswers['Spm 6'] = 1;
-    if (highSchoolData.strengths.samarbeidsvillig) apiAnswers['Spm 7'] = 1;
+    if (highSchoolData.strengths.analytisk) apiAnswers['Spm 10'] = 3; // kritisk_tenkning equivalent
+    if (highSchoolData.strengths.kreativ) apiAnswers['Spm 11'] = 3; // kreativitet equivalent
+    if (highSchoolData.strengths.samarbeidsvillig) apiAnswers['Spm 12'] = 2; // problemløsning equivalent
   }
   
-  // Favorite subjects mapping
+  // Task preferences (map from favorite subjects to task preferences)
   if (highSchoolData.favoriteSubjects) {
-    if (highSchoolData.favoriteSubjects.matematikk) apiAnswers['Spm 8'] = 1;
-    if (highSchoolData.favoriteSubjects.fysikk) apiAnswers['Spm 9'] = 1;
-    if (highSchoolData.favoriteSubjects.kjemi) apiAnswers['Spm 10'] = 1;
+    if (highSchoolData.favoriteSubjects.matematikk || highSchoolData.favoriteSubjects.fysikk) {
+      apiAnswers['Spm 13'] = 3; // analytical tasks
+    }
+    if (highSchoolData.favoriteSubjects.kjemi) {
+      apiAnswers['Spm 14'] = 3; // practical tasks
+    }
   }
+  
+  // Default values for remaining questions to match university format
+  apiAnswers['Spm 15'] = 3; // work preference (assume team)
+  apiAnswers['Spm 16'] = 2; // ai usage (assume moderate)
   
   console.log("Mapped high school answers for API:", apiAnswers);
   return apiAnswers;
