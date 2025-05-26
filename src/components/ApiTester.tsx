@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -103,8 +104,8 @@ const ApiTester: React.FC = () => {
       const mappedAnswers = mapHighSchoolAnswersToApi(testHighSchoolData);
       console.log("📤 Mapped high school answers:", mappedAnswers);
       
-      // Call the HIGH SCHOOL API endpoint on port 8002
-      const response = await fetch("http://127.0.0.1:8002/api/anbefaling-elever", {
+      // Call the HIGH SCHOOL API endpoint on port 8002 with CORRECT URL
+      const response = await fetch("http://127.0.0.1:8002/api/anbefaling/elever", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
