@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import UniversityStatistics from '@/components/statistics/UniversityStatistics';
 import CompanyStatistics from '@/components/statistics/CompanyStatistics';
+import CareerStatistics from '@/components/statistics/CareerStatistics';
 import ResponsesTable from '@/components/statistics/ResponsesTable';
 import { getAllResponses, getCurrentUser } from '@/lib/supabase';
 import { Button } from "@/components/ui/button";
@@ -147,14 +147,19 @@ const Statistics = () => {
           </p>
 
           <Tabs defaultValue="universiteter" className="w-full" onValueChange={(value) => setActiveTab(value)}>
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="universiteter">Universiteter</TabsTrigger>
+              <TabsTrigger value="yrker">Yrker</TabsTrigger>
               <TabsTrigger value="bedrifter">Bedrifter</TabsTrigger>
               {isAdmin && <TabsTrigger value="svar">Svar</TabsTrigger>}
             </TabsList>
             
             <TabsContent value="universiteter" className="mt-6">
               <UniversityStatistics />
+            </TabsContent>
+            
+            <TabsContent value="yrker" className="mt-6">
+              <CareerStatistics />
             </TabsContent>
             
             <TabsContent value="bedrifter" className="mt-6">
