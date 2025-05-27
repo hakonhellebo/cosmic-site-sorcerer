@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -147,7 +148,7 @@ const Statistics = () => {
           </p>
 
           <Tabs defaultValue="universiteter" className="w-full" onValueChange={(value) => setActiveTab(value)}>
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'}`}>
               <TabsTrigger value="universiteter">Universiteter</TabsTrigger>
               <TabsTrigger value="yrker">Yrker</TabsTrigger>
               <TabsTrigger value="bedrifter">Bedrifter</TabsTrigger>
