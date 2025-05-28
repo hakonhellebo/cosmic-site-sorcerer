@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -162,7 +161,7 @@ const Navigation: React.FC = () => {
       <div className="container mx-auto flex items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2">
           <img 
-            src="/lovable-uploads/7e0fff54-a7d0-402f-9762-aaabb01acfe1.png" 
+            src="/lovable-uploads/5ea5acb7-62cf-4c3e-8769-6f1975b41458.png" 
             alt="EdPath Logo" 
             className="h-16 w-auto" 
           />
@@ -344,4 +343,3 @@ const Navigation: React.FC = () => {
 };
 
 export default Navigation;
-
