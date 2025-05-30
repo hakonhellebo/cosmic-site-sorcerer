@@ -398,17 +398,31 @@ export const getUniversityData = async (institutionCode?: string, year?: string)
 // Get career data from Yrke_Statistikk table
 export const getCareerStatistics = async (careerName?: string) => {
   try {
+    console.log("getCareerStatistics called with:", { careerName });
+    
     let query = supabase
       .from('Yrke_Statistikk')
       .select('*');
     
     if (careerName) {
-      query = query.eq('Yrke', careerName);
+      // Try multiple possible column names
+      query = query.or(`Yrke.eq.${careerName},yrke.eq.${careerName},Occupation.eq.${careerName},occupation.eq.${careerName}`);
     }
     
+    console.log("Executing query on Yrke_Statistikk...");
     const { data, error } = await query;
     
-    if (error) throw error;
+    console.log("Query result:", { 
+      dataLength: data?.length, 
+      error: error?.message,
+      firstRow: data?.[0] 
+    });
+    
+    if (error) {
+      console.error('Supabase error in getCareerStatistics:', error);
+      throw error;
+    }
+    
     return { data, error: null };
   } catch (error) {
     console.error('Error fetching career statistics:', error);

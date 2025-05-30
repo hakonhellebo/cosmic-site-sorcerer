@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,41 +16,80 @@ const CareerStatistics = () => {
   const [detailedStats, setDetailedStats] = useState<Record<string, any>[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Load available careers on component mount
   useEffect(() => {
     const loadCareers = async () => {
       try {
-        console.log("Loading careers from Yrke_Statistikk table...");
+        console.log("Starting to load careers from Yrke_Statistikk table...");
+        setError(null);
+        
         const { data, error } = await getCareerStatistics();
+        
+        console.log("Raw response from getCareerStatistics:", { data, error });
         
         if (error) {
           console.error("Error fetching careers:", error);
+          setError(`Feil ved henting av yrker: ${error.message || 'Ukjent feil'}`);
           setCareerList([]);
           return;
         }
         
         if (data && Array.isArray(data)) {
-          console.log("Raw career data:", data);
+          console.log("Number of rows returned:", data.length);
+          console.log("First few rows:", data.slice(0, 3));
           
-          // Extract unique career names from the Yrke column
-          const uniqueCareers = [...new Set(
-            data
-              .map(item => item.Yrke)
-              .filter(Boolean)
-              .filter(career => typeof career === 'string' && career.trim().length > 0)
-          )] as string[];
+          // Log all column names to see what's available
+          if (data.length > 0) {
+            console.log("Available columns:", Object.keys(data[0]));
+          }
           
-          console.log("Unique careers found:", uniqueCareers);
+          // Try different possible column names for career/occupation
+          const possibleCareerColumns = ['Yrke', 'yrke', 'Occupation', 'occupation', 'Career', 'career'];
+          let careerColumnName = null;
+          
+          for (const columnName of possibleCareerColumns) {
+            if (data.length > 0 && data[0].hasOwnProperty(columnName)) {
+              careerColumnName = columnName;
+              console.log(`Found career column: ${columnName}`);
+              break;
+            }
+          }
+          
+          if (!careerColumnName) {
+            console.error("No career column found. Available columns:", data.length > 0 ? Object.keys(data[0]) : 'No data');
+            setError("Kunne ikke finne yrkeskolonne i dataene");
+            setCareerList([]);
+            return;
+          }
+          
+          // Extract unique career names
+          const careers = data
+            .map(item => item[careerColumnName])
+            .filter(Boolean)
+            .filter(career => typeof career === 'string' && career.trim().length > 0);
+            
+          const uniqueCareers = [...new Set(careers)] as string[];
+          
+          console.log("Extracted careers:", uniqueCareers);
+          console.log("Total unique careers found:", uniqueCareers.length);
+          
+          if (uniqueCareers.length === 0) {
+            setError("Ingen gyldige yrker funnet i dataene");
+          }
+          
           setCareerList(uniqueCareers.sort());
           setFilteredCareers(uniqueCareers.sort());
         } else {
           console.log("No data returned from Yrke_Statistikk");
+          setError("Ingen data returnert fra Yrke_Statistikk tabellen");
           setCareerList([]);
           setFilteredCareers([]);
         }
       } catch (error) {
         console.error("Error loading careers:", error);
+        setError(`Feil ved lasting av yrker: ${error instanceof Error ? error.message : 'Ukjent feil'}`);
         setCareerList([]);
         setFilteredCareers([]);
       } finally {
@@ -127,6 +165,23 @@ const CareerStatistics = () => {
     );
   }
 
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="py-12">
+          <div className="text-center">
+            <Briefcase className="h-16 w-16 mx-auto mb-6 text-red-500" />
+            <h3 className="text-2xl font-semibold mb-4 text-red-600">Feil ved lasting av data</h3>
+            <p className="text-muted-foreground mb-6">{error}</p>
+            <p className="text-sm text-muted-foreground">
+              Sjekk at Supabase-tilkoblingen fungerer og at tabellen 'Yrke_Statistikk' eksisterer.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Career Selection */}
@@ -160,7 +215,7 @@ const CareerStatistics = () => {
                     : "Ingen yrker funnet"
                 } />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white border shadow-lg z-50">
                 {filteredCareers.map((career) => (
                   <SelectItem key={career} value={career}>
                     {career}
@@ -181,6 +236,14 @@ const CareerStatistics = () => {
           {searchTerm && (
             <p className="text-sm text-muted-foreground">
               Viser {filteredCareers.length} av {careerList.length} yrker
+            </p>
+          )}
+          
+          {/* Debug info */}
+          {careerList.length > 0 && (
+            <p className="text-xs text-muted-foreground">
+              Eksempel på yrker: {careerList.slice(0, 3).join(", ")}
+              {careerList.length > 3 && "..."}
             </p>
           )}
         </CardContent>
