@@ -10,8 +10,8 @@ import CareerDetailsCard from './CareerDetailsCard';
 const CareerStatistics = () => {
   const [selectedCareer, setSelectedCareer] = useState("");
   const [careerList, setCareerList] = useState<string[]>([]);
-  const [basicStats, setBasicStats] = useState<any>(null);
-  const [detailedStats, setDetailedStats] = useState<any[]>([]);
+  const [basicStats, setBasicStats] = useState<Record<string, any> | null>(null);
+  const [detailedStats, setDetailedStats] = useState<Record<string, any>[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
 
@@ -29,8 +29,8 @@ const CareerStatistics = () => {
     const loadCareers = async () => {
       try {
         const { data, error } = await getCareerStatistics();
-        if (data && !error) {
-          const uniqueCareers = [...new Set(data.map(item => item.Yrke))].filter(Boolean);
+        if (data && !error && Array.isArray(data)) {
+          const uniqueCareers = [...new Set(data.map(item => item.Yrke).filter(Boolean))] as string[];
           setCareerList(uniqueCareers);
           
           // If no careers from database, use examples

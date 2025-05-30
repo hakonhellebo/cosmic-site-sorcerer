@@ -6,8 +6,8 @@ import { TrendingUp, Users, DollarSign, Building } from 'lucide-react';
 
 interface CareerDetailsProps {
   careerName: string;
-  basicStats: any;
-  detailedStats: any[];
+  basicStats: Record<string, any> | null;
+  detailedStats: Record<string, any>[];
 }
 
 const CareerDetailsCard: React.FC<CareerDetailsProps> = ({ 
@@ -60,7 +60,7 @@ const CareerDetailsCard: React.FC<CareerDetailsProps> = ({
               {Object.entries(basicStats).map(([key, value]) => (
                 <div key={key} className="text-center">
                   <div className="text-sm text-muted-foreground">{key}</div>
-                  <div className="font-semibold">{value}</div>
+                  <div className="font-semibold">{String(value)}</div>
                 </div>
               ))}
             </div>
@@ -90,7 +90,7 @@ const CareerDetailsCard: React.FC<CareerDetailsProps> = ({
             <div className="flex flex-wrap gap-2">
               {Object.entries(sectorData).map(([sector, count]) => (
                 <Badge key={sector} variant="secondary">
-                  {sector} ({count})
+                  {String(sector)} ({count})
                 </Badge>
               ))}
             </div>
@@ -107,7 +107,7 @@ const CareerDetailsCard: React.FC<CareerDetailsProps> = ({
             <div className="flex flex-wrap gap-2">
               {Object.entries(genderData).map(([gender, count]) => (
                 <Badge key={gender} variant="outline">
-                  {gender === 'M' ? 'Menn' : gender === 'K' ? 'Kvinner' : gender} ({count})
+                  {gender === 'M' ? 'Menn' : gender === 'K' ? 'Kvinner' : String(gender)} ({count})
                 </Badge>
               ))}
             </div>
