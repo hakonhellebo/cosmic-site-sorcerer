@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ExternalLink, TrendingUp, Users, GraduationCap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 const UniversityProgramCard = ({ program, rank }) => {
+  const navigate = useNavigate();
+  
   // Calculate competition level
   const competitionRatio = program.sokereKvalifisert / program.planlagteStudieplasser;
   
@@ -66,8 +69,16 @@ const UniversityProgramCard = ({ program, rank }) => {
     }
   };
   
+  const handleCardClick = () => {
+    // Navigate to the detailed education page
+    navigate(`/utdanning/${program.universitet}/${program.studiekode}`);
+  };
+  
   return (
-    <Card className={`border-l-4 transition-all hover:shadow-md ${rank === 1 ? 'border-l-primary' : ''}`}>
+    <Card 
+      className={`border-l-4 transition-all hover:shadow-md cursor-pointer ${rank === 1 ? 'border-l-primary' : ''}`}
+      onClick={handleCardClick}
+    >
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div>
@@ -127,11 +138,17 @@ const UniversityProgramCard = ({ program, rank }) => {
         </div>
       </CardContent>
       <CardFooter className="pt-0">
-        <Button variant="ghost" size="sm" className="flex items-center gap-1 ml-auto" asChild>
-          <a href={generateProgramUrl(program.linje)} target="_blank" rel="noopener noreferrer">
-            <span>Les mer</span>
-            <ExternalLink className="h-4 w-4" />
-          </a>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="flex items-center gap-1 ml-auto" 
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent card click when clicking external link
+            window.open(generateProgramUrl(program.linje), '_blank');
+          }}
+        >
+          <span>Ekstern lenke</span>
+          <ExternalLink className="h-4 w-4" />
         </Button>
       </CardFooter>
     </Card>
