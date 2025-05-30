@@ -40,13 +40,14 @@ const CareerStatistics = () => {
       }
       
       console.log("Career data fetched:", careerStats?.length, "rows");
+      console.log("First few rows:", careerStats?.slice(0, 3));
       setCareerData(careerStats || []);
       
       // Also fetch detailed data from Clean_11418
       const { data: detailedStats, error: detailedError } = await supabase
         .from('Clean_11418')
         .select('*')
-        .limit(100);
+        .limit(1000);
       
       if (detailedError) {
         console.warn("Could not fetch detailed career data:", detailedError);
@@ -176,68 +177,79 @@ const CareerStatistics = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* Debug information */}
+          {careerData.length === 0 && (
+            <div className="bg-yellow-50 p-4 rounded-lg mb-4">
+              <h4 className="font-semibold">Debug informasjon:</h4>
+              <p>Ingen data funnet i Yrke_statistikk tabellen.</p>
+              <p>Sjekk konsollen for mer informasjon.</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Topp 10 yrker etter antall personer</CardTitle>
-          <CardDescription>
-            {searchTerm ? `Viser søkeresultater for "${searchTerm}"` : 'De mest populære yrkene basert på antall personer'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Yrke</TableHead>
-                  <TableHead>STYRK08 Kode</TableHead>
-                  <TableHead className="text-right">Antall personer</TableHead>
-                  <TableHead className="text-right">Antall menn</TableHead>
-                  <TableHead className="text-right">Antall kvinner</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {topCareers.map((career, index) => (
-                  <TableRow key={career.id || index} className="cursor-pointer hover:bg-muted/50">
-                    <TableCell className="font-medium">
-                      {career.styrk08_navn}
-                      {career.styrk08_kortnavn && (
-                        <div className="text-sm text-muted-foreground">
-                          {career.styrk08_kortnavn}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{career.styrk08}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {career.antall_personer?.toLocaleString() || 'N/A'}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {career.antall_menn?.toLocaleString() || 'N/A'}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {career.antall_kvinner?.toLocaleString() || 'N/A'}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleCareerSelect(career.styrk08_navn)}
-                      >
-                        Detaljer
-                      </Button>
-                    </TableCell>
+      {careerData.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Topp 10 yrker etter antall personer</CardTitle>
+            <CardDescription>
+              {searchTerm ? `Viser søkeresultater for "${searchTerm}"` : 'De mest populære yrkene basert på antall personer'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Yrke</TableHead>
+                    <TableHead>STYRK08 Kode</TableHead>
+                    <TableHead className="text-right">Antall personer</TableHead>
+                    <TableHead className="text-right">Antall menn</TableHead>
+                    <TableHead className="text-right">Antall kvinner</TableHead>
+                    <TableHead></TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                </TableHeader>
+                <TableBody>
+                  {topCareers.map((career, index) => (
+                    <TableRow key={career.id || index} className="cursor-pointer hover:bg-muted/50">
+                      <TableCell className="font-medium">
+                        {career.styrk08_navn}
+                        {career.styrk08_kortnavn && (
+                          <div className="text-sm text-muted-foreground">
+                            {career.styrk08_kortnavn}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{career.styrk08}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {career.antall_personer?.toLocaleString() || 'N/A'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {career.antall_menn?.toLocaleString() || 'N/A'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {career.antall_kvinner?.toLocaleString() || 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleCareerSelect(career.styrk08_navn)}
+                        >
+                          Detaljer
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
