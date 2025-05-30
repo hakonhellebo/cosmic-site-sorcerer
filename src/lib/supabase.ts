@@ -370,7 +370,7 @@ export const getAllResponses = async (table: 'high_school_responses' | 'universi
 };
 
 // Get university data from Supabase
-export const getUniversityData = async (institutionCode?: string) => {
+export const getUniversityData = async (institutionCode?: string, year?: string) => {
   try {
     let query = supabase
       .from('Universitetsdata')
@@ -378,6 +378,11 @@ export const getUniversityData = async (institutionCode?: string) => {
     
     if (institutionCode) {
       query = query.eq('Institusjonskode', institutionCode);
+    }
+    
+    // Filter by year if provided
+    if (year) {
+      query = query.eq('År', year);
     }
     
     const { data, error } = await query;

@@ -36,26 +36,46 @@ const UniversityStatistics = () => {
     const fetchNhhData = async () => {
       if (selectedUniversity === 'nhh') {
         setLoading(true);
-        const { data, error } = await getUniversityData('211'); // NHH institusjonskode
+        console.log("Fetching NHH data for 2024...");
+        
+        // Fetch data for 2024 specifically
+        const { data, error } = await getUniversityData('211', '2024');
+        
         if (data && !error) {
-          // Transform Supabase data to match expected format
-          const transformedData = data.map(item => ({
-            linje: item.Institusjonsnavn || 'Ukjent linje',
-            studiekode: item.Studiekode || '',
-            snitt: parseFloat(item.SSB_NUS_kode) || 0, // Using available numeric field
-            sokereMott: parseInt(item.Antall) || 0,
-            sokereTilbudJaSvar: parseInt(item.Antall) || 0,
-            sokereTilbud: parseInt(item.Antall) || 0,
-            sokereKvalifisert: parseInt(item.Antall) * 2 || 0, // Estimate
-            sokere: parseInt(item.Antall) * 3 || 0, // Estimate
-            planlagteStudieplasser: parseInt(item.Antall) || 0,
-            universitet: "nhh",
-            sokereMottPerStudieplass: 1,
-            beskrivelse: `Studieprogram ved ${item.Institusjonsnavn}`,
-            link: "https://www.nhh.no/studier/"
-          })).filter(item => item.studiekode); // Only include items with studiekode
+          console.log("Raw NHH data from Supabase:", data);
           
+          // Transform Supabase data to match expected format
+          const transformedData = data.map(item => {
+            // Extract relevant fields from the Supabase data
+            const linje = item.Studiets_navn || item.Institusjonsnavn || 'Ukjent linje';
+            const studiekode = item.Studiekode || item.StudiekodeKort || '';
+            const snitt = parseFloat(item.Karaktersnitt) || parseFloat(item.Snitt) || 0;
+            const sokereMott = parseInt(item.Antall_moette) || parseInt(item.Møtte) || 0;
+            const planlagteStudieplasser = parseInt(item.Studieplasser) || parseInt(item.Planlagte_studieplasser) || 0;
+            const sokereKvalifisert = parseInt(item.Kvalifiserte_sokere) || parseInt(item.Kvalifiserte) || sokereMott * 2;
+            const sokere = parseInt(item.Totale_sokere) || parseInt(item.Søkere) || sokereKvalifisert * 1.5;
+            
+            return {
+              linje,
+              studiekode,
+              snitt,
+              sokereMott,
+              sokereTilbudJaSvar: sokereMott,
+              sokereTilbud: sokereKvalifisert,
+              sokereKvalifisert,
+              sokere,
+              planlagteStudieplasser,
+              universitet: "nhh",
+              sokereMottPerStudieplass: planlagteStudieplasser > 0 ? sokereKvalifisert / planlagteStudieplasser : 0,
+              beskrivelse: `${linje} ved Norges Handelshøyskole`,
+              link: "https://www.nhh.no/studier/"
+            };
+          }).filter(item => item.studiekode && item.studiekode.trim() !== ''); // Only include items with valid studiekode
+          
+          console.log("Transformed NHH data:", transformedData);
           setNhhSupabaseData(transformedData);
+        } else {
+          console.error("Error fetching NHH data:", error);
         }
         setLoading(false);
       }
@@ -114,7 +134,7 @@ const UniversityStatistics = () => {
                 {universities.map((uni) => (
                   <SelectItem key={uni.id} value={uni.id}>
                     {uni.name}
-                    {uni.id === 'nhh' && ' (Live data)'}
+                    {uni.id === 'nhh' && ' (2024 data)'}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -150,12 +170,12 @@ const UniversityStatistics = () => {
           <CardTitle className="text-2xl">
             Topplinjene ved {universities.find(u => u.id === selectedUniversity)?.name || 'universitet'}
             {selectedUniversity === 'nhh' && (
-              <Badge variant="secondary" className="ml-2">Live data fra Supabase</Badge>
+              <Badge variant="secondary" className="ml-2">2024 data fra Supabase</Badge>
             )}
           </CardTitle>
           <CardDescription>
             De 5 mest {sortBy === 'snitt' ? 'krevende' : sortBy === 'popularity' ? 'populære' : 'konkurranseutsatte'} 
-            utdanningene basert på data fra 2024
+            utdanningene basert på 2024 data
             {loading && ' (Henter data...)'}
           </CardDescription>
         </CardHeader>
@@ -163,7 +183,7 @@ const UniversityStatistics = () => {
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
-              <p>Henter data fra Supabase...</p>
+              <p>Henter 2024 data fra Supabase...</p>
             </div>
           ) : topPrograms.length > 0 ? (
             topPrograms.map((program, index) => (
@@ -176,9 +196,9 @@ const UniversityStatistics = () => {
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Info className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">Ingen data tilgjengelig</h3>
+              <h3 className="text-lg font-medium mb-2">Ingen 2024 data tilgjengelig</h3>
               <p className="text-muted-foreground">
-                Vi har dessverre ikke statistikk for dette universitetet ennå.
+                Vi fant ingen NHH-data for 2024 i databasen ennå.
               </p>
             </div>
           )}
@@ -187,8 +207,8 @@ const UniversityStatistics = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Komplett liste over studielinjer</CardTitle>
-          <CardDescription>Alle tilgjengelige studielinjer ved {universities.find(u => u.id === selectedUniversity)?.name}</CardDescription>
+          <CardTitle>Komplett liste over studielinjer (2024)</CardTitle>
+          <CardDescription>Alle tilgjengelige studielinjer ved {universities.find(u => u.id === selectedUniversity)?.name} for 2024</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -214,7 +234,7 @@ const UniversityStatistics = () => {
                     <TableCell className="text-right">{program.sokereMott}</TableCell>
                     <TableCell className="text-right">{program.planlagteStudieplasser}</TableCell>
                     <TableCell className="text-right">
-                      {(program.sokereKvalifisert / program.planlagteStudieplasser).toFixed(1)}
+                      {program.planlagteStudieplasser > 0 ? (program.sokereKvalifisert / program.planlagteStudieplasser).toFixed(1) : 'N/A'}
                     </TableCell>
                   </TableRow>
                 ))}
