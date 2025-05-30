@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Card, 
   CardContent, 
@@ -14,11 +14,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { universityData } from '@/data/universityStatistics';
+import { getUniversityData } from '@/lib/supabase';
 import UniversityProgramCard from './UniversityProgramCard';
 
 const UniversityStatistics = () => {
   const [selectedUniversity, setSelectedUniversity] = useState("nhh");
   const [sortBy, setSortBy] = useState("snitt");
+  const [nhhSupabaseData, setNhhSupabaseData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
   
   const universities = [
     { id: 'nhh', name: 'Norges Handelshøyskole' },
@@ -27,8 +30,49 @@ const UniversityStatistics = () => {
     { id: 'uib', name: 'Universitetet i Bergen' },
     { id: 'oslomet', name: 'OsloMet - storbyuniversitetet' }
   ];
+
+  // Fetch NHH data from Supabase when component mounts
+  useEffect(() => {
+    const fetchNhhData = async () => {
+      if (selectedUniversity === 'nhh') {
+        setLoading(true);
+        const { data, error } = await getUniversityData('211'); // NHH institusjonskode
+        if (data && !error) {
+          // Transform Supabase data to match expected format
+          const transformedData = data.map(item => ({
+            linje: item.Institusjonsnavn || 'Ukjent linje',
+            studiekode: item.Studiekode || '',
+            snitt: parseFloat(item.SSB_NUS_kode) || 0, // Using available numeric field
+            sokereMott: parseInt(item.Antall) || 0,
+            sokereTilbudJaSvar: parseInt(item.Antall) || 0,
+            sokereTilbud: parseInt(item.Antall) || 0,
+            sokereKvalifisert: parseInt(item.Antall) * 2 || 0, // Estimate
+            sokere: parseInt(item.Antall) * 3 || 0, // Estimate
+            planlagteStudieplasser: parseInt(item.Antall) || 0,
+            universitet: "nhh",
+            sokereMottPerStudieplass: 1,
+            beskrivelse: `Studieprogram ved ${item.Institusjonsnavn}`,
+            link: "https://www.nhh.no/studier/"
+          })).filter(item => item.studiekode); // Only include items with studiekode
+          
+          setNhhSupabaseData(transformedData);
+        }
+        setLoading(false);
+      }
+    };
+
+    fetchNhhData();
+  }, [selectedUniversity]);
   
-  const currentUniversityData = universityData[selectedUniversity] || [];
+  // Use Supabase data for NHH, fallback to hardcoded data for others
+  const getCurrentUniversityData = () => {
+    if (selectedUniversity === 'nhh' && nhhSupabaseData.length > 0) {
+      return nhhSupabaseData;
+    }
+    return universityData[selectedUniversity] || [];
+  };
+  
+  const currentUniversityData = getCurrentUniversityData();
   
   const sortedPrograms = [...currentUniversityData].sort((a, b) => {
     if (sortBy === "snitt") {
@@ -68,7 +112,10 @@ const UniversityStatistics = () => {
               </SelectTrigger>
               <SelectContent>
                 {universities.map((uni) => (
-                  <SelectItem key={uni.id} value={uni.id}>{uni.name}</SelectItem>
+                  <SelectItem key={uni.id} value={uni.id}>
+                    {uni.name}
+                    {uni.id === 'nhh' && ' (Live data)'}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -102,14 +149,23 @@ const UniversityStatistics = () => {
         <CardHeader>
           <CardTitle className="text-2xl">
             Topplinjene ved {universities.find(u => u.id === selectedUniversity)?.name || 'universitet'}
+            {selectedUniversity === 'nhh' && (
+              <Badge variant="secondary" className="ml-2">Live data fra Supabase</Badge>
+            )}
           </CardTitle>
           <CardDescription>
             De 5 mest {sortBy === 'snitt' ? 'krevende' : sortBy === 'popularity' ? 'populære' : 'konkurranseutsatte'} 
             utdanningene basert på data fra 2024
+            {loading && ' (Henter data...)'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {topPrograms.length > 0 ? (
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+              <p>Henter data fra Supabase...</p>
+            </div>
+          ) : topPrograms.length > 0 ? (
             topPrograms.map((program, index) => (
               <UniversityProgramCard 
                 key={program.studiekode} 

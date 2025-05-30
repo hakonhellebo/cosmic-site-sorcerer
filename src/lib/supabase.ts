@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 
 // Get environment variables or use provided project URL
@@ -366,6 +365,27 @@ export const getAllResponses = async (table: 'high_school_responses' | 'universi
     return { data, error: null };
   } catch (error) {
     console.error(`Error fetching ${table}:`, error);
+    return { data: null, error };
+  }
+};
+
+// Get university data from Supabase
+export const getUniversityData = async (institutionCode?: string) => {
+  try {
+    let query = supabase
+      .from('Universitetsdata')
+      .select('*');
+    
+    if (institutionCode) {
+      query = query.eq('Institusjonskode', institutionCode);
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    console.error('Error fetching university data:', error);
     return { data: null, error };
   }
 };
