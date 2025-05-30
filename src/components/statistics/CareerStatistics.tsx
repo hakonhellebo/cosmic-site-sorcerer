@@ -1,92 +1,125 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase, Database, Loader2 } from "lucide-react";
+import { Briefcase, TrendingUp, Users, Search, Loader2 } from "lucide-react";
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/lib/supabase';
+import { Input } from '@/components/ui/input';
+import { supabase } from '@/integrations/supabase/client';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import CareerDetailsCard from './CareerDetailsCard';
 
 const CareerStatistics = () => {
-  const [availableTables, setAvailableTables] = useState<string[]>([]);
-  const [tableData, setTableData] = useState<Record<string, any[]>>({});
+  const [careerData, setCareerData] = useState<any[]>([]);
+  const [detailedCareerData, setDetailedCareerData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCareer, setSelectedCareer] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const discoverTables = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        console.log("Starting database table discovery...");
-        
-        // List of possible table names to check
-        const possibleTables = [
-          'Yrke_Statistikk',
-          'yrke_statistikk', 
-          'career_statistics',
-          'occupations',
-          'yrker',
-          'clean_11418',
-          'Universitetsdata',
-          'universitetsdata',
-          'high_school_responses',
-          'university_responses',
-          'worker_responses'
-        ];
-        
-        const foundTables: string[] = [];
-        const tablesWithData: Record<string, any[]> = {};
-        
-        for (const tableName of possibleTables) {
-          try {
-            console.log(`Checking table: ${tableName}`);
-            
-            const { data, error } = await supabase
-              .from(tableName)
-              .select('*')
-              .limit(3);
-            
-            if (!error && data) {
-              console.log(`✓ Found table: ${tableName} with ${data.length} rows`);
-              foundTables.push(tableName);
-              tablesWithData[tableName] = data;
-              
-              if (data.length > 0) {
-                console.log(`Sample data from ${tableName}:`, data[0]);
-                console.log(`Columns in ${tableName}:`, Object.keys(data[0]));
-              }
-            } else {
-              console.log(`✗ Table ${tableName} not found or error:`, error?.message);
-            }
-          } catch (err) {
-            console.log(`✗ Error checking table ${tableName}:`, err);
-          }
-        }
-        
-        console.log("Database discovery complete. Found tables:", foundTables);
-        setAvailableTables(foundTables);
-        setTableData(tablesWithData);
-        
-        if (foundTables.length === 0) {
-          setError("Ingen tabeller funnet i databasen");
-        }
-        
-      } catch (error) {
-        console.error("Error during table discovery:", error);
-        setError(`Feil ved undersøkelse av database: ${error instanceof Error ? error.message : 'Ukjent feil'}`);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    discoverTables();
+    fetchCareerData();
   }, []);
+
+  const fetchCareerData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log("Fetching career data from Yrke_statistikk...");
+      
+      // Fetch data from Yrke_statistikk table
+      const { data: careerStats, error: careerError } = await supabase
+        .from('Yrke_statistikk')
+        .select('*')
+        .order('antall_personer', { ascending: false });
+      
+      if (careerError) {
+        console.error("Error fetching career data:", careerError);
+        throw careerError;
+      }
+      
+      console.log("Career data fetched:", careerStats?.length, "rows");
+      setCareerData(careerStats || []);
+      
+      // Also fetch detailed data from Clean_11418
+      const { data: detailedStats, error: detailedError } = await supabase
+        .from('Clean_11418')
+        .select('*')
+        .limit(100);
+      
+      if (detailedError) {
+        console.warn("Could not fetch detailed career data:", detailedError);
+      } else {
+        console.log("Detailed career data fetched:", detailedStats?.length, "rows");
+        setDetailedCareerData(detailedStats || []);
+      }
+      
+    } catch (error) {
+      console.error("Error in fetchCareerData:", error);
+      setError("Kunne ikke hente yrkesdata fra databasen");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredCareers = careerData.filter(career =>
+    career.styrk08_navn?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    career.styrk08_kortnavn?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const topCareers = filteredCareers.slice(0, 10);
+
+  const handleCareerSelect = (careerName: string) => {
+    setSelectedCareer(careerName);
+  };
+
+  const getCareerDetails = (careerName: string) => {
+    const basicStats = careerData.find(c => c.styrk08_navn === careerName);
+    const detailed = detailedCareerData.filter(d => d.Yrke === careerName);
+    return { basicStats, detailed };
+  };
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center p-12">
         <Loader2 className="h-8 w-8 animate-spin mb-4" />
-        <p>Undersøker tilgjengelige tabeller i databasen...</p>
+        <p>Henter yrkesstatistikk...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-red-600 p-4 bg-red-50 rounded-lg">
+        <h3 className="font-semibold mb-2">Feil:</h3>
+        <p>{error}</p>
+        <Button onClick={fetchCareerData} className="mt-4">
+          Prøv igjen
+        </Button>
+      </div>
+    );
+  }
+
+  if (selectedCareer) {
+    const { basicStats, detailed } = getCareerDetails(selectedCareer);
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="outline" 
+            onClick={() => setSelectedCareer(null)}
+          >
+            ← Tilbake til oversikt
+          </Button>
+          <h2 className="text-2xl font-bold">{selectedCareer}</h2>
+        </div>
+        
+        <CareerDetailsCard 
+          careerName={selectedCareer}
+          basicStats={basicStats}
+          detailedStats={detailed}
+        />
       </div>
     );
   }
@@ -96,79 +129,113 @@ const CareerStatistics = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Database className="h-5 w-5" />
-            Database Oversikt
+            <Briefcase className="h-5 w-5" />
+            Yrkesstatistikk
           </CardTitle>
           <CardDescription>
-            Tilgjengelige tabeller i din Supabase database
+            Statistikk over yrker basert på data fra Yrke_statistikk tabellen
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {error ? (
-            <div className="text-red-600 p-4 bg-red-50 rounded-lg">
-              <h3 className="font-semibold mb-2">Feil:</h3>
-              <p>{error}</p>
+          <div className="flex items-center gap-4 mb-6">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Søk etter yrke..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
             </div>
-          ) : (
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold mb-2">Funnet {availableTables.length} tabeller:</h3>
-                {availableTables.length > 0 ? (
-                  <div className="grid gap-4">
-                    {availableTables.map((tableName) => (
-                      <Card key={tableName} className="border border-gray-200">
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Database className="h-4 w-4 text-green-600" />
-                            <h4 className="font-medium">{tableName}</h4>
-                          </div>
-                          
-                          {tableData[tableName] && tableData[tableName].length > 0 ? (
-                            <div className="space-y-2">
-                              <p className="text-sm text-gray-600">
-                                Antall rader: {tableData[tableName].length}+ (viser kun første 3)
-                              </p>
-                              <div className="text-xs">
-                                <strong>Kolonner:</strong>
-                                <div className="flex flex-wrap gap-1 mt-1">
-                                  {Object.keys(tableData[tableName][0]).map((column) => (
-                                    <span key={column} className="bg-blue-100 px-2 py-1 rounded text-blue-800">
-                                      {column}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                              
-                              <details className="mt-2">
-                                <summary className="cursor-pointer text-sm text-blue-600 hover:text-blue-800">
-                                  Vis eksempel data
-                                </summary>
-                                <pre className="bg-gray-100 p-2 rounded text-xs mt-2 overflow-auto">
-                                  {JSON.stringify(tableData[tableName][0], null, 2)}
-                                </pre>
-                              </details>
-                            </div>
-                          ) : (
-                            <p className="text-sm text-gray-500">Tabellen er tom</p>
-                          )}
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-500">Ingen tabeller funnet</p>
-                )}
-              </div>
-              
-              <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                <h4 className="font-semibold text-blue-800 mb-2">Neste steg:</h4>
-                <p className="text-sm text-blue-700">
-                  Basert på tabellene som finnes, kan vi konfigurere yrkesstatistikken til å bruke riktig datakilde.
-                  Fortell meg hvilken tabell som inneholder yrkesdata, så oppdaterer jeg koden.
-                </p>
-              </div>
-            </div>
-          )}
+            <Button onClick={fetchCareerData} variant="outline">
+              Oppdater data
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-primary">{careerData.length}</div>
+                <div className="text-sm text-muted-foreground">Totalt antall yrker</div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-green-600">
+                  {careerData.reduce((sum, career) => sum + (career.antall_personer || 0), 0).toLocaleString()}
+                </div>
+                <div className="text-sm text-muted-foreground">Totalt antall personer</div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-blue-600">{detailedCareerData.length}</div>
+                <div className="text-sm text-muted-foreground">Detaljerte datapunkter</div>
+              </CardContent>
+            </Card>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Topp 10 yrker etter antall personer</CardTitle>
+          <CardDescription>
+            {searchTerm ? `Viser søkeresultater for "${searchTerm}"` : 'De mest populære yrkene basert på antall personer'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Yrke</TableHead>
+                  <TableHead>STYRK08 Kode</TableHead>
+                  <TableHead className="text-right">Antall personer</TableHead>
+                  <TableHead className="text-right">Antall menn</TableHead>
+                  <TableHead className="text-right">Antall kvinner</TableHead>
+                  <TableHead></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {topCareers.map((career, index) => (
+                  <TableRow key={career.id || index} className="cursor-pointer hover:bg-muted/50">
+                    <TableCell className="font-medium">
+                      {career.styrk08_navn}
+                      {career.styrk08_kortnavn && (
+                        <div className="text-sm text-muted-foreground">
+                          {career.styrk08_kortnavn}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{career.styrk08}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      {career.antall_personer?.toLocaleString() || 'N/A'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {career.antall_menn?.toLocaleString() || 'N/A'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {career.antall_kvinner?.toLocaleString() || 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleCareerSelect(career.styrk08_navn)}
+                      >
+                        Detaljer
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

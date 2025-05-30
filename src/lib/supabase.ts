@@ -369,7 +369,7 @@ export const getAllResponses = async (table: 'high_school_responses' | 'universi
   }
 };
 
-// Get university data from Supabase
+// Get university data from Universitetsdata table
 export const getUniversityData = async (institutionCode?: string, year?: string) => {
   try {
     let query = supabase
@@ -380,9 +380,9 @@ export const getUniversityData = async (institutionCode?: string, year?: string)
       query = query.eq('Institusjonskode', institutionCode);
     }
     
-    // Filter by year if provided
+    // Filter by year if provided - check if Årstall column exists
     if (year) {
-      query = query.eq('År', year);
+      query = query.eq('Årstall', year);
     }
     
     const { data, error } = await query;
@@ -395,21 +395,20 @@ export const getUniversityData = async (institutionCode?: string, year?: string)
   }
 };
 
-// Get career data from Yrke_Statistikk table
+// Get career data from Yrke_statistikk table
 export const getCareerStatistics = async (careerName?: string) => {
   try {
     console.log("getCareerStatistics called with:", { careerName });
     
     let query = supabase
-      .from('Yrke_Statistikk')
+      .from('Yrke_statistikk')
       .select('*');
     
     if (careerName) {
-      // Try multiple possible column names
-      query = query.or(`Yrke.eq.${careerName},yrke.eq.${careerName},Occupation.eq.${careerName},occupation.eq.${careerName}`);
+      query = query.eq('styrk08_navn', careerName);
     }
     
-    console.log("Executing query on Yrke_Statistikk...");
+    console.log("Executing query on Yrke_statistikk...");
     const { data, error } = await query;
     
     console.log("Query result:", { 
@@ -430,11 +429,11 @@ export const getCareerStatistics = async (careerName?: string) => {
   }
 };
 
-// Get detailed career data from clean_11418 table
+// Get detailed career data from Clean_11418 table
 export const getDetailedCareerData = async (careerName?: string) => {
   try {
     let query = supabase
-      .from('clean_11418')
+      .from('Clean_11418')
       .select('*');
     
     if (careerName) {
