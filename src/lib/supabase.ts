@@ -394,3 +394,45 @@ export const getUniversityData = async (institutionCode?: string, year?: string)
     return { data: null, error };
   }
 };
+
+// Get career data from Yrke_Statistikk table
+export const getCareerStatistics = async (careerName?: string) => {
+  try {
+    let query = supabase
+      .from('Yrke_Statistikk')
+      .select('*');
+    
+    if (careerName) {
+      query = query.eq('Yrke', careerName);
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    console.error('Error fetching career statistics:', error);
+    return { data: null, error };
+  }
+};
+
+// Get detailed career data from clean_11418 table
+export const getDetailedCareerData = async (careerName?: string) => {
+  try {
+    let query = supabase
+      .from('clean_11418')
+      .select('*');
+    
+    if (careerName) {
+      query = query.eq('Yrke', careerName);
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    console.error('Error fetching detailed career data:', error);
+    return { data: null, error };
+  }
+};
