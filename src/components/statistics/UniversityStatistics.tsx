@@ -43,17 +43,22 @@ const UniversityStatistics = () => {
         
         if (data && !error) {
           console.log("Raw NHH data from Supabase:", data);
+          console.log("Number of records:", data.length);
           
           // Transform Supabase data to match expected format
-          const transformedData = data.map(item => {
-            // Extract relevant fields from the Supabase data
-            const linje = item.Studiets_navn || item.Institusjonsnavn || 'Ukjent linje';
-            const studiekode = item.Studiekode || item.StudiekodeKort || '';
-            const snitt = parseFloat(item.Karaktersnitt) || parseFloat(item.Snitt) || 0;
-            const sokereMott = parseInt(item.Antall_moette) || parseInt(item.Møtte) || 0;
-            const planlagteStudieplasser = parseInt(item.Studieplasser) || parseInt(item.Planlagte_studieplasser) || 0;
-            const sokereKvalifisert = parseInt(item.Kvalifiserte_sokere) || parseInt(item.Kvalifiserte) || sokereMott * 2;
-            const sokere = parseInt(item.Totale_sokere) || parseInt(item.Søkere) || sokereKvalifisert * 1.5;
+          const transformedData = data.map((item, index) => {
+            console.log(`Processing item ${index + 1}:`, item);
+            
+            // Focus on nus-kode as the primary studiekode field
+            const linje = item.Studiets_navn || item.studienavn || `Studie ${index + 1}`;
+            const studiekode = item['nus-kode'] || item.Studiekode || `NUS${index + 1}`;
+            const snitt = parseFloat(item.Karaktersnitt) || parseFloat(item.karaktersnitt) || 0;
+            const sokereMott = parseInt(item.Antall_moette) || parseInt(item.antall_moette) || 0;
+            const planlagteStudieplasser = parseInt(item.Studieplasser) || parseInt(item.studieplasser) || 0;
+            const sokereKvalifisert = parseInt(item.Kvalifiserte_sokere) || parseInt(item.kvalifiserte_sokere) || sokereMott * 2;
+            const sokere = parseInt(item.Totale_sokere) || parseInt(item.totale_sokere) || sokereKvalifisert * 1.5;
+            
+            console.log(`Transformed: ${linje} - ${studiekode} - Snitt: ${snitt}`);
             
             return {
               linje,
@@ -70,9 +75,10 @@ const UniversityStatistics = () => {
               beskrivelse: `${linje} ved Norges Handelshøyskole`,
               link: "https://www.nhh.no/studier/"
             };
-          }).filter(item => item.studiekode && item.studiekode.trim() !== ''); // Only include items with valid studiekode
+          }).filter(item => item.studiekode && item.linje); // Only filter out items without both studiekode and linje
           
           console.log("Transformed NHH data:", transformedData);
+          console.log("Final count after filtering:", transformedData.length);
           setNhhSupabaseData(transformedData);
         } else {
           console.error("Error fetching NHH data:", error);
