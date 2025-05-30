@@ -4,46 +4,56 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Briefcase, Search, Loader2 } from "lucide-react";
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { getCareerStatistics, getDetailedCareerData } from '@/lib/supabase';
 import CareerDetailsCard from './CareerDetailsCard';
 
 const CareerStatistics = () => {
   const [selectedCareer, setSelectedCareer] = useState("");
   const [careerList, setCareerList] = useState<string[]>([]);
+  const [filteredCareers, setFilteredCareers] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [basicStats, setBasicStats] = useState<Record<string, any> | null>(null);
   const [detailedStats, setDetailedStats] = useState<Record<string, any>[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
 
-  // Example careers to demonstrate (you can expand this list)
-  const exampleCareers = [
-    "Dataingeniør",
-    "Markedsfører", 
-    "Økonomirådgiver",
-    "Prosjektleder",
-    "Revisor"
-  ];
-
   // Load available careers on component mount
   useEffect(() => {
     const loadCareers = async () => {
       try {
+        console.log("Loading careers from Yrke_Statistikk table...");
         const { data, error } = await getCareerStatistics();
-        if (data && !error && Array.isArray(data)) {
-          const uniqueCareers = [...new Set(data.map(item => item.Yrke).filter(Boolean))] as string[];
-          setCareerList(uniqueCareers);
+        
+        if (error) {
+          console.error("Error fetching careers:", error);
+          setCareerList([]);
+          return;
+        }
+        
+        if (data && Array.isArray(data)) {
+          console.log("Raw career data:", data);
           
-          // If no careers from database, use examples
-          if (uniqueCareers.length === 0) {
-            setCareerList(exampleCareers);
-          }
+          // Extract unique career names from the Yrke column
+          const uniqueCareers = [...new Set(
+            data
+              .map(item => item.Yrke)
+              .filter(Boolean)
+              .filter(career => typeof career === 'string' && career.trim().length > 0)
+          )] as string[];
+          
+          console.log("Unique careers found:", uniqueCareers);
+          setCareerList(uniqueCareers.sort());
+          setFilteredCareers(uniqueCareers.sort());
         } else {
-          console.log("Using example careers as fallback");
-          setCareerList(exampleCareers);
+          console.log("No data returned from Yrke_Statistikk");
+          setCareerList([]);
+          setFilteredCareers([]);
         }
       } catch (error) {
         console.error("Error loading careers:", error);
-        setCareerList(exampleCareers);
+        setCareerList([]);
+        setFilteredCareers([]);
       } finally {
         setInitialLoading(false);
       }
@@ -52,26 +62,52 @@ const CareerStatistics = () => {
     loadCareers();
   }, []);
 
+  // Filter careers based on search term
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setFilteredCareers(careerList);
+    } else {
+      const filtered = careerList.filter(career =>
+        career.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredCareers(filtered);
+    }
+  }, [searchTerm, careerList]);
+
   // Load statistics for selected career
   const loadCareerData = async (careerName: string) => {
     if (!careerName) return;
     
     setLoading(true);
     try {
+      console.log("Loading data for career:", careerName);
+      
       // Fetch basic statistics
       const { data: basicData, error: basicError } = await getCareerStatistics(careerName);
-      if (basicData && !basicError && basicData.length > 0) {
+      if (basicError) {
+        console.error("Error fetching basic stats:", basicError);
+      } else if (basicData && basicData.length > 0) {
+        console.log("Basic stats:", basicData[0]);
         setBasicStats(basicData[0]);
+      } else {
+        setBasicStats(null);
       }
 
       // Fetch detailed statistics
       const { data: detailedData, error: detailedError } = await getDetailedCareerData(careerName);
-      if (detailedData && !detailedError) {
+      if (detailedError) {
+        console.error("Error fetching detailed stats:", detailedError);
+      } else if (detailedData) {
+        console.log("Detailed stats:", detailedData);
         setDetailedStats(detailedData);
+      } else {
+        setDetailedStats([]);
       }
 
     } catch (error) {
       console.error("Error loading career data:", error);
+      setBasicStats(null);
+      setDetailedStats([]);
     } finally {
       setLoading(false);
     }
@@ -86,7 +122,7 @@ const CareerStatistics = () => {
     return (
       <div className="flex flex-col items-center justify-center p-12">
         <Loader2 className="h-8 w-8 animate-spin mb-4" />
-        <p>Laster yrkesdata...</p>
+        <p>Laster yrkesdata fra databasen...</p>
       </div>
     );
   }
@@ -102,16 +138,30 @@ const CareerStatistics = () => {
           </CardTitle>
           <CardDescription>
             Se detaljert statistikk for ulike yrker basert på arbeidsmarkedsdata
+            {careerList.length > 0 && ` (${careerList.length} yrker tilgjengelig)`}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          {/* Search input */}
+          <Input
+            placeholder="Søk etter yrke (f.eks. Sivilingeniør)"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full"
+          />
+          
+          {/* Career selection dropdown */}
           <div className="flex gap-4">
             <Select value={selectedCareer} onValueChange={handleCareerSelect}>
               <SelectTrigger className="flex-1">
-                <SelectValue placeholder="Velg et yrke for å se statistikk" />
+                <SelectValue placeholder={
+                  careerList.length > 0 
+                    ? `Velg fra ${filteredCareers.length} yrker`
+                    : "Ingen yrker funnet"
+                } />
               </SelectTrigger>
               <SelectContent>
-                {careerList.map((career) => (
+                {filteredCareers.map((career) => (
                   <SelectItem key={career} value={career}>
                     {career}
                   </SelectItem>
@@ -126,6 +176,13 @@ const CareerStatistics = () => {
               Søk
             </Button>
           </div>
+          
+          {/* Show filtered results count */}
+          {searchTerm && (
+            <p className="text-sm text-muted-foreground">
+              Viser {filteredCareers.length} av {careerList.length} yrker
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -162,7 +219,7 @@ const CareerStatistics = () => {
       )}
 
       {/* Initial State */}
-      {!selectedCareer && (
+      {!selectedCareer && careerList.length > 0 && (
         <Card>
           <CardContent className="py-12">
             <div className="text-center">
@@ -174,6 +231,22 @@ const CareerStatistics = () => {
               </p>
               <p className="text-sm text-muted-foreground">
                 Data hentet fra Yrke_Statistikk og clean_11418 tabellene
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* No careers available */}
+      {!selectedCareer && careerList.length === 0 && !initialLoading && (
+        <Card>
+          <CardContent className="py-12">
+            <div className="text-center">
+              <Briefcase className="h-16 w-16 mx-auto mb-6 text-muted-foreground" />
+              <h3 className="text-2xl font-semibold mb-4">Ingen yrker funnet</h3>
+              <p className="text-muted-foreground mb-6">
+                Kunne ikke hente yrker fra Yrke_Statistikk tabellen. 
+                Sjekk at tabellen inneholder data og at tilkoblingen til Supabase fungerer.
               </p>
             </div>
           </CardContent>
