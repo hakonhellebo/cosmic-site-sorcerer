@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,9 @@ interface YrkeOption {
   value: string;
   label: string;
 }
+
+// Use the correct EdPath backend URL
+const API_BASE_URL = 'https://edpath-backend-production.up.railway.app';
 
 const SalarySearch = () => {
   const [yrke, setYrke] = useState('');
@@ -53,11 +57,11 @@ const SalarySearch = () => {
   // Test API connection
   const testApiConnection = async () => {
     try {
-      console.log('Testing API connection...');
-      setApiStatus('Tester tilkobling...');
+      console.log('Testing EdPath backend API connection...');
+      setApiStatus('Tester tilkobling til EdPath backend...');
       
       // First test the base URL
-      const baseResponse = await fetch('https://edpath-backend-production.up.railway.app/', {
+      const baseResponse = await fetch(`${API_BASE_URL}/`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -65,15 +69,15 @@ const SalarySearch = () => {
         },
       });
       
-      console.log('Base API response status:', baseResponse.status);
-      setApiStatus(`API tilgjengelig (${baseResponse.status})`);
+      console.log('EdPath backend response status:', baseResponse.status);
+      setApiStatus(`EdPath backend tilgjengelig (${baseResponse.status})`);
       
       // Then test the /lonn endpoint
       await fetchYrkeOptions();
       
     } catch (err) {
-      console.error('API connection test failed:', err);
-      setApiStatus(`API utilgjengelig: ${err instanceof Error ? err.message : 'Ukjent feil'}`);
+      console.error('EdPath backend connection failed:', err);
+      setApiStatus(`EdPath backend utilgjengelig: ${err instanceof Error ? err.message : 'Ukjent feil'}`);
       
       // Fallback: Use mock data for testing
       console.log('Using mock data as fallback...');
@@ -94,7 +98,7 @@ const SalarySearch = () => {
       }));
       
       setYrkeOptions(mockOptions);
-      setApiStatus('Bruker testdata (API utilgjengelig)');
+      setApiStatus('Bruker testdata (EdPath backend utilgjengelig)');
     }
   };
 
@@ -103,9 +107,9 @@ const SalarySearch = () => {
     setLoadingYrker(true);
     setError(null);
     try {
-      console.log('Fetching yrker from API...');
+      console.log('Fetching yrker from EdPath backend...');
       
-      const response = await fetch('https://edpath-backend-production.up.railway.app/lonn/', {
+      const response = await fetch(`${API_BASE_URL}/lonn/`, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -113,19 +117,19 @@ const SalarySearch = () => {
         },
       });
       
-      console.log('Response status:', response.status);
+      console.log('EdPath backend response status:', response.status);
       console.log('Response headers:', Object.fromEntries(response.headers.entries()));
       
       if (!response.ok) {
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
+        throw new Error(`EdPath backend API error: ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();
-      console.log('Fetched all salary data:', data);
+      console.log('Fetched salary data from EdPath backend:', data);
       console.log('Number of records:', data.length);
       
       if (!Array.isArray(data)) {
-        throw new Error('API returnerte ikke en array');
+        throw new Error('EdPath backend returnerte ikke en array');
       }
       
       // Extract unique occupations from the data
@@ -139,9 +143,9 @@ const SalarySearch = () => {
       console.log('First 5 occupations:', uniqueYrker.slice(0, 5));
       
       setYrkeOptions(yrkeOptions);
-      setApiStatus(`${yrkeOptions.length} yrker lastet fra API`);
+      setApiStatus(`${yrkeOptions.length} yrker lastet fra EdPath backend`);
     } catch (err) {
-      console.error('Error fetching occupations:', err);
+      console.error('Error fetching occupations from EdPath backend:', err);
       const errorMessage = err instanceof Error ? err.message : 'Ukjent feil';
       setError('Kunne ikke laste yrker: ' + errorMessage);
       setApiStatus(`Feil: ${errorMessage}`);
@@ -171,9 +175,9 @@ const SalarySearch = () => {
       if (tid) params.append('tid', tid);
       if (sektor) params.append('sektor', sektor);
 
-      const url = `https://edpath-backend-production.up.railway.app/lonn/?${params.toString()}`;
+      const url = `${API_BASE_URL}/lonn/?${params.toString()}`;
       
-      console.log('Fetching salary data from:', url);
+      console.log('Fetching salary data from EdPath backend:', url);
       
       const response = await fetch(url, {
         method: 'GET',
@@ -184,17 +188,17 @@ const SalarySearch = () => {
       });
       
       if (!response.ok) {
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
+        throw new Error(`EdPath backend API error: ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();
-      console.log('Salary data received:', data);
+      console.log('Salary data received from EdPath backend:', data);
       
       // If data is an array, take the first result
       const firstResult = Array.isArray(data) ? data[0] : data;
       setResult(firstResult);
     } catch (err) {
-      console.error('Error fetching salary data:', err);
+      console.error('Error fetching salary data from EdPath backend:', err);
       setError(err instanceof Error ? err.message : 'Ukjent feil oppstod');
     } finally {
       setLoading(false);
