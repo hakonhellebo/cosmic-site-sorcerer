@@ -22,8 +22,8 @@ interface YrkeOption {
   label: string;
 }
 
-// Use the correct EdPath backend URL
-const API_BASE_URL = 'https://edpath-backend-production.up.railway.app/lonn/';
+// Use the correct EdPath backend URL (without /lonn/ at the end)
+const API_BASE_URL = 'https://edpath-backend-production.up.railway.app';
 
 const SalarySearch = () => {
   const [yrke, setYrke] = useState('');
