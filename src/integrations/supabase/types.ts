@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          new_data: Json | null
+          old_data: Json | null
+          record_id: string | null
+          table_name: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string | null
+          table_name?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string | null
+          table_name?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       Clean_11418: {
         Row: {
           AvtaltVanlig: string | null
@@ -135,6 +174,33 @@ export type Database = {
           Tid?: number | null
           UtdNivaa?: string
           value?: number | null
+        }
+        Relationships: []
+      }
+      high_school_responses: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          name: string | null
+          responses: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string | null
+          responses?: Json | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string | null
+          responses?: Json | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -282,6 +348,33 @@ export type Database = {
         }
         Relationships: []
       }
+      university_responses: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          name: string | null
+          responses: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string | null
+          responses?: Json | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string | null
+          responses?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       "Utdanning til yrke": {
         Row: {
           antall_personer: number | null
@@ -366,6 +459,33 @@ export type Database = {
         }
         Relationships: []
       }
+      worker_responses: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          name: string | null
+          responses: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string | null
+          responses?: Json | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string | null
+          responses?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       Yrke_statistikk: {
         Row: {
           andel_13: number | null
@@ -428,7 +548,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { user_id: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

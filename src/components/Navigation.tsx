@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { User, LogOut } from 'lucide-react';
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { getCurrentUser, signOut } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,8 +17,10 @@ const Navigation: React.FC = () => {
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
   const [userType, setUserType] = useState<string | null>(null);
+  
+  // Security: Use auth context instead of manual session management
+  const { user, signOut: contextSignOut } = useAuth();
 
   const navItems = [
     { name: 'Hjem', href: '/' },
@@ -31,103 +33,40 @@ const Navigation: React.FC = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+      setIsScrolled(window.scrollY > 20);
     };
 
     window.addEventListener('scroll', handleScroll);
     
-    const checkSession = async () => {
-      try {
-        const user = await getCurrentUser();
-        
-        if (user) {
-          const userMeta = user.user_metadata || {};
-          
-          const userData = {
-            id: user.id,
-            email: user.email,
-            firstName: userMeta.firstName || userMeta.name?.split(' ')[0] || user.email?.split('@')[0] || '',
-            lastName: userMeta.lastName || 
-              (userMeta.name?.split(' ').length > 1 ? userMeta.name?.split(' ').slice(1).join(' ') : ''),
-            userType: userMeta.userType || '',
-            avatar: userMeta.avatar_url || userMeta.picture || null,
-            isVerified: true
-          };
-          
-          setCurrentUser(userData);
-          setUserType(userMeta.userType || localStorage.getItem('userType') || null);
-          localStorage.setItem('currentUser', JSON.stringify(userData));
-          localStorage.setItem('userData', JSON.stringify({
-            email: user.email,
-            firstName: userData.firstName,
-            lastName: userData.lastName,
-            userType: userMeta.userType || '',
-            isVerified: true
-          }));
-        } else {
-          // Try to get user type from local storage
-          const savedUserData = localStorage.getItem('userFullData');
-          if (savedUserData) {
-            const parsedData = JSON.parse(savedUserData);
-            if (parsedData.questionnaire) {
-              if (parsedData.questionnaire.highSchool) {
-                setUserType('highSchool');
-              } else if (parsedData.questionnaire.university) {
-                setUserType('university');
-              } else if (parsedData.questionnaire.worker) {
-                setUserType('worker');
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error checking session:", error);
-        const storedUser = localStorage.getItem('currentUser');
-        if (storedUser) {
-          setCurrentUser(JSON.parse(storedUser));
-        }
-        
-        // Try to get user type from local storage in catch block too
-        const savedUserData = localStorage.getItem('userFullData');
-        if (savedUserData) {
+    // Security: Get user type from localStorage as fallback
+    if (user) {
+      const userData = user.user_metadata;
+      setUserType(userData?.userType || localStorage.getItem('userType'));
+    } else {
+      // Try to get user type from stored data
+      const savedUserData = localStorage.getItem('userFullData');
+      if (savedUserData) {
+        try {
           const parsedData = JSON.parse(savedUserData);
           if (parsedData.questionnaire) {
-            if (parsedData.questionnaire.highSchool) {
-              setUserType('highSchool');
-            } else if (parsedData.questionnaire.university) {
-              setUserType('university');
-            } else if (parsedData.questionnaire.worker) {
-              setUserType('worker');
-            }
+            if (parsedData.questionnaire.highSchool) setUserType('highSchool');
+            else if (parsedData.questionnaire.university) setUserType('university');
+            else if (parsedData.questionnaire.worker) setUserType('worker');
           }
+        } catch (error) {
+          console.error('Error parsing stored user data:', error);
         }
       }
-    };
-    
-    checkSession();
+    }
     
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [user]);
   
+  // Security: Enhanced logout with proper cleanup
   const handleLogout = async () => {
     try {
-      const { error } = await signOut();
-      
-      if (error) {
-        toast.error(`Kunne ikke logge ut: ${error.message}`);
-        return;
-      }
-      
-      localStorage.removeItem('currentUser');
-      localStorage.removeItem('userData');
-      localStorage.removeItem('userFullData');
-      
-      setCurrentUser(null);
-      toast.success("Du er nå logget ut");
+      await contextSignOut();
+      setUserType(null);
       navigate('/');
     } catch (error) {
       console.error("Logout error:", error);
@@ -136,17 +75,25 @@ const Navigation: React.FC = () => {
   };
 
   const goToUserResults = () => {
-    // Determine which results page to go to based on user type
-    if (userType === 'highSchool') {
-      navigate('/results/high-school');
-    } else if (userType === 'university') {
-      navigate('/results/university');
-    } else if (userType === 'worker') {
-      navigate('/results/worker');
+    // Security: Validate user type before navigation
+    const validUserTypes = ['highSchool', 'university', 'worker'];
+    if (userType && validUserTypes.includes(userType)) {
+      navigate(`/results/${userType === 'highSchool' ? 'high-school' : userType}`);
     } else {
-      // If we don't know, go to the generic results page
       navigate('/results');
     }
+  };
+
+  // Security: Get safe display name
+  const getDisplayName = () => {
+    if (!user) return '';
+    
+    const firstName = user.user_metadata?.firstName || 
+                     user.user_metadata?.name?.split(' ')[0] || 
+                     user.email?.split('@')[0] || 
+                     'Bruker';
+    
+    return sanitizeInput(firstName);
   };
 
   return (
@@ -191,13 +138,13 @@ const Navigation: React.FC = () => {
           </ul>
         </nav>
         
-        {currentUser ? (
+        {user ? (
           <div className="hidden items-center space-x-4 md:flex">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="flex items-center gap-2">
                   <User className="h-4 w-4" />
-                  <span className="text-xs">{currentUser.firstName}</span>
+                  <span className="text-xs">{getDisplayName()}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -273,7 +220,7 @@ const Navigation: React.FC = () => {
                   </li>
                 ))}
                 
-                {currentUser ? (
+                {user ? (
                   <>
                     <li>
                       <Link 
@@ -340,6 +287,12 @@ const Navigation: React.FC = () => {
       )}
     </header>
   );
+};
+
+// Security: Helper function for input sanitization (import from validation utils)
+const sanitizeInput = (input: string): string => {
+  if (typeof input !== 'string') return '';
+  return input.trim().slice(0, 50); // Limit display name length
 };
 
 export default Navigation;

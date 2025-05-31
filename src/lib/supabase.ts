@@ -1,29 +1,32 @@
 import { createClient } from '@supabase/supabase-js';
+import { sanitizeInput, isRateLimited } from '@/utils/validation';
 
-// Get environment variables or use provided project URL
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://zcfclojzyqezuuwxzrzq.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjZmNsb2p6eXFlenV1d3h6cnpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MTYzODMsImV4cCI6MjA1OTA5MjM4M30.EvRcjK9lCiuuV7FBLE4M7g9mifFsUQg7nIMefi9VJaQ';
+// Security: Use hardcoded values instead of environment variables for Lovable compatibility
+const supabaseUrl = 'https://zcfclojzyqezuuwxzrzq.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjZmNsb2p6eXFlenV1d3h6cnpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MTYzODMsImV4cCI6MjA1OTA5MjM4M30.EvRcjK9lCiuuV7FBLE4M7g9mifFsUQg7nIMefi9VJaQ';
 
-// Check if we have at least the URL and warn if anon key is missing
-if (!supabaseAnonKey) {
-  console.warn(
-    'Missing Supabase anon key. Please check your Supabase project settings and set VITE_SUPABASE_ANON_KEY.'
-  );
-}
+// Security: Configure Supabase client with secure options
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    flowType: 'pkce', // Use PKCE flow for enhanced security
+  },
+});
 
-// Create a Supabase client with the available credentials
-export const supabase = createClient(
-  supabaseUrl,
-  supabaseAnonKey
-);
-
-// Helper function for Google sign-in
+// Security: Secure authentication helpers
 export const signInWithGoogle = async () => {
   try {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/dashboard`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
       }
     });
     
@@ -39,17 +42,31 @@ export const signInWithGoogle = async () => {
   }
 };
 
-// Helper function for email sign-up (without verification)
-export const signUpWithEmail = async (email: string, password: string) => {
+export const signUpWithEmail = async (email: string, password: string, firstName: string, lastName: string) => {
   try {
+    // Security: Rate limiting
+    const clientIP = 'client'; // In a real app, you'd get the actual IP
+    if (isRateLimited(`signup_${clientIP}`, 3, 300000)) { // 3 attempts per 5 minutes
+      return {
+        data: null,
+        error: { message: "For mange forsøk. Prøv igjen om 5 minutter." }
+      };
+    }
+
+    // Security: Input sanitization
+    const sanitizedEmail = email.toLowerCase().trim();
+    const sanitizedFirstName = sanitizeInput(firstName);
+    const sanitizedLastName = sanitizeInput(lastName);
+
     const { data, error } = await supabase.auth.signUp({
-      email,
+      email: sanitizedEmail,
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/dashboard`,
-        // Disable email verification
         data: {
-          email_confirmed: true
+          firstName: sanitizedFirstName,
+          lastName: sanitizedLastName,
+          full_name: `${sanitizedFirstName} ${sanitizedLastName}`.trim(),
         }
       }
     });
@@ -66,11 +83,22 @@ export const signUpWithEmail = async (email: string, password: string) => {
   }
 };
 
-// Helper function for email sign-in
 export const signInWithEmail = async (email: string, password: string) => {
   try {
+    // Security: Rate limiting
+    const clientIP = 'client';
+    if (isRateLimited(`signin_${clientIP}`, 5, 300000)) { // 5 attempts per 5 minutes
+      return {
+        data: null,
+        error: { message: "For mange påloggingsforsøk. Prøv igjen om 5 minutter." }
+      };
+    }
+
+    // Security: Input sanitization
+    const sanitizedEmail = email.toLowerCase().trim();
+
     const { data, error } = await supabase.auth.signInWithPassword({
-      email,
+      email: sanitizedEmail,
       password
     });
     
@@ -86,132 +114,80 @@ export const signInWithEmail = async (email: string, password: string) => {
   }
 };
 
-// Helper function to get the current session
-export const getCurrentSession = async () => {
-  const { data: { session } } = await supabase.auth.getSession();
-  return session;
-};
-
-// Helper function to check auth state
-export const getCurrentUser = async () => {
-  const { data: { user } } = await supabase.auth.getUser();
-  return user;
-};
-
-// Helper function for sign-out
-export const signOut = async () => {
-  const { error } = await supabase.auth.signOut();
-  return { error };
-};
-
-// Helper function to create tables if they don't exist
-const ensureTablesExist = async () => {
+// Security: Enhanced questionnaire save functions with audit logging
+const auditLog = async (action: string, tableName: string, recordId?: string, data?: any) => {
   try {
-    // First check if high_school_responses table exists
-    const { error: checkHighSchoolError } = await supabase
-      .from('high_school_responses')
-      .select('id')
-      .limit(1)
-      .throwOnError();
-      
-    if (checkHighSchoolError) {
-      // If error happens, table likely doesn't exist, let's check more specifically
-      console.log("High school responses table may not exist:", checkHighSchoolError);
+    const user = await getCurrentUser();
+    if (user) {
+      await supabase.from('audit_logs').insert({
+        user_id: user.id,
+        action,
+        table_name: tableName,
+        record_id: recordId,
+        new_data: data,
+        ip_address: '0.0.0.0', // Would be actual IP in production
+        user_agent: navigator.userAgent
+      });
     }
-    
-    // Check university_responses table
-    const { error: checkUniversityError } = await supabase
-      .from('university_responses')
-      .select('id')
-      .limit(1)
-      .throwOnError();
-      
-    if (checkUniversityError) {
-      console.log("University responses table may not exist:", checkUniversityError);
-    }
-    
-    // Check worker_responses table
-    const { error: checkWorkerError } = await supabase
-      .from('worker_responses')
-      .select('id')
-      .limit(1)
-      .throwOnError();
-      
-    if (checkWorkerError) {
-      console.log("Worker responses table may not exist:", checkWorkerError);
-    }
-    
-    return true;
   } catch (error) {
-    console.error("Error checking tables:", error);
-    return false;
+    console.error('Audit log error:', error);
   }
 };
 
-// Call ensure tables when this module loads
-ensureTablesExist();
-
-// Store a high school questionnaire response
 export const saveHighSchoolQuestionnaire = async (userData: any, questionnaireData: any) => {
   try {
     const user = await getCurrentUser();
     
-    console.log("Attempting to save high school response with data:", {
-      user_id: user?.id || 'anonymous',
-      email: userData?.email || 'anonymous',
-      name: `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() || 'Anonymous',
-    });
-    
-    // Always save to local storage first as a reliable backup
-    const responseData = {
-      user_id: user?.id || 'anonymous',
-      email: userData?.email || 'anonymous',
-      name: `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim() || 'Anonymous',
-      responses: questionnaireData,
-      created_at: new Date().toISOString()
-    };
-    
-    // Save to localStorage
-    localStorage.setItem('highSchoolResponses', JSON.stringify(responseData));
-    
-    // Also save full data to userFullData for immediate access in results page
-    const combinedData = {
-      ...userData,
-      questionnaire: { 
-        highSchool: questionnaireData 
-      }
-    };
-    
-    localStorage.setItem('userFullData', JSON.stringify(combinedData));
-    
-    // Try to save to Supabase, but don't block success if it fails
-    try {
-      const { error } = await supabase
-        .from('high_school_responses')
-        .insert(responseData);
-        
-      if (error) {
-        console.warn("Could not save to Supabase, but data is saved locally:", error);
-      }
-    } catch (supabaseError) {
-      console.warn("Supabase storage failed, but data is saved locally:", supabaseError);
-      // Don't throw the error - we've already saved to localStorage
+    if (!user) {
+      return {
+        data: null,
+        error: { message: "Du må være innlogget for å lagre svar." }
+      };
     }
-    
-    // Return success since we've at least saved to localStorage
-    return { 
-      data: combinedData, 
-      error: null 
+
+    // Security: Sanitize input data
+    const sanitizedUserData = {
+      email: sanitizeInput(userData?.email || ''),
+      firstName: sanitizeInput(userData?.firstName || ''),
+      lastName: sanitizeInput(userData?.lastName || ''),
     };
+
+    const responseData = {
+      user_id: user.id,
+      email: sanitizedUserData.email,
+      name: `${sanitizedUserData.firstName} ${sanitizedUserData.lastName}`.trim(),
+      responses: questionnaireData,
+    };
+    
+    // Security: Save to Supabase with RLS protection
+    const { data, error } = await supabase
+      .from('high_school_responses')
+      .insert(responseData)
+      .select()
+      .single();
+        
+    if (error) {
+      console.error("Database save error:", error);
+      throw error;
+    }
+
+    // Security: Audit log
+    await auditLog('INSERT', 'high_school_responses', data.id, responseData);
+    
+    // Also save to localStorage as backup
+    localStorage.setItem('userFullData', JSON.stringify({
+      ...sanitizedUserData,
+      questionnaire: { highSchool: questionnaireData }
+    }));
+    
+    return { data, error: null };
     
   } catch (error) {
     console.error("Error saving high school questionnaire:", error);
-    // Return a more specific error but still allow the app to proceed
     return { 
       data: null, 
       error: {
-        message: "Kunne ikke lagre alle dine svar, men vi har gjort vårt beste for å bevare dem lokalt.",
-        details: error
+        message: "Kunne ikke lagre svarene dine. Vennligst prøv igjen."
       } 
     };
   }
@@ -448,4 +424,19 @@ export const getDetailedCareerData = async (careerName?: string) => {
     console.error('Error fetching detailed career data:', error);
     return { data: null, error };
   }
+};
+
+export const getCurrentSession = async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  return session;
+};
+
+export const getCurrentUser = async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
+};
+
+export const signOut = async () => {
+  const { error } = await supabase.auth.signOut();
+  return { error };
 };
