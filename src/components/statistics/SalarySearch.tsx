@@ -132,8 +132,9 @@ const SalarySearch = () => {
       const data = await response.json();
       console.log('Search response:', data);
       
-      if (data && data.length > 0) {
-        setResult(data[0]); // Take the first result
+      // Check if data is a valid object with required fields
+      if (data && typeof data === 'object' && data.Yrke && data.value !== undefined) {
+        setResult(data);
       } else {
         setError('Ingen resultater funnet for de valgte kriteriene');
       }
