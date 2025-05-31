@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
@@ -51,8 +52,10 @@ const SalarySearch = () => {
       if (tid) params.append('tid', tid);
       if (sektor) params.append('sektor', sektor);
 
-      // Use your Railway URL
-      const baseUrl = 'https://cosmic-site-sorcerer-production.up.railway.app';
+      // Use localhost for development, replace with your actual API URL for production
+      const baseUrl = process.env.NODE_ENV === 'development' 
+        ? 'http://localhost:8005' 
+        : 'https://[mitt-api-url]:8005';
       
       const url = `${baseUrl}/lonn/?${params.toString()}`;
       
