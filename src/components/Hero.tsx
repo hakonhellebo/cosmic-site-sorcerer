@@ -1,27 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-
 const Hero: React.FC = () => {
-  return (
-    <section
-      id="home"
-      className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 pt-24"
-    >
-      <div
-        className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_50%,rgba(120,120,180,0.1),transparent_40%)]"
-        aria-hidden="true"
-      />
+  return <section id="home" className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 pt-24">
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_50%,rgba(120,120,180,0.1),transparent_40%)]" aria-hidden="true" />
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-3xl text-center">
           <div className="mb-8 flex justify-center">
-            <img 
-              src="/lovable-uploads/5ea5acb7-62cf-4c3e-8769-6f1975b41458.png" 
-              alt="EdPath Logo" 
-              className="h-64 w-auto opacity-0 animate-stagger-1" 
-            />
+            <img src="/lovable-uploads/5ea5acb7-62cf-4c3e-8769-6f1975b41458.png" alt="EdPath Logo" className="h-64 w-auto opacity-0 animate-stagger-1" />
           </div>
-          <span className="opacity-0 animate-stagger-2 inline-block mb-3 rounded-full bg-secondary px-3 py-1 text-xs font-medium">
+          <span className="opacity-0 animate-stagger-2 inline-block mb-3 rounded-full bg-secondary px-3 py-1 font-medium text-3xl">
             Velkommen til EdPath
           </span>
           <h1 className="opacity-0 animate-stagger-3 mb-6 text-balance text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
@@ -40,8 +28,6 @@ const Hero: React.FC = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default Hero;
