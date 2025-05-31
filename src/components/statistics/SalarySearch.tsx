@@ -53,9 +53,18 @@ const SalarySearch = () => {
   // Fetch unique occupations from the API
   const fetchYrkeOptions = async () => {
     setLoadingYrker(true);
+    setError(null);
     try {
-      const baseUrl = 'https://edpath-backend-production.up.railway.app';
-      const response = await fetch(`${baseUrl}/lonn/`);
+      console.log('Fetching yrker from API...');
+      const response = await fetch('https://edpath-backend-production.up.railway.app/lonn/', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      console.log('Response status:', response.status);
       
       if (!response.ok) {
         throw new Error(`API error: ${response.status} ${response.statusText}`);
@@ -63,6 +72,11 @@ const SalarySearch = () => {
       
       const data = await response.json();
       console.log('Fetched all salary data:', data);
+      console.log('Number of records:', data.length);
+      
+      if (!Array.isArray(data)) {
+        throw new Error('API returnerte ikke en array');
+      }
       
       // Extract unique occupations from the data
       const uniqueYrker = [...new Set(data.map((item: any) => item.Yrke))].filter(Boolean);
@@ -71,8 +85,10 @@ const SalarySearch = () => {
         label: yrke
       }));
       
+      console.log('Unique occupations found:', uniqueYrker.length);
+      console.log('First 5 occupations:', uniqueYrker.slice(0, 5));
+      
       setYrkeOptions(yrkeOptions);
-      console.log('Unique occupations found:', yrkeOptions.length);
     } catch (err) {
       console.error('Error fetching occupations:', err);
       setError('Kunne ikke laste yrker: ' + (err instanceof Error ? err.message : 'Ukjent feil'));
@@ -92,6 +108,8 @@ const SalarySearch = () => {
     setResult(null);
 
     try {
+      console.log('Starting search with filters:', { yrke, kjonn, tid, sektor });
+      
       // Build query parameters
       const params = new URLSearchParams();
       if (yrke) params.append('yrke', yrke);
@@ -99,12 +117,17 @@ const SalarySearch = () => {
       if (tid) params.append('tid', tid);
       if (sektor) params.append('sektor', sektor);
 
-      const baseUrl = 'https://edpath-backend-production.up.railway.app';
-      const url = `${baseUrl}/lonn/?${params.toString()}`;
+      const url = `https://edpath-backend-production.up.railway.app/lonn/?${params.toString()}`;
       
       console.log('Fetching salary data from:', url);
       
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      });
       
       if (!response.ok) {
         throw new Error(`API error: ${response.status} ${response.statusText}`);
@@ -159,7 +182,7 @@ const SalarySearch = () => {
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-full p-0">
+                <PopoverContent className="w-full p-0" style={{ width: 'var(--radix-popover-trigger-width)' }}>
                   <Command>
                     <CommandInput placeholder="Søk etter yrke..." />
                     <CommandList>
@@ -193,6 +216,11 @@ const SalarySearch = () => {
               {yrkeOptions.length > 0 && (
                 <p className="text-xs text-muted-foreground">
                   {yrkeOptions.length} yrker tilgjengelig
+                </p>
+              )}
+              {error && (
+                <p className="text-xs text-red-600">
+                  {error}
                 </p>
               )}
             </div>
@@ -284,17 +312,6 @@ const SalarySearch = () => {
           )}
         </CardContent>
       </Card>
-
-      {error && (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="p-4">
-            <div className="text-red-800">
-              <h4 className="font-semibold mb-2">Feil ved søk:</h4>
-              <p>{error}</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {result && (
         <Card>
