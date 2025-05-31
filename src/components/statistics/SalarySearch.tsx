@@ -1,11 +1,14 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Search, DollarSign } from "lucide-react";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Loader2, Search, DollarSign, ChevronDown, Check } from "lucide-react";
 import { Badge } from '@/components/ui/badge';
+import { cn } from "@/lib/utils";
 
 interface SalaryResult {
   Yrke: string;
@@ -13,6 +16,11 @@ interface SalaryResult {
   Tid: number;
   Sektor: string;
   value: number;
+}
+
+interface YrkeOption {
+  value: string;
+  label: string;
 }
 
 const SalarySearch = () => {
@@ -23,6 +31,9 @@ const SalarySearch = () => {
   const [result, setResult] = useState<SalaryResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [yrkeOptions, setYrkeOptions] = useState<YrkeOption[]>([]);
+  const [loadingYrker, setLoadingYrker] = useState(false);
+  const [yrkeDropdownOpen, setYrkeDropdownOpen] = useState(false);
 
   const years = Array.from({ length: 7 }, (_, i) => 2018 + i); // 2018-2024
 
@@ -39,6 +50,42 @@ const SalarySearch = () => {
     { value: 'Kommune og fylkeskommune', label: 'Kommune og fylkeskommune' }
   ];
 
+  // Fetch unique occupations from the API
+  const fetchYrkeOptions = async () => {
+    setLoadingYrker(true);
+    try {
+      const baseUrl = 'https://edpath-backend-production.up.railway.app';
+      const response = await fetch(`${baseUrl}/lonn/`);
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('Fetched all salary data:', data);
+      
+      // Extract unique occupations from the data
+      const uniqueYrker = [...new Set(data.map((item: any) => item.Yrke))].filter(Boolean);
+      const yrkeOptions = uniqueYrker.map((yrke: string) => ({
+        value: yrke,
+        label: yrke
+      }));
+      
+      setYrkeOptions(yrkeOptions);
+      console.log('Unique occupations found:', yrkeOptions.length);
+    } catch (err) {
+      console.error('Error fetching occupations:', err);
+      setError('Kunne ikke laste yrker: ' + (err instanceof Error ? err.message : 'Ukjent feil'));
+    } finally {
+      setLoadingYrker(false);
+    }
+  };
+
+  // Load occupations when component mounts
+  useEffect(() => {
+    fetchYrkeOptions();
+  }, []);
+
   const handleSearch = async () => {
     setLoading(true);
     setError(null);
@@ -52,11 +99,7 @@ const SalarySearch = () => {
       if (tid) params.append('tid', tid);
       if (sektor) params.append('sektor', sektor);
 
-      // Use localhost for development, replace with your actual API URL for production
-      const baseUrl = process.env.NODE_ENV === 'development' 
-        ? 'http://localhost:8005' 
-        : 'https://[mitt-api-url]:8005';
-      
+      const baseUrl = 'https://edpath-backend-production.up.railway.app';
       const url = `${baseUrl}/lonn/?${params.toString()}`;
       
       console.log('Fetching salary data from:', url);
@@ -70,7 +113,9 @@ const SalarySearch = () => {
       const data = await response.json();
       console.log('Salary data received:', data);
       
-      setResult(data);
+      // If data is an array, take the first result
+      const firstResult = Array.isArray(data) ? data[0] : data;
+      setResult(firstResult);
     } catch (err) {
       console.error('Error fetching salary data:', err);
       setError(err instanceof Error ? err.message : 'Ukjent feil oppstod');
@@ -97,11 +142,59 @@ const SalarySearch = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Yrke</label>
-              <Input
-                placeholder="F.eks. Sykepleier, Administrerende direktører"
-                value={yrke}
-                onChange={(e) => setYrke(e.target.value)}
-              />
+              <Popover open={yrkeDropdownOpen} onOpenChange={setYrkeDropdownOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={yrkeDropdownOpen}
+                    className="w-full justify-between"
+                    disabled={loadingYrker}
+                  >
+                    {yrke ? yrke : "Velg yrke..."}
+                    {loadingYrker ? (
+                      <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Søk etter yrke..." />
+                    <CommandList>
+                      <CommandEmpty>Ingen yrker funnet.</CommandEmpty>
+                      <CommandGroup>
+                        {yrkeOptions.map((option) => (
+                          <CommandItem
+                            key={option.value}
+                            onSelect={() => {
+                              setYrke(option.value);
+                              setYrkeDropdownOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                yrke === option.value ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {option.label}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              {loadingYrker && (
+                <p className="text-xs text-muted-foreground">Laster yrker fra backend...</p>
+              )}
+              {yrkeOptions.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {yrkeOptions.length} yrker tilgjengelig
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -233,7 +326,7 @@ const SalarySearch = () => {
                 <div className="text-center">
                   <span className="text-sm text-muted-foreground">Lønn:</span>
                   <div className="text-3xl font-bold text-green-600">
-                    {result.value.toLocaleString('nb-NO')} kr
+                    {result.value ? result.value.toLocaleString('nb-NO') : 'N/A'} kr
                   </div>
                 </div>
               </div>
