@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
@@ -34,6 +33,7 @@ const SalarySearch = () => {
   const [yrkeOptions, setYrkeOptions] = useState<YrkeOption[]>([]);
   const [loadingYrker, setLoadingYrker] = useState(false);
   const [yrkeDropdownOpen, setYrkeDropdownOpen] = useState(false);
+  const [apiStatus, setApiStatus] = useState<string>('Tester tilkobling...');
 
   const years = Array.from({ length: 7 }, (_, i) => 2018 + i); // 2018-2024
 
@@ -50,21 +50,71 @@ const SalarySearch = () => {
     { value: 'Kommune og fylkeskommune', label: 'Kommune og fylkeskommune' }
   ];
 
+  // Test API connection
+  const testApiConnection = async () => {
+    try {
+      console.log('Testing API connection...');
+      setApiStatus('Tester tilkobling...');
+      
+      // First test the base URL
+      const baseResponse = await fetch('https://edpath-backend-production.up.railway.app/', {
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+      
+      console.log('Base API response status:', baseResponse.status);
+      setApiStatus(`API tilgjengelig (${baseResponse.status})`);
+      
+      // Then test the /lonn endpoint
+      await fetchYrkeOptions();
+      
+    } catch (err) {
+      console.error('API connection test failed:', err);
+      setApiStatus(`API utilgjengelig: ${err instanceof Error ? err.message : 'Ukjent feil'}`);
+      
+      // Fallback: Use mock data for testing
+      console.log('Using mock data as fallback...');
+      const mockYrker = [
+        'Sykepleier',
+        'Ingeniør',
+        'Lærer',
+        'Advokat',
+        'Lege',
+        'Regnskapsfører',
+        'IT-konsulent',
+        'Prosjektleder'
+      ];
+      
+      const mockOptions = mockYrker.map(yrke => ({
+        value: yrke,
+        label: yrke
+      }));
+      
+      setYrkeOptions(mockOptions);
+      setApiStatus('Bruker testdata (API utilgjengelig)');
+    }
+  };
+
   // Fetch unique occupations from the API
   const fetchYrkeOptions = async () => {
     setLoadingYrker(true);
     setError(null);
     try {
       console.log('Fetching yrker from API...');
+      
       const response = await fetch('https://edpath-backend-production.up.railway.app/lonn/', {
         method: 'GET',
+        mode: 'cors',
         headers: {
           'Accept': 'application/json',
-          'Content-Type': 'application/json',
         },
       });
       
       console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
       
       if (!response.ok) {
         throw new Error(`API error: ${response.status} ${response.statusText}`);
@@ -89,9 +139,13 @@ const SalarySearch = () => {
       console.log('First 5 occupations:', uniqueYrker.slice(0, 5));
       
       setYrkeOptions(yrkeOptions);
+      setApiStatus(`${yrkeOptions.length} yrker lastet fra API`);
     } catch (err) {
       console.error('Error fetching occupations:', err);
-      setError('Kunne ikke laste yrker: ' + (err instanceof Error ? err.message : 'Ukjent feil'));
+      const errorMessage = err instanceof Error ? err.message : 'Ukjent feil';
+      setError('Kunne ikke laste yrker: ' + errorMessage);
+      setApiStatus(`Feil: ${errorMessage}`);
+      throw err; // Re-throw to be caught by testApiConnection
     } finally {
       setLoadingYrker(false);
     }
@@ -99,7 +153,7 @@ const SalarySearch = () => {
 
   // Load occupations when component mounts
   useEffect(() => {
-    fetchYrkeOptions();
+    testApiConnection();
   }, []);
 
   const handleSearch = async () => {
@@ -123,9 +177,9 @@ const SalarySearch = () => {
       
       const response = await fetch(url, {
         method: 'GET',
+        mode: 'cors',
         headers: {
           'Accept': 'application/json',
-          'Content-Type': 'application/json',
         },
       });
       
@@ -160,6 +214,9 @@ const SalarySearch = () => {
           <CardDescription>
             Søk etter lønnsdata basert på yrke, kjønn, år og sektor
           </CardDescription>
+          <div className="text-sm text-muted-foreground">
+            API Status: {apiStatus}
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -182,7 +239,7 @@ const SalarySearch = () => {
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-full p-0" style={{ width: 'var(--radix-popover-trigger-width)' }}>
+                <PopoverContent className="w-full p-0 bg-white border shadow-lg z-50" style={{ width: 'var(--radix-popover-trigger-width)' }}>
                   <Command>
                     <CommandInput placeholder="Søk etter yrke..." />
                     <CommandList>
