@@ -53,100 +53,50 @@ const SalarySearch = () => {
     { value: 'Kommune og fylkeskommune', label: 'Kommune og fylkeskommune' }
   ];
 
-  // Test API connection with no-cors mode
-  const testApiConnection = async () => {
+  // Load occupations from API
+  const loadYrkeOptions = async () => {
     try {
-      console.log('=== DEBUGGING API CONNECTION ===');
-      console.log('API Base URL:', API_BASE_URL);
-      console.log('Full URL being fetched:', `${API_BASE_URL}/lonn/`);
-      console.log('Current domain:', window.location.origin);
-      console.log('User agent:', navigator.userAgent);
+      setLoadingYrker(true);
+      setApiStatus('Henter yrker fra API...');
       
-      setApiStatus('Tester tilkobling til EdPath backend...');
-      
-      const testUrl = `${API_BASE_URL}/lonn/`;
-      console.log('Making fetch request to:', testUrl);
-      
-      const response = await fetch(testUrl, {
+      const response = await fetch(`${API_BASE_URL}/lonn/`, {
         method: 'GET',
-        mode: 'no-cors',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
       });
       
-      console.log('Response received:');
-      console.log('- Status:', response.status);
-      console.log('- Status Text:', response.statusText);
-      console.log('- OK:', response.ok);
-      console.log('- Type:', response.type);
-      console.log('- URL:', response.url);
+      if (!response.ok) {
+        throw new Error(`API feil: ${response.status} ${response.statusText}`);
+      }
       
-      // With no-cors mode, we can't read the response body
-      // So we'll assume success if no error was thrown
-      console.log('No-cors request completed successfully');
+      const data = await response.json();
+      console.log('API response:', data);
       
-      // Use fallback data since we can't read the actual response
-      console.log('Using fallback data due to no-cors mode...');
-      const mockYrker = [
-        'Sykepleier',
-        'Ingeniør',
-        'Lærer',
-        'Advokat',
-        'Lege',
-        'Regnskapsfører',
-        'IT-konsulent',
-        'Prosjektleder',
-        'Elektriker',
-        'Rørlegger'
-      ];
-      
-      const mockOptions = mockYrker.map(yrke => ({
-        value: yrke,
-        label: yrke
+      // Extract unique occupations from the data
+      const uniqueYrker = [...new Set(data.map((item: any) => item.Yrke))];
+      const options = uniqueYrker.map(yrke => ({
+        value: yrke as string,
+        label: yrke as string
       }));
       
-      setYrkeOptions(mockOptions);
-      setApiStatus(`✅ API tilkoblet (no-cors) - ${mockOptions.length} yrker lastet`);
-      console.log('=== API CONNECTION SUCCESS (no-cors) ===');
+      setYrkeOptions(options);
+      setApiStatus(`✅ API tilkoblet - ${options.length} yrker lastet`);
       
     } catch (err) {
-      console.log('=== API CONNECTION FAILED ===');
-      console.error('Full error object:', err);
-      
+      console.error('Error loading yrker:', err);
       const errorMessage = err instanceof Error ? err.message : 'Ukjent feil';
       setApiStatus(`❌ API feil: ${errorMessage}`);
-      
-      // Use fallback data for testing
-      console.log('Using fallback test data...');
-      const mockYrker = [
-        'Sykepleier',
-        'Ingeniør',
-        'Lærer',
-        'Advokat',
-        'Lege',
-        'Regnskapsfører',
-        'IT-konsulent',
-        'Prosjektleder',
-        'Elektriker',
-        'Rørlegger'
-      ];
-      
-      const mockOptions = mockYrker.map(yrke => ({
-        value: yrke,
-        label: yrke
-      }));
-      
-      setYrkeOptions(mockOptions);
-      setError(`API utilgjengelig: ${errorMessage}. Bruker testdata.`);
-      console.log('=== FALLBACK DATA LOADED ===');
+      setError(`Kunne ikke laste yrker: ${errorMessage}`);
+    } finally {
+      setLoadingYrker(false);
     }
   };
 
   // Load occupations when component mounts
   useEffect(() => {
-    testApiConnection();
+    loadYrkeOptions();
   }, []);
 
   const handleSearch = async () => {
@@ -155,8 +105,7 @@ const SalarySearch = () => {
     setResult(null);
 
     try {
-      console.log('=== STARTING SEARCH ===');
-      console.log('Search filters:', { yrke, kjonn, tid, sektor });
+      console.log('Starting search with filters:', { yrke, kjonn, tid, sektor });
       
       // Build query parameters
       const params = new URLSearchParams();
@@ -170,32 +119,26 @@ const SalarySearch = () => {
       
       const response = await fetch(url, {
         method: 'GET',
-        mode: 'no-cors',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
       });
       
-      console.log('Search response status:', response.status);
-      console.log('Search response ok:', response.ok);
+      if (!response.ok) {
+        throw new Error(`API feil: ${response.status} ${response.statusText}`);
+      }
       
-      // With no-cors mode, we can't read the response or check status
-      // So we'll simulate a result for testing
-      console.log('No-cors mode - simulating search result');
+      const data = await response.json();
+      console.log('Search response:', data);
       
-      const mockResult = {
-        Yrke: yrke || 'Ukjent yrke',
-        Kjonn: kjonn || 'Begge kjønn',
-        Tid: parseInt(tid) || 2024,
-        Sektor: sektor || 'Sum alle sektorer',
-        value: Math.floor(Math.random() * 300000) + 400000 // Random salary between 400k-700k
-      };
+      if (data && data.length > 0) {
+        setResult(data[0]); // Take the first result
+      } else {
+        setError('Ingen resultater funnet for de valgte kriteriene');
+      }
       
-      setResult(mockResult);
-      console.log('=== SEARCH SUCCESS (simulated) ===');
     } catch (err) {
-      console.log('=== SEARCH FAILED ===');
       console.error('Search error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Ukjent feil';
       setError(`Søk feilet: ${errorMessage}`);
