@@ -53,14 +53,24 @@ const SalarySearch = () => {
     { value: 'Kommune og fylkeskommune', label: 'Kommune og fylkeskommune' }
   ];
 
-  // Test API connection with better error handling
+  // Test API connection with detailed logging
   const testApiConnection = async () => {
     try {
-      console.log('Testing EdPath backend API connection...');
+      console.log('=== DEBUGGING API CONNECTION ===');
+      console.log('API Base URL:', API_BASE_URL);
+      console.log('Full URL being fetched:', `${API_BASE_URL}/lonn/`);
+      console.log('Current domain:', window.location.origin);
+      console.log('User agent:', navigator.userAgent);
+      
       setApiStatus('Tester tilkobling til EdPath backend...');
       
-      // Try fetching salary data directly
-      const response = await fetch(`${API_BASE_URL}/lonn/`, {
+      // Check if we can reach the base URL first
+      console.log('Testing base URL connectivity...');
+      
+      const testUrl = `${API_BASE_URL}/lonn/`;
+      console.log('Making fetch request to:', testUrl);
+      
+      const response = await fetch(testUrl, {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -69,15 +79,28 @@ const SalarySearch = () => {
         },
       });
       
-      console.log('EdPath backend response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+      console.log('Response received:');
+      console.log('- Status:', response.status);
+      console.log('- Status Text:', response.statusText);
+      console.log('- OK:', response.ok);
+      console.log('- Type:', response.type);
+      console.log('- URL:', response.url);
+      console.log('- Headers:');
+      
+      response.headers.forEach((value, key) => {
+        console.log(`  ${key}: ${value}`);
+      });
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
+      console.log('Parsing JSON response...');
       const data = await response.json();
-      console.log('Received data from EdPath backend:', data);
+      console.log('Parsed data type:', typeof data);
+      console.log('Is array:', Array.isArray(data));
+      console.log('Data length:', data?.length);
+      console.log('First few items:', data?.slice(0, 3));
       
       if (!Array.isArray(data)) {
         throw new Error('API returnerte ikke en array med data');
@@ -95,9 +118,19 @@ const SalarySearch = () => {
       
       setYrkeOptions(yrkeOptions);
       setApiStatus(`✅ API tilkoblet - ${yrkeOptions.length} yrker lastet`);
+      console.log('=== API CONNECTION SUCCESS ===');
       
     } catch (err) {
-      console.error('API connection failed:', err);
+      console.log('=== API CONNECTION FAILED ===');
+      console.error('Full error object:', err);
+      console.error('Error name:', err?.name);
+      console.error('Error message:', err?.message);
+      console.error('Error stack:', err?.stack);
+      
+      if (err instanceof TypeError && err.message.includes('fetch')) {
+        console.error('This is likely a network connectivity issue');
+      }
+      
       const errorMessage = err instanceof Error ? err.message : 'Ukjent feil';
       setApiStatus(`❌ API feil: ${errorMessage}`);
       
@@ -123,6 +156,7 @@ const SalarySearch = () => {
       
       setYrkeOptions(mockOptions);
       setError(`API utilgjengelig: ${errorMessage}. Bruker testdata.`);
+      console.log('=== FALLBACK DATA LOADED ===');
     }
   };
 
@@ -137,7 +171,8 @@ const SalarySearch = () => {
     setResult(null);
 
     try {
-      console.log('Starting search with filters:', { yrke, kjonn, tid, sektor });
+      console.log('=== STARTING SEARCH ===');
+      console.log('Search filters:', { yrke, kjonn, tid, sektor });
       
       // Build query parameters
       const params = new URLSearchParams();
@@ -147,8 +182,7 @@ const SalarySearch = () => {
       if (sektor) params.append('sektor', sektor);
 
       const url = `${API_BASE_URL}/lonn/?${params.toString()}`;
-      
-      console.log('Fetching salary data from:', url);
+      console.log('Search URL:', url);
       
       const response = await fetch(url, {
         method: 'GET',
@@ -160,13 +194,14 @@ const SalarySearch = () => {
       });
       
       console.log('Search response status:', response.status);
+      console.log('Search response ok:', response.ok);
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
       const data = await response.json();
-      console.log('Search result:', data);
+      console.log('Search result data:', data);
       
       // If data is an array, take the first result
       const firstResult = Array.isArray(data) ? data[0] : data;
@@ -177,8 +212,10 @@ const SalarySearch = () => {
       }
       
       setResult(firstResult);
+      console.log('=== SEARCH SUCCESS ===');
     } catch (err) {
-      console.error('Search failed:', err);
+      console.log('=== SEARCH FAILED ===');
+      console.error('Search error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Ukjent feil';
       setError(`Søk feilet: ${errorMessage}`);
     } finally {
