@@ -15,9 +15,7 @@ const Hero: React.FC = () => {
           <h1 className="opacity-0 animate-stagger-3 mb-6 text-balance text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
             Finn din vei: Personlig karriereveiledning
           </h1>
-          <p className="opacity-0 animate-stagger-4 mx-auto mb-8 max-w-2xl text-balance text-xl text-muted-foreground">
-            EdPath hjelper deg med å oppdage dine beste karrieremuligheter med datadrevet innsikt, skreddersydd spesielt for din utdanning og ambisjoner.
-          </p>
+          <p className="opacity-0 animate-stagger-4 mx-auto mb-8 max-w-2xl text-balance text-xl text-muted-foreground">EdPath hjelper deg med å oppdage dine beste karrieremuligheter med datadrevet innsikt, skreddersydd for din utdanning og ambisjoner.</p>
           <div className="opacity-0 animate-stagger-5 flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 justify-center">
             <Button className="rounded-full px-8 py-3 font-medium transition-transform hover:scale-105" asChild>
               <Link to="/registrer">Kom i gang gratis</Link>
