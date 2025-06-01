@@ -11,6 +11,8 @@ import { Loader2, Search, DollarSign, ChevronDown, Check, TrendingUp, Calendar }
 import { Badge } from '@/components/ui/badge';
 import { cn } from "@/lib/utils";
 import SalaryTrendChart from './SalaryTrendChart';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 
 // Use the correct EdPath backend URL (without /lonn/ at the end)
 const API_BASE_URL = 'https://edpath-backend-production.up.railway.app';
@@ -157,6 +159,8 @@ const SalarySearch = () => {
           Sektor: sektor || 'Ikke spesifisert',
           value: item.value
         }));
+        // Sort by year for better visualization
+        mappedResults.sort((a, b) => a.Tid - b.Tid);
         setResults(mappedResults);
       } else {
         setError('Ingen resultater funnet for de valgte kriteriene');
@@ -172,6 +176,19 @@ const SalarySearch = () => {
   };
 
   const hasFilters = yrke || kjonn || selectedYears.length > 0 || sektor;
+
+  // Prepare chart data for visualization
+  const chartData = results.map(result => ({
+    year: result.Tid,
+    salary: result.value
+  }));
+
+  const chartConfig = {
+    salary: {
+      label: "Månedslønn",
+      color: "hsl(var(--chart-1))",
+    },
+  };
 
   return (
     <div className="space-y-6">
@@ -381,57 +398,142 @@ const SalarySearch = () => {
           </Card>
 
           {results.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Søkeresultater</CardTitle>
-                <CardDescription>
-                  {selectedYears.length === 1 ? 'Resultat for valgt år' : `Sammenligning for ${selectedYears.length} år`}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {results.map((result, index) => (
-                    <div key={index} className="border rounded-lg p-4">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            <>
+              {/* Chart visualization for multiple years */}
+              {selectedYears.length > 1 && chartData.length > 1 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5" />
+                      Lønnsutvikling
+                    </CardTitle>
+                    <CardDescription>
+                      Visuell fremstilling av lønnsutvikling for {yrke || 'valgt yrke'}
+                      {kjonn && ` - ${kjonn}`}
+                      {sektor && ` - ${sektor}`}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ChartContainer config={chartConfig}>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <LineChart
+                          data={chartData}
+                          margin={{
+                            top: 20,
+                            right: 30,
+                            left: 20,
+                            bottom: 20,
+                          }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis 
+                            dataKey="year" 
+                            type="number"
+                            scale="linear"
+                            domain={['dataMin', 'dataMax']}
+                          />
+                          <YAxis 
+                            tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                          />
+                          <ChartTooltip 
+                            content={<ChartTooltipContent />}
+                            formatter={(value: number) => [`${value.toLocaleString('nb-NO')} kr`, 'Månedslønn']}
+                            labelFormatter={(year) => `År ${year}`}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="salary" 
+                            stroke="var(--color-salary)" 
+                            strokeWidth={3}
+                            dot={{ r: 6 }}
+                            activeDot={{ r: 8 }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </ChartContainer>
+                    
+                    {/* Summary statistics */}
+                    {chartData.length > 1 && (
+                      <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div>
-                          <span className="text-sm text-muted-foreground">Yrke:</span>
-                          <p className="font-medium">{result.Yrke}</p>
+                          <span className="text-muted-foreground">Start månedslønn ({chartData[0].year}):</span>
+                          <p className="font-semibold">{chartData[0].salary.toLocaleString('nb-NO')} kr</p>
                         </div>
                         <div>
-                          <span className="text-sm text-muted-foreground">Kjønn:</span>
-                          <p className="font-medium">{result.Kjonn}</p>
+                          <span className="text-muted-foreground">Siste månedslønn ({chartData[chartData.length - 1].year}):</span>
+                          <p className="font-semibold">{chartData[chartData.length - 1].salary.toLocaleString('nb-NO')} kr</p>
                         </div>
                         <div>
-                          <span className="text-sm text-muted-foreground">År:</span>
-                          <p className="font-medium">{result.Tid}</p>
+                          <span className="text-muted-foreground">Total økning:</span>
+                          <p className="font-semibold text-green-600">
+                            +{(chartData[chartData.length - 1].salary - chartData[0].salary).toLocaleString('nb-NO')} kr
+                          </p>
                         </div>
                         <div>
-                          <span className="text-sm text-muted-foreground">Sektor:</span>
-                          <p className="font-medium">{result.Sektor}</p>
+                          <span className="text-muted-foreground">Økning %:</span>
+                          <p className="font-semibold text-green-600">
+                            +{(((chartData[chartData.length - 1].salary - chartData[0].salary) / chartData[0].salary) * 100).toFixed(1)}%
+                          </p>
                         </div>
                       </div>
-                      
-                      <div className="border-t pt-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="text-center">
-                            <span className="text-sm text-muted-foreground">Månedslønn:</span>
-                            <div className="text-2xl font-bold text-green-600">
-                              {result.value ? result.value.toLocaleString('nb-NO') : 'N/A'} kr
-                            </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Detailed results table */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Søkeresultater</CardTitle>
+                  <CardDescription>
+                    {selectedYears.length === 1 ? 'Resultat for valgt år' : `Sammenligning for ${selectedYears.length} år`}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {results.map((result, index) => (
+                      <div key={index} className="border rounded-lg p-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                          <div>
+                            <span className="text-sm text-muted-foreground">Yrke:</span>
+                            <p className="font-medium">{result.Yrke}</p>
                           </div>
-                          <div className="text-center">
-                            <span className="text-sm text-muted-foreground">Årslønn:</span>
-                            <div className="text-2xl font-bold text-blue-600">
-                              {result.value ? (result.value * 12).toLocaleString('nb-NO') : 'N/A'} kr
+                          <div>
+                            <span className="text-sm text-muted-foreground">Kjønn:</span>
+                            <p className="font-medium">{result.Kjonn}</p>
+                          </div>
+                          <div>
+                            <span className="text-sm text-muted-foreground">År:</span>
+                            <p className="font-medium">{result.Tid}</p>
+                          </div>
+                          <div>
+                            <span className="text-sm text-muted-foreground">Sektor:</span>
+                            <p className="font-medium">{result.Sektor}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="border-t pt-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="text-center">
+                              <span className="text-sm text-muted-foreground">Månedslønn:</span>
+                              <div className="text-2xl font-bold text-green-600">
+                                {result.value ? result.value.toLocaleString('nb-NO') : 'N/A'} kr
+                              </div>
+                            </div>
+                            <div className="text-center">
+                              <span className="text-sm text-muted-foreground">Årslønn:</span>
+                              <div className="text-2xl font-bold text-blue-600">
+                                {result.value ? (result.value * 12).toLocaleString('nb-NO') : 'N/A'} kr
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </>
           )}
         </TabsContent>
 
