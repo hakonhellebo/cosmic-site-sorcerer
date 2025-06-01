@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -135,6 +136,11 @@ const Navigation: React.FC = () => {
     }
   };
 
+  const goToDashboard = () => {
+    // Always go to the dashboard for logged in users
+    navigate('/dashboard');
+  };
+
   const goToUserResults = () => {
     // Determine which results page to go to based on user type
     if (userType === 'highSchool') {
@@ -201,10 +207,10 @@ const Navigation: React.FC = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={goToUserResults} className="text-xs">
+                <DropdownMenuItem onClick={goToDashboard} className="text-xs">
                   Dashboard
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={goToUserResults} className="text-xs">
+                <DropdownMenuItem onClick={goToDashboard} className="text-xs">
                   Min profil
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -277,10 +283,10 @@ const Navigation: React.FC = () => {
                   <>
                     <li>
                       <Link 
-                        to="/results" 
+                        to="/dashboard" 
                         className="block py-2 text-xs font-medium"
                         onClick={() => {
-                          goToUserResults();
+                          goToDashboard();
                           setIsMobileMenuOpen(false);
                         }}
                       >
@@ -289,10 +295,10 @@ const Navigation: React.FC = () => {
                     </li>
                     <li>
                       <Link 
-                        to="/results" 
+                        to="/dashboard" 
                         className="block py-2 text-xs font-medium"
                         onClick={() => {
-                          goToUserResults();
+                          goToDashboard();
                           setIsMobileMenuOpen(false);
                         }}
                       >
