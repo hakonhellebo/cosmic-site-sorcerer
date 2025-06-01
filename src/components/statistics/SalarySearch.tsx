@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
@@ -7,8 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, Search, DollarSign, ChevronDown, Check, TrendingUp } from "lucide-react";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Loader2, Search, DollarSign, ChevronDown, Check, TrendingUp, Calendar } from "lucide-react";
 import { Badge } from '@/components/ui/badge';
 import { cn } from "@/lib/utils";
 import SalaryTrendChart from './SalaryTrendChart';
@@ -280,24 +279,34 @@ const SalarySearch = () => {
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm font-medium">År (velg ett eller flere)</label>
-                  <div className="grid grid-cols-4 md:grid-cols-7 gap-2">
-                    {years.map((year) => (
-                      <div key={year} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`year-${year}`}
+                  <label className="text-sm font-medium">År</label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="w-full justify-between">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          {selectedYears.length === 0 
+                            ? "Velg år..." 
+                            : `${selectedYears.length} år valgt`
+                          }
+                        </div>
+                        <ChevronDown className="h-4 w-4 opacity-50" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56 bg-white border shadow-lg z-50">
+                      <DropdownMenuLabel>Velg år</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {years.map((year) => (
+                        <DropdownMenuCheckboxItem
+                          key={year}
                           checked={selectedYears.includes(year.toString())}
                           onCheckedChange={() => handleYearToggle(year.toString())}
-                        />
-                        <label
-                          htmlFor={`year-${year}`}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                         >
                           {year}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   {selectedYears.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
                       {selectedYears.map(year => (
