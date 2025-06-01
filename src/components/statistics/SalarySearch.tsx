@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
@@ -16,9 +15,7 @@ import { cn } from "@/lib/utils";
 import SalaryTrendChart from './SalaryTrendChart';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
-
-// Use the correct EdPath backend URL (without /lonn/ at the end)
-const API_BASE_URL = 'https://edpath-backend-production.up.railway.app';
+import { loadYrkeOptions, searchSalaryData, YrkeOption, SalaryResult } from '@/services/salaryApi';
 
 interface SalaryResult {
   Yrke: string;
@@ -55,7 +52,7 @@ const SalarySearch = () => {
   const [yrkeOptions, setYrkeOptions] = useState<YrkeOption[]>([]);
   const [loadingYrker, setLoadingYrker] = useState(false);
   const [yrkeDropdownOpen, setYrkeDropdownOpen] = useState(false);
-  const [apiStatus, setApiStatus] = useState<string>('Tester tilkobling...');
+  const [apiStatus, setApiStatus] = useState<string>('Klar til å laste yrker...');
   const [viewMode, setViewMode] = useState<'chart' | 'table'>('chart');
 
   const years = Array.from({ length: 7 }, (_, i) => 2018 + i); // 2018-2024
@@ -110,36 +107,16 @@ const SalarySearch = () => {
     'hsl(340, 82%, 52%)', // Pink
   ];
 
-  // Load occupations from API
-  const loadYrkeOptions = async () => {
+  // Load occupations from API with optimized caching
+  const loadYrkerWithStatus = async () => {
     try {
       setLoadingYrker(true);
       setApiStatus('Henter yrker fra API...');
       
-      const response = await fetch(`${API_BASE_URL}/lonn/`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (!response.ok) {
-        throw new Error(`API feil: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      console.log('API response:', data);
-      
-      // Extract unique occupations from the data
-      const uniqueYrker = [...new Set(data.map((item: any) => item.Yrke))];
-      const options = uniqueYrker.map(yrke => ({
-        value: yrke as string,
-        label: yrke as string
-      }));
+      const options = await loadYrkeOptions();
       
       setYrkeOptions(options);
-      setApiStatus(`✅ API tilkoblet - ${options.length} yrker lastet`);
+      setApiStatus(`✅ ${options.length} yrker lastet (cached)`);
       
     } catch (err) {
       console.error('Error loading yrker:', err);
@@ -151,9 +128,14 @@ const SalarySearch = () => {
     }
   };
 
-  // Load occupations when component mounts
+  // Load occupations when component mounts, but only if needed
   useEffect(() => {
-    loadYrkeOptions();
+    // Only load if we don't have options already
+    if (yrkeOptions.length === 0) {
+      loadYrkerWithStatus();
+    } else {
+      setApiStatus(`✅ ${yrkeOptions.length} yrker tilgjengelig`);
+    }
   }, []);
 
   const handleYrkeAdd = (yrke: string) => {
@@ -177,10 +159,8 @@ const SalarySearch = () => {
 
   const handleSelectAllYears = () => {
     if (selectedYears.length === years.length) {
-      // If all years are selected, deselect all
       setSelectedYears([]);
     } else {
-      // Select all years
       setSelectedYears(years.map(year => year.toString()));
     }
   };
@@ -203,57 +183,22 @@ const SalarySearch = () => {
       
       const allResults: SalaryResult[] = [];
 
-      // Search for each selected occupation
+      // Search for each selected occupation using the optimized API service
       for (const yrke of selectedYrker) {
-        const params = new URLSearchParams();
-        params.append('yrke', yrke);
-        if (kjonn) params.append('kjonn', kjonn);
-        if (sektor) params.append('sektor', sektor);
-        if (maaleMetode) params.append('MaaleMetode', maaleMetode);
-        if (avtaltVanlig) params.append('AvtaltVanlig', avtaltVanlig);
-        if (contentsCode) params.append('ContentsCode', contentsCode);
-        
-        // Add multiple years
-        selectedYears.forEach(year => {
-          params.append('tid', year);
-        });
-
-        const url = `${API_BASE_URL}/lonn/?${params.toString()}`;
-        console.log('Search URL for', yrke, ':', url);
-        
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
+        const results = await searchSalaryData({
+          yrke,
+          kjonn,
+          selectedYears,
+          sektor,
+          maaleMetode,
+          avtaltVanlig,
+          contentsCode
         });
         
-        if (!response.ok) {
-          throw new Error(`API feil: ${response.status} ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        console.log('Search response for', yrke, ':', data);
-        
-        // Handle array response (multiple years)
-        if (Array.isArray(data) && data.length > 0) {
-          const mappedResults = data.map(item => ({
-            Yrke: yrke,
-            Kjonn: kjonn || 'Ikke spesifisert', 
-            Tid: item.Tid,
-            Sektor: sektor || 'Ikke spesifisert',
-            MaaleMetode: maaleMetode || 'Ikke spesifisert',
-            AvtaltVanlig: avtaltVanlig || 'Ikke spesifisert',
-            ContentsCode: contentsCode || 'Ikke spesifisert',
-            value: item.value
-          }));
-          allResults.push(...mappedResults);
-        }
+        allResults.push(...results);
       }
 
       if (allResults.length > 0) {
-        // Sort by year for better visualization
         allResults.sort((a, b) => a.Tid - b.Tid);
         setResults(allResults);
       } else {

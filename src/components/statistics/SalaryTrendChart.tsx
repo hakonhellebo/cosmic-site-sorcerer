@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { Loader2, TrendingUp, ChevronDown, Check } from "lucide-react";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { cn } from "@/lib/utils";
+import { searchTrendData, YrkeOption } from '@/services/salaryApi';
 
 interface YrkeOption {
   value: string;
@@ -89,51 +89,21 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
     setTrendData([]);
 
     try {
-      const promises = years.map(async (year) => {
-        const params = new URLSearchParams();
-        params.append('yrke', yrke);
-        if (kjonn) params.append('kjonn', kjonn);
-        params.append('tid', year.toString());
-        if (sektor) params.append('sektor', sektor);
-        if (maaleMetode) params.append('MaaleMetode', maaleMetode);
-        if (avtaltVanlig) params.append('AvtaltVanlig', avtaltVanlig);
-        if (contentsCode) params.append('ContentsCode', contentsCode);
-
-        const url = `${API_BASE_URL}/lonn/?${params.toString()}`;
-        
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-        });
-        
-        if (!response.ok) {
-          console.warn(`Failed to fetch data for ${year}: ${response.status}`);
-          return null;
-        }
-        
-        const data = await response.json();
-        
-        if (data && typeof data === 'object' && data.value !== undefined) {
-          return {
-            year: year,
-            value: data.value
-          };
-        }
-        
-        return null;
+      const results = await searchTrendData({
+        yrke,
+        kjonn,
+        sektor,
+        maaleMetode,
+        avtaltVanlig,
+        contentsCode,
+        years
       });
-
-      const results = await Promise.all(promises);
-      const validResults = results.filter((result): result is TrendData => result !== null);
       
-      if (validResults.length === 0) {
+      if (results.length === 0) {
         setError('Ingen data funnet for de valgte kriteriene');
       } else {
-        validResults.sort((a, b) => a.year - b.year);
-        setTrendData(validResults);
+        results.sort((a, b) => a.year - b.year);
+        setTrendData(results);
       }
       
     } catch (err) {
