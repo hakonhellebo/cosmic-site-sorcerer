@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
@@ -186,7 +187,7 @@ const SalarySearch = () => {
   const chartConfig = {
     value: {
       label: "Månedslønn",
-      color: "hsl(var(--chart-1))",
+      color: "hsl(220, 70%, 50%)",
     },
   };
 
@@ -443,10 +444,10 @@ const SalarySearch = () => {
                           <Line 
                             type="monotone" 
                             dataKey="value" 
-                            stroke="var(--color-value)" 
+                            stroke="hsl(220, 70%, 50%)" 
                             strokeWidth={3}
-                            dot={{ r: 6 }}
-                            activeDot={{ r: 8 }}
+                            dot={{ fill: 'hsl(220, 70%, 50%)', stroke: 'hsl(220, 70%, 50%)', strokeWidth: 2, r: 6 }}
+                            activeDot={{ r: 8, fill: 'hsl(220, 90%, 60%)', stroke: 'white', strokeWidth: 2 }}
                           />
                         </LineChart>
                       </ResponsiveContainer>
