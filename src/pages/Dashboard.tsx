@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
 import Layout from '@/components/Layout';
@@ -19,13 +19,15 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { useForm } from "react-hook-form";
+import { getCurrentUser } from '@/lib/supabase';
 
 // Define the steps for the data collection process
-type Step = 'education' | 'career' | 'skills' | 'results';
+type Step = 'education' | 'career' | 'skills' | 'results' | 'dashboard';
 
 const Dashboard: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<Step>('education');
   const [progress, setProgress] = useState(33);
+  const [isProfileComplete, setIsProfileComplete] = useState(false);
   const [userData, setUserData] = useState({
     education: {
       degree: '',
@@ -46,6 +48,41 @@ const Dashboard: React.FC = () => {
   });
   
   const navigate = useNavigate();
+
+  // Check if user has completed profile on component mount
+  useEffect(() => {
+    checkUserProfile();
+  }, []);
+
+  const checkUserProfile = async () => {
+    try {
+      const user = await getCurrentUser();
+      if (user) {
+        // Check localStorage for saved profile data
+        const savedProfile = localStorage.getItem(`userProfile_${user.id}`);
+        if (savedProfile) {
+          const profileData = JSON.parse(savedProfile);
+          setUserData(profileData);
+          setIsProfileComplete(true);
+          setCurrentStep('dashboard');
+        }
+      }
+    } catch (error) {
+      console.error('Error checking user profile:', error);
+    }
+  };
+
+  const saveUserProfile = async (profileData: any) => {
+    try {
+      const user = await getCurrentUser();
+      if (user) {
+        localStorage.setItem(`userProfile_${user.id}`, JSON.stringify(profileData));
+        console.log('Profile saved for user:', user.id);
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+    }
+  };
 
   // Education form
   const educationForm = useForm({
@@ -75,37 +112,44 @@ const Dashboard: React.FC = () => {
     { id: "engineering", label: "Ingeniørfag" },
   ];
 
-  const handleEducationSubmit = (data: any) => {
-    setUserData(prev => ({
-      ...prev,
+  const handleEducationSubmit = async (data: any) => {
+    const updatedUserData = {
+      ...userData,
       education: data
-    }));
+    };
+    setUserData(updatedUserData);
+    await saveUserProfile(updatedUserData);
     setCurrentStep('career');
     setProgress(66);
     toast.success("Utdanningsinformasjon lagret!");
   };
 
-  const handleCareerSubmit = (data: any) => {
-    setUserData(prev => ({
-      ...prev,
+  const handleCareerSubmit = async (data: any) => {
+    const updatedUserData = {
+      ...userData,
       career: {
         ...data,
         interests: Array.isArray(data.interests) ? data.interests : [],
         salaryRange: userData.career.salaryRange,
       }
-    }));
+    };
+    setUserData(updatedUserData);
+    await saveUserProfile(updatedUserData);
     setCurrentStep('skills');
     setProgress(100);
     toast.success("Karrierepreferanser lagret!");
   };
 
-  const handleSkillsSubmit = (data: any) => {
-    setUserData(prev => ({
-      ...prev,
+  const handleSkillsSubmit = async (data: any) => {
+    const updatedUserData = {
+      ...userData,
       skills: data
-    }));
+    };
+    setUserData(updatedUserData);
+    await saveUserProfile(updatedUserData);
     setCurrentStep('results');
-    toast.success("Ferdighetsinformasjon lagret!");
+    setIsProfileComplete(true);
+    toast.success("Profil fullført!");
   };
 
   const formatSalary = (value: number) => {
@@ -137,6 +181,154 @@ const Dashboard: React.FC = () => {
       ];
     }
   };
+
+  const resetProfile = () => {
+    setCurrentStep('education');
+    setProgress(33);
+    setIsProfileComplete(false);
+    setUserData({
+      education: {
+        degree: '',
+        fieldOfStudy: '',
+        institution: '',
+        graduationYear: '',
+      },
+      career: {
+        interests: [],
+        workEnvironment: '',
+        salaryRange: [500000],
+      },
+      skills: {
+        keySkills: '',
+        certifications: '',
+        workExperience: '',
+      }
+    });
+  };
+
+  // Dashboard view when profile is complete
+  if (currentStep === 'dashboard' && isProfileComplete) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-16 md:py-24">
+          <div className="mx-auto max-w-4xl">
+            <div className="mb-8 text-center">
+              <h1 className="mb-2 text-3xl font-bold">Velkommen tilbake til EdPath!</h1>
+              <p className="text-muted-foreground">
+                Din personlige karriereprofil er ferdig. Her er en oversikt over dine data og anbefalinger.
+              </p>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* User Profile Summary */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Din profil</CardTitle>
+                  <CardDescription>Oversikt over informasjonen du har oppgitt</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <h4 className="font-medium">Utdanning</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {userData.education.degree} i {userData.education.fieldOfStudy}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {userData.education.institution} ({userData.education.graduationYear})
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium">Karriereinteresser</h4>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {userData.career.interests.map((interest, index) => (
+                        <span key={index} className="px-2 py-1 bg-primary/10 text-primary text-xs rounded">
+                          {careerInterests.find(ci => ci.id === interest)?.label || interest}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-medium">Arbeidsmiljø</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {userData.career.workEnvironment === 'remote' && 'Fjernarbeid'}
+                      {userData.career.workEnvironment === 'office' && 'Kontorbasert'}
+                      {userData.career.workEnvironment === 'hybrid' && 'Hybrid'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-medium">Ønsket lønn</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {formatSalary(userData.career.salaryRange[0])}
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-medium">Nøkkelferdigheter</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {userData.skills.keySkills || 'Ikke spesifisert'}
+                    </p>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button variant="outline" onClick={resetProfile} className="w-full">
+                    Oppdater profil
+                  </Button>
+                </CardFooter>
+              </Card>
+
+              {/* Career Recommendations */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Dine karriereanbefalinger</CardTitle>
+                  <CardDescription>Basert på din profil</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {getRecommendedCareers().map((career, index) => (
+                      <div key={index} className="p-4 border rounded-lg">
+                        <h4 className="font-medium">{career.title}</h4>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {career.description}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button className="w-full" onClick={() => navigate('/statistikk')}>
+                    Utforsk karrierestatistikk
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+
+            {/* Quick Actions */}
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>Hurtighandlinger</CardTitle>
+                <CardDescription>Utforsk mer av EdPath</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <Button variant="outline" onClick={() => navigate('/statistikk')}>
+                    📊 Karrierestatistikk
+                  </Button>
+                  <Button variant="outline" onClick={() => navigate('/user-type-selection')}>
+                    📝 Ta ny spørreundersøkelse
+                  </Button>
+                  <Button variant="outline" onClick={resetProfile}>
+                    ⚙️ Oppdater profil
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -500,53 +692,30 @@ const Dashboard: React.FC = () => {
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Dine personlige karriereanbefalinger</CardTitle>
+                  <CardTitle>Takk! Din profil er nå opprettet</CardTitle>
                   <CardDescription>
-                    Basert på informasjonen du har oppgitt, her er noen karriereveier du kan vurdere:
+                    Vi har lagret informasjonen din og du kan nå utforske dine personlige karriereanbefalinger på dashbordet.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {getRecommendedCareers().map((career, index) => (
-                      <div key={index} className="rounded-lg border p-4">
-                        <h3 className="mb-1 text-lg font-medium">{career.title}</h3>
-                        <p className="text-muted-foreground">{career.description}</p>
-                      </div>
-                    ))}
+                  <div className="text-center space-y-4">
+                    <div className="text-6xl">🎉</div>
+                    <p className="text-lg">Din profil er nå ferdig!</p>
+                    <p className="text-muted-foreground">
+                      Du finner alle dine anbefalinger og kan oppdatere profilen din på dashbordet.
+                    </p>
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-center">
-                  <Button className="rounded-full" onClick={() => navigate('/career-details')}>
-                    Utforsk karrierevei
+                  <Button 
+                    className="rounded-full" 
+                    onClick={() => {
+                      setCurrentStep('dashboard');
+                      toast.success("Velkommen til ditt personlige dashboard!");
+                    }}
+                  >
+                    Gå til mitt dashboard
                   </Button>
-                </CardFooter>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Hva er neste steg?</CardTitle>
-                  <CardDescription>
-                    Du er nesten i mål! Her er de neste trinnene for å videre raffinere din karrierereise.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="rounded-lg border p-4">
-                      <h3 className="mb-1 text-lg font-medium">1. Utforsk karriereveier</h3>
-                      <p className="text-muted-foreground">Dykk dypere inn i hver av de anbefalte karriereveiene for å finne den beste matchen for deg.</p>
-                    </div>
-                    <div className="rounded-lg border p-4">
-                      <h3 className="mb-1 text-lg font-medium">2. Bygg dine ferdigheter</h3>
-                      <p className="text-muted-foreground">Finn ut hvilke ferdigheter du trenger for å lykkes i din valgte karrierevei.</p>
-                    </div>
-                    <div className="rounded-lg border p-4">
-                      <h3 className="mb-1 text-lg font-medium">3. Koble med mentorer</h3>
-                      <p className="text-muted-foreground">Få verdifull innsikt fra fagfolk som allerede jobber i din valgte bransje.</p>
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter className="flex justify-center">
-                  <Button className="rounded-full">Start utforskningen</Button>
                 </CardFooter>
               </Card>
             </div>
