@@ -292,7 +292,7 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
                   />
                   <ChartTooltip 
                     content={<ChartTooltipContent />}
-                    formatter={(value: number) => [`${value.toLocaleString('nb-NO')} kr`, 'Lønn']}
+                    formatter={(value: number) => [`${value.toLocaleString('nb-NO')} kr`, 'Månedslønn']}
                     labelFormatter={(year) => `År ${year}`}
                   />
                   <Line 
@@ -311,18 +311,23 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
               {trendData.length > 1 && (
                 <>
                   <div>
-                    <span className="text-muted-foreground">Startlønn ({trendData[0].year}):</span>
+                    <span className="text-muted-foreground">Start månedslønn ({trendData[0].year}):</span>
                     <p className="font-semibold">{trendData[0].salary.toLocaleString('nb-NO')} kr</p>
+                    <span className="text-xs text-muted-foreground">Årslønn: {(trendData[0].salary * 12).toLocaleString('nb-NO')} kr</span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Siste lønn ({trendData[trendData.length - 1].year}):</span>
+                    <span className="text-muted-foreground">Siste månedslønn ({trendData[trendData.length - 1].year}):</span>
                     <p className="font-semibold">{trendData[trendData.length - 1].salary.toLocaleString('nb-NO')} kr</p>
+                    <span className="text-xs text-muted-foreground">Årslønn: {(trendData[trendData.length - 1].salary * 12).toLocaleString('nb-NO')} kr</span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Total økning:</span>
+                    <span className="text-muted-foreground">Total økning (måned):</span>
                     <p className="font-semibold text-green-600">
                       +{(trendData[trendData.length - 1].salary - trendData[0].salary).toLocaleString('nb-NO')} kr
                     </p>
+                    <span className="text-xs text-muted-foreground">
+                      Årlig: +{((trendData[trendData.length - 1].salary - trendData[0].salary) * 12).toLocaleString('nb-NO')} kr
+                    </span>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Økning %:</span>

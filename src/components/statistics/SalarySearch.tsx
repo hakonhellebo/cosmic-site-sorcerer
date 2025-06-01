@@ -14,6 +14,19 @@ import SalaryTrendChart from './SalaryTrendChart';
 // Use the correct EdPath backend URL (without /lonn/ at the end)
 const API_BASE_URL = 'https://edpath-backend-production.up.railway.app';
 
+interface SalaryResult {
+  Yrke: string;
+  Kjonn: string;
+  Tid: string;
+  Sektor: string;
+  value: number;
+}
+
+interface YrkeOption {
+  value: string;
+  label: string;
+}
+
 const SalarySearch = () => {
   const [yrke, setYrke] = useState('');
   const [kjonn, setKjonn] = useState('');
@@ -343,10 +356,18 @@ const SalarySearch = () => {
                   </div>
                   
                   <div className="border-t pt-4">
-                    <div className="text-center">
-                      <span className="text-sm text-muted-foreground">Lønn:</span>
-                      <div className="text-3xl font-bold text-green-600">
-                        {result.value ? result.value.toLocaleString('nb-NO') : 'N/A'} kr
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="text-center">
+                        <span className="text-sm text-muted-foreground">Månedslønn:</span>
+                        <div className="text-2xl font-bold text-green-600">
+                          {result.value ? result.value.toLocaleString('nb-NO') : 'N/A'} kr
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <span className="text-sm text-muted-foreground">Årslønn:</span>
+                        <div className="text-2xl font-bold text-blue-600">
+                          {result.value ? (result.value * 12).toLocaleString('nb-NO') : 'N/A'} kr
+                        </div>
                       </div>
                     </div>
                   </div>
