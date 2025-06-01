@@ -143,6 +143,16 @@ const SalarySearch = () => {
     );
   };
 
+  const handleSelectAllYears = () => {
+    if (selectedYears.length === years.length) {
+      // If all years are selected, deselect all
+      setSelectedYears([]);
+    } else {
+      // Select all years
+      setSelectedYears(years.map(year => year.toString()));
+    }
+  };
+
   const handleSearch = async () => {
     setLoading(true);
     setError(null);
@@ -378,6 +388,14 @@ const SalarySearch = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-56 bg-white border shadow-lg z-50">
                       <DropdownMenuLabel>Velg år</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuCheckboxItem
+                        checked={selectedYears.length === years.length}
+                        onCheckedChange={handleSelectAllYears}
+                        className="font-medium"
+                      >
+                        {selectedYears.length === years.length ? "Fjern alle år" : "Velg alle år"}
+                      </DropdownMenuCheckboxItem>
                       <DropdownMenuSeparator />
                       {years.map((year) => (
                         <DropdownMenuCheckboxItem
