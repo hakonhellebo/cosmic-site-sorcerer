@@ -17,7 +17,7 @@ interface YrkeOption {
 
 interface TrendData {
   year: number;
-  salary: number;
+  value: number;
 }
 
 const API_BASE_URL = 'https://edpath-backend-production.up.railway.app';
@@ -30,6 +30,9 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
   const [yrke, setYrke] = useState('');
   const [kjonn, setKjonn] = useState('');
   const [sektor, setSektor] = useState('');
+  const [maaleMetode, setMaaleMetode] = useState('');
+  const [avtaltVanlig, setAvtaltVanlig] = useState('');
+  const [contentsCode, setContentsCode] = useState('');
   const [trendData, setTrendData] = useState<TrendData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,9 +53,34 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
     { value: 'Kommune og fylkeskommune', label: 'Kommune og fylkeskommune' }
   ];
 
+  const measurementMethodOptions = [
+    { value: 'Gjennomsnitt', label: 'Gjennomsnitt' },
+    { value: 'Median', label: 'Median' },
+    { value: 'Nedre kvartil', label: 'Nedre kvartil' },
+    { value: 'Øvre kvartil', label: 'Øvre kvartil' },
+    { value: 'Antall arbeidsforhold med lønn', label: 'Antall arbeidsforhold med lønn' },
+    { value: 'Antall heltidsekvivalenter', label: 'Antall heltidsekvivalenter' }
+  ];
+
+  const workTimeOptions = [
+    { value: 'Alt', label: 'Alt' },
+    { value: 'Heltidsansatte', label: 'Heltidsansatte' },
+    { value: 'Deltidsansatte', label: 'Deltidsansatte' }
+  ];
+
+  const contentsCodeOptions = [
+    { value: 'Månedslønn (kr)', label: 'Månedslønn (kr)' },
+    { value: 'Avtalt månedslønn (kr)', label: 'Avtalt månedslønn (kr)' },
+    { value: 'Uregelmessige tillegg (kr)', label: 'Uregelmessige tillegg (kr)' },
+    { value: 'Bonus (kr)', label: 'Bonus (kr)' },
+    { value: 'Overtidsgodtgjørelse (kr)', label: 'Overtidsgodtgjørelse (kr)' },
+    { value: 'Alder (år)', label: 'Alder (år)' },
+    { value: 'Avtalt arbeidstid per uke (timer)', label: 'Avtalt arbeidstid per uke (timer)' }
+  ];
+
   const fetchSalaryTrend = async () => {
     if (!yrke) {
-      setError('Velg et yrke for å se lønnsutvikling');
+      setError('Velg et yrke for å se utvikling over tid');
       return;
     }
 
@@ -67,6 +95,9 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
         if (kjonn) params.append('kjonn', kjonn);
         params.append('tid', year.toString());
         if (sektor) params.append('sektor', sektor);
+        if (maaleMetode) params.append('MaaleMetode', maaleMetode);
+        if (avtaltVanlig) params.append('AvtaltVanlig', avtaltVanlig);
+        if (contentsCode) params.append('ContentsCode', contentsCode);
 
         const url = `${API_BASE_URL}/lonn/?${params.toString()}`;
         
@@ -88,7 +119,7 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
         if (data && typeof data === 'object' && data.value !== undefined) {
           return {
             year: year,
-            salary: data.value
+            value: data.value
           };
         }
         
@@ -106,7 +137,7 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
       }
       
     } catch (err) {
-      console.error('Error fetching salary trend:', err);
+      console.error('Error fetching trend data:', err);
       const errorMessage = err instanceof Error ? err.message : 'Ukjent feil';
       setError(`Feil ved henting av data: ${errorMessage}`);
     } finally {
@@ -115,13 +146,28 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
   };
 
   const chartConfig = {
-    salary: {
-      label: "Lønn",
+    value: {
+      label: contentsCode || "Verdi",
       color: "hsl(var(--chart-1))",
     },
   };
 
   const hasFilters = yrke;
+
+  const getValueUnit = (contentsCode: string) => {
+    if (contentsCode.includes('kr')) return 'kr';
+    if (contentsCode.includes('år')) return 'år';
+    if (contentsCode.includes('timer')) return 'timer';
+    return '';
+  };
+
+  const formatValue = (value: number, contentsCode: string) => {
+    const unit = getValueUnit(contentsCode);
+    if (unit === 'kr') {
+      return `${value.toLocaleString('nb-NO')} kr`;
+    }
+    return `${value.toLocaleString('nb-NO')} ${unit}`;
+  };
 
   return (
     <div className="space-y-6">
@@ -129,14 +175,14 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
-            Lønnsutvikling over tid
+            Utvikling over tid
           </CardTitle>
           <CardDescription>
-            Se hvordan lønnen har utviklet seg fra 2018 til 2024
+            Se hvordan verdier har utviklet seg fra 2018 til 2024 med detaljerte filteralternativer
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Yrke *</label>
               <Popover open={yrkeDropdownOpen} onOpenChange={setYrkeDropdownOpen}>
@@ -179,6 +225,54 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
                   </Command>
                 </PopoverContent>
               </Popover>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Målemetode</label>
+              <Select value={maaleMetode} onValueChange={setMaaleMetode}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Velg målemetode" />
+                </SelectTrigger>
+                <SelectContent>
+                  {measurementMethodOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Innholdstype</label>
+              <Select value={contentsCode} onValueChange={setContentsCode}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Velg innholdstype" />
+                </SelectTrigger>
+                <SelectContent>
+                  {contentsCodeOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Arbeidstid</label>
+              <Select value={avtaltVanlig} onValueChange={setAvtaltVanlig}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Velg arbeidstid" />
+                </SelectTrigger>
+                <SelectContent>
+                  {workTimeOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
@@ -225,7 +319,7 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
               ) : (
                 <TrendingUp className="h-4 w-4" />
               )}
-              Vis lønnsutvikling
+              Vis utvikling
             </Button>
             
             {hasFilters && (
@@ -235,6 +329,9 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
                   setYrke('');
                   setKjonn('');
                   setSektor('');
+                  setMaaleMetode('');
+                  setAvtaltVanlig('');
+                  setContentsCode('');
                   setTrendData([]);
                   setError(null);
                 }}
@@ -246,7 +343,7 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
 
           {!hasFilters && (
             <p className="text-sm text-muted-foreground">
-              Velg minst et yrke for å se lønnsutvikling over tid.
+              Velg minst et yrke for å se utvikling over tid.
             </p>
           )}
 
@@ -261,8 +358,10 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
       {trendData.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Lønnsutvikling: {yrke}</CardTitle>
+            <CardTitle>Utvikling: {yrke}</CardTitle>
             <CardDescription>
+              {maaleMetode && `${maaleMetode} • `}
+              {contentsCode && `${contentsCode} • `}
               {kjonn && `${kjonn} • `}
               {sektor && `${sektor} • `}
               2018-2024
@@ -288,17 +387,23 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
                     domain={['dataMin', 'dataMax']}
                   />
                   <YAxis 
-                    tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                    tickFormatter={(value) => {
+                      const unit = getValueUnit(contentsCode);
+                      if (unit === 'kr') {
+                        return `${(value / 1000).toFixed(0)}k`;
+                      }
+                      return value.toLocaleString('nb-NO');
+                    }}
                   />
                   <ChartTooltip 
                     content={<ChartTooltipContent />}
-                    formatter={(value: number) => [`${value.toLocaleString('nb-NO')} kr`, 'Månedslønn']}
+                    formatter={(value: number) => [formatValue(value, contentsCode), contentsCode || 'Verdi']}
                     labelFormatter={(year) => `År ${year}`}
                   />
                   <Line 
                     type="monotone" 
-                    dataKey="salary" 
-                    stroke="var(--color-salary)" 
+                    dataKey="value" 
+                    stroke="var(--color-value)" 
                     strokeWidth={3}
                     dot={{ r: 6 }}
                     activeDot={{ r: 8 }}
@@ -311,28 +416,23 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
               {trendData.length > 1 && (
                 <>
                   <div>
-                    <span className="text-muted-foreground">Start månedslønn ({trendData[0].year}):</span>
-                    <p className="font-semibold">{trendData[0].salary.toLocaleString('nb-NO')} kr</p>
-                    <span className="text-xs text-muted-foreground">Årslønn: {(trendData[0].salary * 12).toLocaleString('nb-NO')} kr</span>
+                    <span className="text-muted-foreground">Start ({trendData[0].year}):</span>
+                    <p className="font-semibold">{formatValue(trendData[0].value, contentsCode)}</p>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Siste månedslønn ({trendData[trendData.length - 1].year}):</span>
-                    <p className="font-semibold">{trendData[trendData.length - 1].salary.toLocaleString('nb-NO')} kr</p>
-                    <span className="text-xs text-muted-foreground">Årslønn: {(trendData[trendData.length - 1].salary * 12).toLocaleString('nb-NO')} kr</span>
+                    <span className="text-muted-foreground">Siste ({trendData[trendData.length - 1].year}):</span>
+                    <p className="font-semibold">{formatValue(trendData[trendData.length - 1].value, contentsCode)}</p>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Total økning (måned):</span>
+                    <span className="text-muted-foreground">Total endring:</span>
                     <p className="font-semibold text-green-600">
-                      +{(trendData[trendData.length - 1].salary - trendData[0].salary).toLocaleString('nb-NO')} kr
+                      +{formatValue(trendData[trendData.length - 1].value - trendData[0].value, contentsCode)}
                     </p>
-                    <span className="text-xs text-muted-foreground">
-                      Årlig: +{((trendData[trendData.length - 1].salary - trendData[0].salary) * 12).toLocaleString('nb-NO')} kr
-                    </span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Økning %:</span>
+                    <span className="text-muted-foreground">Endring %:</span>
                     <p className="font-semibold text-green-600">
-                      +{(((trendData[trendData.length - 1].salary - trendData[0].salary) / trendData[0].salary) * 100).toFixed(1)}%
+                      +{(((trendData[trendData.length - 1].value - trendData[0].value) / trendData[0].value) * 100).toFixed(1)}%
                     </p>
                   </div>
                 </>

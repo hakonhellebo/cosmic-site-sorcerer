@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,9 @@ interface SalaryResult {
   Kjonn: string;
   Tid: number;
   Sektor: string;
+  MaaleMetode: string;
+  AvtaltVanlig: string;
+  ContentsCode: string;
   value: number;
 }
 
@@ -42,6 +46,9 @@ const SalarySearch = () => {
   const [kjonn, setKjonn] = useState('');
   const [selectedYears, setSelectedYears] = useState<string[]>([]);
   const [sektor, setSektor] = useState('');
+  const [maaleMetode, setMaaleMetode] = useState('');
+  const [avtaltVanlig, setAvtaltVanlig] = useState('');
+  const [contentsCode, setContentsCode] = useState('');
   const [results, setResults] = useState<SalaryResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -64,6 +71,31 @@ const SalarySearch = () => {
     { value: 'Privat sektor og offentlige eide foretak', label: 'Privat sektor og offentlige eide foretak' },
     { value: 'Statsforvaltningen', label: 'Statsforvaltningen' },
     { value: 'Kommune og fylkeskommune', label: 'Kommune og fylkeskommune' }
+  ];
+
+  const measurementMethodOptions = [
+    { value: 'Gjennomsnitt', label: 'Gjennomsnitt' },
+    { value: 'Median', label: 'Median' },
+    { value: 'Nedre kvartil', label: 'Nedre kvartil' },
+    { value: 'Øvre kvartil', label: 'Øvre kvartil' },
+    { value: 'Antall arbeidsforhold med lønn', label: 'Antall arbeidsforhold med lønn' },
+    { value: 'Antall heltidsekvivalenter', label: 'Antall heltidsekvivalenter' }
+  ];
+
+  const workTimeOptions = [
+    { value: 'Alt', label: 'Alt' },
+    { value: 'Heltidsansatte', label: 'Heltidsansatte' },
+    { value: 'Deltidsansatte', label: 'Deltidsansatte' }
+  ];
+
+  const contentsCodeOptions = [
+    { value: 'Månedslønn (kr)', label: 'Månedslønn (kr)' },
+    { value: 'Avtalt månedslønn (kr)', label: 'Avtalt månedslønn (kr)' },
+    { value: 'Uregelmessige tillegg (kr)', label: 'Uregelmessige tillegg (kr)' },
+    { value: 'Bonus (kr)', label: 'Bonus (kr)' },
+    { value: 'Overtidsgodtgjørelse (kr)', label: 'Overtidsgodtgjørelse (kr)' },
+    { value: 'Alder (år)', label: 'Alder (år)' },
+    { value: 'Avtalt arbeidstid per uke (timer)', label: 'Avtalt arbeidstid per uke (timer)' }
   ];
 
   // Color palette for different occupations
@@ -159,7 +191,15 @@ const SalarySearch = () => {
     setResults([]);
 
     try {
-      console.log('Starting search with filters:', { selectedYrker, kjonn, selectedYears, sektor });
+      console.log('Starting search with filters:', { 
+        selectedYrker, 
+        kjonn, 
+        selectedYears, 
+        sektor, 
+        maaleMetode, 
+        avtaltVanlig, 
+        contentsCode 
+      });
       
       const allResults: SalaryResult[] = [];
 
@@ -169,6 +209,9 @@ const SalarySearch = () => {
         params.append('yrke', yrke);
         if (kjonn) params.append('kjonn', kjonn);
         if (sektor) params.append('sektor', sektor);
+        if (maaleMetode) params.append('MaaleMetode', maaleMetode);
+        if (avtaltVanlig) params.append('AvtaltVanlig', avtaltVanlig);
+        if (contentsCode) params.append('ContentsCode', contentsCode);
         
         // Add multiple years
         selectedYears.forEach(year => {
@@ -200,6 +243,9 @@ const SalarySearch = () => {
             Kjonn: kjonn || 'Ikke spesifisert', 
             Tid: item.Tid,
             Sektor: sektor || 'Ikke spesifisert',
+            MaaleMetode: maaleMetode || 'Ikke spesifisert',
+            AvtaltVanlig: avtaltVanlig || 'Ikke spesifisert',
+            ContentsCode: contentsCode || 'Ikke spesifisert',
             value: item.value
           }));
           allResults.push(...mappedResults);
@@ -223,7 +269,7 @@ const SalarySearch = () => {
     }
   };
 
-  const hasFilters = selectedYrker.length > 0 || kjonn || selectedYears.length > 0 || sektor;
+  const hasFilters = selectedYrker.length > 0 || kjonn || selectedYears.length > 0 || sektor || maaleMetode || avtaltVanlig || contentsCode;
 
   // Prepare chart data for comparison visualization
   const prepareComparisonData = (): ComparisonData[] => {
@@ -250,6 +296,21 @@ const SalarySearch = () => {
     return config;
   }, {} as any);
 
+  const getValueUnit = (contentsCode: string) => {
+    if (contentsCode.includes('kr')) return 'kr';
+    if (contentsCode.includes('år')) return 'år';
+    if (contentsCode.includes('timer')) return 'timer';
+    return '';
+  };
+
+  const formatValue = (value: number, contentsCode: string) => {
+    const unit = getValueUnit(contentsCode);
+    if (unit === 'kr') {
+      return `${value.toLocaleString('nb-NO')} kr`;
+    }
+    return `${value.toLocaleString('nb-NO')} ${unit}`;
+  };
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="single" className="space-y-6">
@@ -269,18 +330,18 @@ const SalarySearch = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <DollarSign className="h-5 w-5" />
-                Lønnssøk & Sammenligning
+                Avansert lønnssøk & sammenligning
               </CardTitle>
               <CardDescription>
-                Søk og sammenlign lønnsdata mellom forskjellige yrker, kjønn, år og sektorer. Velg flere yrker for å sammenligne.
+                Søk og sammenlign detaljerte lønnsdata med flere filtreringsmuligheter. Velg målemetode, innholdstype og andre kriterier for å få presise resultater.
               </CardDescription>
               <div className="text-sm text-muted-foreground">
                 API Status: {apiStatus}
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2 md:col-span-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="space-y-2 md:col-span-2 lg:col-span-3">
                   <label className="text-sm font-medium">Yrker (velg opptil 8 for sammenligning)</label>
                   <div className="space-y-2">
                     <Popover open={yrkeDropdownOpen} onOpenChange={setYrkeDropdownOpen}>
@@ -356,6 +417,54 @@ const SalarySearch = () => {
                 </div>
 
                 <div className="space-y-2">
+                  <label className="text-sm font-medium">Målemetode</label>
+                  <Select value={maaleMetode} onValueChange={setMaaleMetode}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Velg målemetode" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {measurementMethodOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Innholdstype</label>
+                  <Select value={contentsCode} onValueChange={setContentsCode}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Velg innholdstype" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {contentsCodeOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Arbeidstid</label>
+                  <Select value={avtaltVanlig} onValueChange={setAvtaltVanlig}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Velg arbeidstid" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {workTimeOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
                   <label className="text-sm font-medium">Kjønn</label>
                   <Select value={kjonn} onValueChange={setKjonn}>
                     <SelectTrigger>
@@ -419,7 +528,7 @@ const SalarySearch = () => {
                   )}
                 </div>
 
-                <div className="space-y-2 md:col-span-2">
+                <div className="space-y-2">
                   <label className="text-sm font-medium">Sektor</label>
                   <Select value={sektor} onValueChange={setSektor}>
                     <SelectTrigger>
@@ -458,6 +567,9 @@ const SalarySearch = () => {
                       setKjonn('');
                       setSelectedYears([]);
                       setSektor('');
+                      setMaaleMetode('');
+                      setAvtaltVanlig('');
+                      setContentsCode('');
                       setResults([]);
                       setError(null);
                     }}
@@ -484,6 +596,12 @@ const SalarySearch = () => {
                   Velg minst ett yrke for å kunne søke.
                 </p>
               )}
+
+              {error && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-700 text-sm">{error}</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -496,10 +614,12 @@ const SalarySearch = () => {
                     <div>
                       <CardTitle className="flex items-center gap-2">
                         <TrendingUp className="h-5 w-5" />
-                        Sammenligning av lønn
+                        Sammenligning av data
                       </CardTitle>
                       <CardDescription>
                         {selectedYrker.length > 1 ? `Sammenligning av ${selectedYrker.length} yrker` : selectedYrker[0]}
+                        {maaleMetode && ` - ${maaleMetode}`}
+                        {contentsCode && ` - ${contentsCode}`}
                         {kjonn && ` - ${kjonn}`}
                         {sektor && ` - ${sektor}`}
                       </CardDescription>
@@ -535,11 +655,17 @@ const SalarySearch = () => {
                             domain={['dataMin', 'dataMax']}
                           />
                           <YAxis 
-                            tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                            tickFormatter={(value) => {
+                              const unit = getValueUnit(contentsCode);
+                              if (unit === 'kr') {
+                                return `${(value / 1000).toFixed(0)}k`;
+                              }
+                              return value.toLocaleString('nb-NO');
+                            }}
                           />
                           <ChartTooltip 
                             content={<ChartTooltipContent />}
-                            formatter={(value: number, name: string) => [`${value.toLocaleString('nb-NO')} kr`, name]}
+                            formatter={(value: number, name: string) => [formatValue(value, contentsCode), name]}
                             labelFormatter={(year) => `År ${year}`}
                           />
                           {uniqueOccupations.map((occupation, index) => (
@@ -576,7 +702,7 @@ const SalarySearch = () => {
                               <TableCell className="font-medium">{yearData.year}</TableCell>
                               {uniqueOccupations.map(occupation => (
                                 <TableCell key={occupation}>
-                                  {yearData[occupation] ? `${yearData[occupation].toLocaleString('nb-NO')} kr` : 'N/A'}
+                                  {yearData[occupation] ? formatValue(yearData[occupation], contentsCode) : 'N/A'}
                                 </TableCell>
                               ))}
                             </TableRow>
