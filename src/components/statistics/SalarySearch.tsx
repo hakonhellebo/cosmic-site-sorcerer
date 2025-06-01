@@ -177,14 +177,14 @@ const SalarySearch = () => {
 
   const hasFilters = yrke || kjonn || selectedYears.length > 0 || sektor;
 
-  // Prepare chart data for visualization
+  // Prepare chart data for visualization with correct field names
   const chartData = results.map(result => ({
     year: result.Tid,
-    salary: result.value
+    value: result.value
   }));
 
   const chartConfig = {
-    salary: {
+    value: {
       label: "Månedslønn",
       color: "hsl(var(--chart-1))",
     },
@@ -415,7 +415,7 @@ const SalarySearch = () => {
                   </CardHeader>
                   <CardContent>
                     <ChartContainer config={chartConfig}>
-                      <ResponsiveContainer width="100%" height={300}>
+                      <ResponsiveContainer width="100%" height={250}>
                         <LineChart
                           data={chartData}
                           margin={{
@@ -442,8 +442,8 @@ const SalarySearch = () => {
                           />
                           <Line 
                             type="monotone" 
-                            dataKey="salary" 
-                            stroke="var(--color-salary)" 
+                            dataKey="value" 
+                            stroke="var(--color-value)" 
                             strokeWidth={3}
                             dot={{ r: 6 }}
                             activeDot={{ r: 8 }}
@@ -457,22 +457,22 @@ const SalarySearch = () => {
                       <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div>
                           <span className="text-muted-foreground">Start månedslønn ({chartData[0].year}):</span>
-                          <p className="font-semibold">{chartData[0].salary.toLocaleString('nb-NO')} kr</p>
+                          <p className="font-semibold">{chartData[0].value.toLocaleString('nb-NO')} kr</p>
                         </div>
                         <div>
                           <span className="text-muted-foreground">Siste månedslønn ({chartData[chartData.length - 1].year}):</span>
-                          <p className="font-semibold">{chartData[chartData.length - 1].salary.toLocaleString('nb-NO')} kr</p>
+                          <p className="font-semibold">{chartData[chartData.length - 1].value.toLocaleString('nb-NO')} kr</p>
                         </div>
                         <div>
                           <span className="text-muted-foreground">Total økning:</span>
                           <p className="font-semibold text-green-600">
-                            +{(chartData[chartData.length - 1].salary - chartData[0].salary).toLocaleString('nb-NO')} kr
+                            +{(chartData[chartData.length - 1].value - chartData[0].value).toLocaleString('nb-NO')} kr
                           </p>
                         </div>
                         <div>
                           <span className="text-muted-foreground">Økning %:</span>
                           <p className="font-semibold text-green-600">
-                            +{(((chartData[chartData.length - 1].salary - chartData[0].salary) / chartData[0].salary) * 100).toFixed(1)}%
+                            +{(((chartData[chartData.length - 1].value - chartData[0].value) / chartData[0].value) * 100).toFixed(1)}%
                           </p>
                         </div>
                       </div>
