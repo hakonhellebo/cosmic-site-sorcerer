@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,9 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Loader2, Search, DollarSign, ChevronDown, Check, TrendingUp, Calendar } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Loader2, Search, DollarSign, ChevronDown, Check, TrendingUp, Calendar, X, BarChart3, TableIcon, Plus } from "lucide-react";
 import { Badge } from '@/components/ui/badge';
 import { cn } from "@/lib/utils";
 import SalaryTrendChart from './SalaryTrendChart';
@@ -31,8 +32,13 @@ interface YrkeOption {
   label: string;
 }
 
+interface ComparisonData {
+  year: number;
+  [key: string]: number; // Dynamic keys for different occupations
+}
+
 const SalarySearch = () => {
-  const [yrke, setYrke] = useState('');
+  const [selectedYrker, setSelectedYrker] = useState<string[]>([]);
   const [kjonn, setKjonn] = useState('');
   const [selectedYears, setSelectedYears] = useState<string[]>([]);
   const [sektor, setSektor] = useState('');
@@ -43,6 +49,7 @@ const SalarySearch = () => {
   const [loadingYrker, setLoadingYrker] = useState(false);
   const [yrkeDropdownOpen, setYrkeDropdownOpen] = useState(false);
   const [apiStatus, setApiStatus] = useState<string>('Tester tilkobling...');
+  const [viewMode, setViewMode] = useState<'chart' | 'table'>('chart');
 
   const years = Array.from({ length: 7 }, (_, i) => 2018 + i); // 2018-2024
 
@@ -57,6 +64,18 @@ const SalarySearch = () => {
     { value: 'Privat sektor og offentlige eide foretak', label: 'Privat sektor og offentlige eide foretak' },
     { value: 'Statsforvaltningen', label: 'Statsforvaltningen' },
     { value: 'Kommune og fylkeskommune', label: 'Kommune og fylkeskommune' }
+  ];
+
+  // Color palette for different occupations
+  const colors = [
+    'hsl(220, 70%, 50%)', // Blue
+    'hsl(142, 76%, 36%)', // Green
+    'hsl(0, 84%, 60%)',   // Red
+    'hsl(262, 83%, 58%)', // Purple
+    'hsl(32, 95%, 44%)',  // Orange
+    'hsl(186, 100%, 47%)', // Cyan
+    'hsl(45, 93%, 47%)',  // Yellow
+    'hsl(340, 82%, 52%)', // Pink
   ];
 
   // Load occupations from API
@@ -105,6 +124,17 @@ const SalarySearch = () => {
     loadYrkeOptions();
   }, []);
 
+  const handleYrkeAdd = (yrke: string) => {
+    if (!selectedYrker.includes(yrke) && selectedYrker.length < 8) {
+      setSelectedYrker([...selectedYrker, yrke]);
+    }
+    setYrkeDropdownOpen(false);
+  };
+
+  const handleYrkeRemove = (yrke: string) => {
+    setSelectedYrker(selectedYrker.filter(y => y !== yrke));
+  };
+
   const handleYearToggle = (year: string) => {
     setSelectedYears(prev => 
       prev.includes(year) 
@@ -119,50 +149,57 @@ const SalarySearch = () => {
     setResults([]);
 
     try {
-      console.log('Starting search with filters:', { yrke, kjonn, selectedYears, sektor });
+      console.log('Starting search with filters:', { selectedYrker, kjonn, selectedYears, sektor });
       
-      // Build query parameters
-      const params = new URLSearchParams();
-      if (yrke) params.append('yrke', yrke);
-      if (kjonn) params.append('kjonn', kjonn);
-      if (sektor) params.append('sektor', sektor);
-      
-      // Add multiple years
-      selectedYears.forEach(year => {
-        params.append('tid', year);
-      });
+      const allResults: SalaryResult[] = [];
 
-      const url = `${API_BASE_URL}/lonn/?${params.toString()}`;
-      console.log('Search URL:', url);
-      
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (!response.ok) {
-        throw new Error(`API feil: ${response.status} ${response.statusText}`);
+      // Search for each selected occupation
+      for (const yrke of selectedYrker) {
+        const params = new URLSearchParams();
+        params.append('yrke', yrke);
+        if (kjonn) params.append('kjonn', kjonn);
+        if (sektor) params.append('sektor', sektor);
+        
+        // Add multiple years
+        selectedYears.forEach(year => {
+          params.append('tid', year);
+        });
+
+        const url = `${API_BASE_URL}/lonn/?${params.toString()}`;
+        console.log('Search URL for', yrke, ':', url);
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (!response.ok) {
+          throw new Error(`API feil: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Search response for', yrke, ':', data);
+        
+        // Handle array response (multiple years)
+        if (Array.isArray(data) && data.length > 0) {
+          const mappedResults = data.map(item => ({
+            Yrke: yrke,
+            Kjonn: kjonn || 'Ikke spesifisert', 
+            Tid: item.Tid,
+            Sektor: sektor || 'Ikke spesifisert',
+            value: item.value
+          }));
+          allResults.push(...mappedResults);
+        }
       }
-      
-      const data = await response.json();
-      console.log('Search response:', data);
-      
-      // Handle array response (multiple years)
-      if (Array.isArray(data) && data.length > 0) {
-        // Map the response to include missing fields from our search filters
-        const mappedResults = data.map(item => ({
-          Yrke: yrke || 'Ikke spesifisert',
-          Kjonn: kjonn || 'Ikke spesifisert', 
-          Tid: item.Tid,
-          Sektor: sektor || 'Ikke spesifisert',
-          value: item.value
-        }));
+
+      if (allResults.length > 0) {
         // Sort by year for better visualization
-        mappedResults.sort((a, b) => a.Tid - b.Tid);
-        setResults(mappedResults);
+        allResults.sort((a, b) => a.Tid - b.Tid);
+        setResults(allResults);
       } else {
         setError('Ingen resultater funnet for de valgte kriteriene');
       }
@@ -176,20 +213,32 @@ const SalarySearch = () => {
     }
   };
 
-  const hasFilters = yrke || kjonn || selectedYears.length > 0 || sektor;
+  const hasFilters = selectedYrker.length > 0 || kjonn || selectedYears.length > 0 || sektor;
 
-  // Prepare chart data for visualization with correct field names
-  const chartData = results.map(result => ({
-    year: result.Tid,
-    value: result.value
-  }));
-
-  const chartConfig = {
-    value: {
-      label: "Månedslønn",
-      color: "hsl(220, 70%, 50%)",
-    },
+  // Prepare chart data for comparison visualization
+  const prepareComparisonData = (): ComparisonData[] => {
+    const dataByYear: { [year: number]: ComparisonData } = {};
+    
+    results.forEach(result => {
+      if (!dataByYear[result.Tid]) {
+        dataByYear[result.Tid] = { year: result.Tid };
+      }
+      dataByYear[result.Tid][result.Yrke] = result.value;
+    });
+    
+    return Object.values(dataByYear).sort((a, b) => a.year - b.year);
   };
+
+  const comparisonData = prepareComparisonData();
+  const uniqueOccupations = [...new Set(results.map(r => r.Yrke))];
+
+  const chartConfig = uniqueOccupations.reduce((config, occupation, index) => {
+    config[occupation] = {
+      label: occupation,
+      color: colors[index % colors.length],
+    };
+    return config;
+  }, {} as any);
 
   return (
     <div className="space-y-6">
@@ -197,7 +246,7 @@ const SalarySearch = () => {
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="single" className="flex items-center gap-2">
             <Search className="h-4 w-4" />
-            Lønnssøk
+            Lønnssøk & Sammenligning
           </TabsTrigger>
           <TabsTrigger value="trend" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
@@ -210,10 +259,10 @@ const SalarySearch = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <DollarSign className="h-5 w-5" />
-                Lønnssøk
+                Lønnssøk & Sammenligning
               </CardTitle>
               <CardDescription>
-                Søk etter lønnsdata basert på yrke, kjønn, år og sektor. Velg flere år for å sammenligne.
+                Søk og sammenlign lønnsdata mellom forskjellige yrker, kjønn, år og sektorer. Velg flere yrker for å sammenligne.
               </CardDescription>
               <div className="text-sm text-muted-foreground">
                 API Status: {apiStatus}
@@ -221,63 +270,79 @@ const SalarySearch = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Yrke</label>
-                  <Popover open={yrkeDropdownOpen} onOpenChange={setYrkeDropdownOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={yrkeDropdownOpen}
-                        className="w-full justify-between"
-                        disabled={loadingYrker}
-                      >
-                        {yrke ? yrke : "Velg yrke..."}
-                        {loadingYrker ? (
-                          <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                        ) : (
-                          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-full p-0 bg-white border shadow-lg z-50" style={{ width: 'var(--radix-popover-trigger-width)' }}>
-                      <Command>
-                        <CommandInput placeholder="Søk etter yrke..." />
-                        <CommandList>
-                          <CommandEmpty>Ingen yrker funnet.</CommandEmpty>
-                          <CommandGroup>
-                            {yrkeOptions.map((option) => (
-                              <CommandItem
-                                key={option.value}
-                                onSelect={() => {
-                                  setYrke(option.value);
-                                  setYrkeDropdownOpen(false);
-                                }}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    yrke === option.value ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                                {option.label}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  {yrkeOptions.length > 0 && (
-                    <p className="text-xs text-muted-foreground">
-                      {yrkeOptions.length} yrker tilgjengelig
-                    </p>
-                  )}
-                  {error && (
-                    <p className="text-xs text-red-600">
-                      {error}
-                    </p>
-                  )}
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-sm font-medium">Yrker (velg opptil 8 for sammenligning)</label>
+                  <div className="space-y-2">
+                    <Popover open={yrkeDropdownOpen} onOpenChange={setYrkeDropdownOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={yrkeDropdownOpen}
+                          className="w-full justify-between"
+                          disabled={loadingYrker || selectedYrker.length >= 8}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Plus className="h-4 w-4" />
+                            {selectedYrker.length === 0 ? "Legg til yrke..." : `Legg til yrke (${selectedYrker.length}/8)`}
+                          </div>
+                          {loadingYrker ? (
+                            <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0 bg-white border shadow-lg z-50" style={{ width: 'var(--radix-popover-trigger-width)' }}>
+                        <Command>
+                          <CommandInput placeholder="Søk etter yrke..." />
+                          <CommandList>
+                            <CommandEmpty>Ingen yrker funnet.</CommandEmpty>
+                            <CommandGroup>
+                              {yrkeOptions
+                                .filter(option => !selectedYrker.includes(option.value))
+                                .map((option) => (
+                                <CommandItem
+                                  key={option.value}
+                                  onSelect={() => handleYrkeAdd(option.value)}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4 opacity-0"
+                                    )}
+                                  />
+                                  {option.label}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    
+                    {selectedYrker.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {selectedYrker.map((yrke, index) => (
+                          <Badge 
+                            key={yrke} 
+                            variant="secondary" 
+                            className="flex items-center gap-1"
+                            style={{ 
+                              backgroundColor: `${colors[index % colors.length]}20`,
+                              borderColor: colors[index % colors.length],
+                              color: colors[index % colors.length]
+                            }}
+                          >
+                            {yrke}
+                            <X 
+                              className="h-3 w-3 cursor-pointer hover:opacity-70" 
+                              onClick={() => handleYrkeRemove(yrke)}
+                            />
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -296,7 +361,7 @@ const SalarySearch = () => {
                   </Select>
                 </div>
 
-                <div className="space-y-2 md:col-span-2">
+                <div className="space-y-2">
                   <label className="text-sm font-medium">År</label>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -356,7 +421,7 @@ const SalarySearch = () => {
               <div className="flex items-center gap-4">
                 <Button 
                   onClick={handleSearch} 
-                  disabled={loading || !hasFilters || selectedYears.length === 0}
+                  disabled={loading || !hasFilters || selectedYears.length === 0 || selectedYrker.length === 0}
                   className="flex items-center gap-2"
                 >
                   {loading ? (
@@ -364,14 +429,14 @@ const SalarySearch = () => {
                   ) : (
                     <Search className="h-4 w-4" />
                   )}
-                  Søk
+                  Søk og sammenlign
                 </Button>
                 
                 {hasFilters && (
                   <Button 
                     variant="outline" 
                     onClick={() => {
-                      setYrke('');
+                      setSelectedYrker([]);
                       setKjonn('');
                       setSelectedYears([]);
                       setSektor('');
@@ -386,7 +451,7 @@ const SalarySearch = () => {
 
               {!hasFilters && (
                 <p className="text-sm text-muted-foreground">
-                  Fyll ut minst ett filter og velg minst ett år for å søke etter lønnsdata.
+                  Velg minst ett yrke og ett år for å søke etter lønnsdata.
                 </p>
               )}
 
@@ -395,30 +460,48 @@ const SalarySearch = () => {
                   Velg minst ett år for å kunne søke.
                 </p>
               )}
+
+              {selectedYrker.length === 0 && hasFilters && (
+                <p className="text-sm text-orange-600">
+                  Velg minst ett yrke for å kunne søke.
+                </p>
+              )}
             </CardContent>
           </Card>
 
           {results.length > 0 && (
             <>
-              {/* Chart visualization for multiple years */}
-              {selectedYears.length > 1 && chartData.length > 1 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <TrendingUp className="h-5 w-5" />
-                      Lønnsutvikling
-                    </CardTitle>
-                    <CardDescription>
-                      Visuell fremstilling av lønnsutvikling for {yrke || 'valgt yrke'}
-                      {kjonn && ` - ${kjonn}`}
-                      {sektor && ` - ${sektor}`}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
+              {/* View mode toggle */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingUp className="h-5 w-5" />
+                        Sammenligning av lønn
+                      </CardTitle>
+                      <CardDescription>
+                        {selectedYrker.length > 1 ? `Sammenligning av ${selectedYrker.length} yrker` : selectedYrker[0]}
+                        {kjonn && ` - ${kjonn}`}
+                        {sektor && ` - ${sektor}`}
+                      </CardDescription>
+                    </div>
+                    <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value as 'chart' | 'table')}>
+                      <ToggleGroupItem value="chart" aria-label="Graf visning">
+                        <BarChart3 className="h-4 w-4" />
+                      </ToggleGroupItem>
+                      <ToggleGroupItem value="table" aria-label="Tabell visning">
+                        <TableIcon className="h-4 w-4" />
+                      </ToggleGroupItem>
+                    </ToggleGroup>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {viewMode === 'chart' && comparisonData.length > 0 && (
                     <ChartContainer config={chartConfig}>
-                      <ResponsiveContainer width="100%" height={250}>
+                      <ResponsiveContainer width="100%" height={400}>
                         <LineChart
-                          data={chartData}
+                          data={comparisonData}
                           margin={{
                             top: 20,
                             right: 30,
@@ -438,97 +521,62 @@ const SalarySearch = () => {
                           />
                           <ChartTooltip 
                             content={<ChartTooltipContent />}
-                            formatter={(value: number) => [`${value.toLocaleString('nb-NO')} kr`, 'Månedslønn']}
+                            formatter={(value: number, name: string) => [`${value.toLocaleString('nb-NO')} kr`, name]}
                             labelFormatter={(year) => `År ${year}`}
                           />
-                          <Line 
-                            type="monotone" 
-                            dataKey="value" 
-                            stroke="hsl(220, 70%, 50%)" 
-                            strokeWidth={3}
-                            dot={{ fill: 'hsl(220, 70%, 50%)', stroke: 'hsl(220, 70%, 50%)', strokeWidth: 2, r: 6 }}
-                            activeDot={{ r: 8, fill: 'hsl(220, 90%, 60%)', stroke: 'white', strokeWidth: 2 }}
-                          />
+                          {uniqueOccupations.map((occupation, index) => (
+                            <Line 
+                              key={occupation}
+                              type="monotone" 
+                              dataKey={occupation} 
+                              stroke={colors[index % colors.length]} 
+                              strokeWidth={3}
+                              dot={{ fill: colors[index % colors.length], stroke: colors[index % colors.length], strokeWidth: 2, r: 6 }}
+                              activeDot={{ r: 8, fill: colors[index % colors.length], stroke: 'white', strokeWidth: 2 }}
+                              connectNulls={false}
+                            />
+                          ))}
                         </LineChart>
                       </ResponsiveContainer>
                     </ChartContainer>
-                    
-                    {/* Summary statistics */}
-                    {chartData.length > 1 && (
-                      <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <span className="text-muted-foreground">Start månedslønn ({chartData[0].year}):</span>
-                          <p className="font-semibold">{chartData[0].value.toLocaleString('nb-NO')} kr</p>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Siste månedslønn ({chartData[chartData.length - 1].year}):</span>
-                          <p className="font-semibold">{chartData[chartData.length - 1].value.toLocaleString('nb-NO')} kr</p>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Total økning:</span>
-                          <p className="font-semibold text-green-600">
-                            +{(chartData[chartData.length - 1].value - chartData[0].value).toLocaleString('nb-NO')} kr
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Økning %:</span>
-                          <p className="font-semibold text-green-600">
-                            +{(((chartData[chartData.length - 1].value - chartData[0].value) / chartData[0].value) * 100).toFixed(1)}%
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
+                  )}
 
-              {/* Detailed results table */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Søkeresultater</CardTitle>
-                  <CardDescription>
-                    {selectedYears.length === 1 ? 'Resultat for valgt år' : `Sammenligning for ${selectedYears.length} år`}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    {results.map((result, index) => (
-                      <div key={index} className="border rounded-lg p-4">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                          <div>
-                            <span className="text-sm text-muted-foreground">Yrke:</span>
-                            <p className="font-medium">{result.Yrke}</p>
-                          </div>
-                          <div>
-                            <span className="text-sm text-muted-foreground">Kjønn:</span>
-                            <p className="font-medium">{result.Kjonn}</p>
-                          </div>
-                          <div>
-                            <span className="text-sm text-muted-foreground">År:</span>
-                            <p className="font-medium">{result.Tid}</p>
-                          </div>
-                          <div>
-                            <span className="text-sm text-muted-foreground">Sektor:</span>
-                            <p className="font-medium">{result.Sektor}</p>
-                          </div>
-                        </div>
-                        
-                        <div className="border-t pt-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="text-center">
-                              <span className="text-sm text-muted-foreground">Månedslønn:</span>
-                              <div className="text-2xl font-bold text-green-600">
-                                {result.value ? result.value.toLocaleString('nb-NO') : 'N/A'} kr
-                              </div>
-                            </div>
-                            <div className="text-center">
-                              <span className="text-sm text-muted-foreground">Årslønn:</span>
-                              <div className="text-2xl font-bold text-blue-600">
-                                {result.value ? (result.value * 12).toLocaleString('nb-NO') : 'N/A'} kr
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                  {viewMode === 'table' && (
+                    <div className="space-y-4">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>År</TableHead>
+                            {uniqueOccupations.map(occupation => (
+                              <TableHead key={occupation}>{occupation}</TableHead>
+                            ))}
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {comparisonData.map((yearData) => (
+                            <TableRow key={yearData.year}>
+                              <TableCell className="font-medium">{yearData.year}</TableCell>
+                              {uniqueOccupations.map(occupation => (
+                                <TableCell key={occupation}>
+                                  {yearData[occupation] ? `${yearData[occupation].toLocaleString('nb-NO')} kr` : 'N/A'}
+                                </TableCell>
+                              ))}
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                  
+                  {/* Legend */}
+                  <div className="mt-6 flex flex-wrap gap-4">
+                    {uniqueOccupations.map((occupation, index) => (
+                      <div key={occupation} className="flex items-center gap-2">
+                        <div 
+                          className="w-4 h-4 rounded"
+                          style={{ backgroundColor: colors[index % colors.length] }}
+                        ></div>
+                        <span className="text-sm">{occupation}</span>
                       </div>
                     ))}
                   </div>
