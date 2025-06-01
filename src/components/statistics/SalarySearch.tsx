@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
@@ -431,10 +430,17 @@ const SalarySearch = () => {
                             dataKey="year" 
                             type="number"
                             scale="linear"
-                            domain={['dataMin', 'dataMax']}
+                            domain={[
+                              (dataMin: number) => Math.max(0, dataMin - 30000),
+                              'dataMax'
+                            ]}
                           />
                           <YAxis 
                             tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                            domain={[
+                              (dataMin: number) => Math.max(0, dataMin - 30000),
+                              'dataMax'
+                            ]}
                           />
                           <ChartTooltip 
                             content={<ChartTooltipContent />}
