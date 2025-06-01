@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, Search, DollarSign, ChevronDown, Check, TrendingUp } from "lucide-react";
 import { Badge } from '@/components/ui/badge';
 import { cn } from "@/lib/utils";
@@ -17,7 +19,7 @@ const API_BASE_URL = 'https://edpath-backend-production.up.railway.app';
 interface SalaryResult {
   Yrke: string;
   Kjonn: string;
-  Tid: string;
+  Tid: number;
   Sektor: string;
   value: number;
 }
@@ -30,9 +32,9 @@ interface YrkeOption {
 const SalarySearch = () => {
   const [yrke, setYrke] = useState('');
   const [kjonn, setKjonn] = useState('');
-  const [tid, setTid] = useState('');
+  const [selectedYears, setSelectedYears] = useState<string[]>([]);
   const [sektor, setSektor] = useState('');
-  const [result, setResult] = useState<SalaryResult | null>(null);
+  const [results, setResults] = useState<SalaryResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [yrkeOptions, setYrkeOptions] = useState<YrkeOption[]>([]);
@@ -101,20 +103,32 @@ const SalarySearch = () => {
     loadYrkeOptions();
   }, []);
 
+  const handleYearToggle = (year: string) => {
+    setSelectedYears(prev => 
+      prev.includes(year) 
+        ? prev.filter(y => y !== year)
+        : [...prev, year]
+    );
+  };
+
   const handleSearch = async () => {
     setLoading(true);
     setError(null);
-    setResult(null);
+    setResults([]);
 
     try {
-      console.log('Starting search with filters:', { yrke, kjonn, tid, sektor });
+      console.log('Starting search with filters:', { yrke, kjonn, selectedYears, sektor });
       
       // Build query parameters
       const params = new URLSearchParams();
       if (yrke) params.append('yrke', yrke);
       if (kjonn) params.append('kjonn', kjonn);
-      if (tid) params.append('tid', tid);
       if (sektor) params.append('sektor', sektor);
+      
+      // Add multiple years
+      selectedYears.forEach(year => {
+        params.append('tid', year);
+      });
 
       const url = `${API_BASE_URL}/lonn/?${params.toString()}`;
       console.log('Search URL:', url);
@@ -134,9 +148,17 @@ const SalarySearch = () => {
       const data = await response.json();
       console.log('Search response:', data);
       
-      // Check if data is a valid object with required fields
-      if (data && typeof data === 'object' && data.Yrke && data.value !== undefined) {
-        setResult(data);
+      // Handle array response (multiple years)
+      if (Array.isArray(data) && data.length > 0) {
+        // Map the response to include missing fields from our search filters
+        const mappedResults = data.map(item => ({
+          Yrke: yrke || 'Ikke spesifisert',
+          Kjonn: kjonn || 'Ikke spesifisert', 
+          Tid: item.Tid,
+          Sektor: sektor || 'Ikke spesifisert',
+          value: item.value
+        }));
+        setResults(mappedResults);
       } else {
         setError('Ingen resultater funnet for de valgte kriteriene');
       }
@@ -150,7 +172,7 @@ const SalarySearch = () => {
     }
   };
 
-  const hasFilters = yrke || kjonn || tid || sektor;
+  const hasFilters = yrke || kjonn || selectedYears.length > 0 || sektor;
 
   return (
     <div className="space-y-6">
@@ -158,7 +180,7 @@ const SalarySearch = () => {
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="single" className="flex items-center gap-2">
             <Search className="h-4 w-4" />
-            Enkelt søk
+            Lønnssøk
           </TabsTrigger>
           <TabsTrigger value="trend" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
@@ -174,7 +196,7 @@ const SalarySearch = () => {
                 Lønnssøk
               </CardTitle>
               <CardDescription>
-                Søk etter lønnsdata basert på yrke, kjønn, år og sektor
+                Søk etter lønnsdata basert på yrke, kjønn, år og sektor. Velg flere år for å sammenligne.
               </CardDescription>
               <div className="text-sm text-muted-foreground">
                 API Status: {apiStatus}
@@ -257,23 +279,37 @@ const SalarySearch = () => {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">År</label>
-                  <Select value={tid} onValueChange={setTid}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Velg år" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {years.map((year) => (
-                        <SelectItem key={year} value={year.toString()}>
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-sm font-medium">År (velg ett eller flere)</label>
+                  <div className="grid grid-cols-4 md:grid-cols-7 gap-2">
+                    {years.map((year) => (
+                      <div key={year} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`year-${year}`}
+                          checked={selectedYears.includes(year.toString())}
+                          onCheckedChange={() => handleYearToggle(year.toString())}
+                        />
+                        <label
+                          htmlFor={`year-${year}`}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
                           {year}
-                        </SelectItem>
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  {selectedYears.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {selectedYears.map(year => (
+                        <Badge key={year} variant="secondary" className="text-xs">
+                          {year}
+                        </Badge>
                       ))}
-                    </SelectContent>
-                  </Select>
+                    </div>
+                  )}
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 md:col-span-2">
                   <label className="text-sm font-medium">Sektor</label>
                   <Select value={sektor} onValueChange={setSektor}>
                     <SelectTrigger>
@@ -293,7 +329,7 @@ const SalarySearch = () => {
               <div className="flex items-center gap-4">
                 <Button 
                   onClick={handleSearch} 
-                  disabled={loading || !hasFilters}
+                  disabled={loading || !hasFilters || selectedYears.length === 0}
                   className="flex items-center gap-2"
                 >
                   {loading ? (
@@ -310,9 +346,9 @@ const SalarySearch = () => {
                     onClick={() => {
                       setYrke('');
                       setKjonn('');
-                      setTid('');
+                      setSelectedYears([]);
                       setSektor('');
-                      setResult(null);
+                      setResults([]);
                       setError(null);
                     }}
                   >
@@ -323,54 +359,67 @@ const SalarySearch = () => {
 
               {!hasFilters && (
                 <p className="text-sm text-muted-foreground">
-                  Fyll ut minst ett filter for å søke etter lønnsdata.
+                  Fyll ut minst ett filter og velg minst ett år for å søke etter lønnsdata.
+                </p>
+              )}
+
+              {selectedYears.length === 0 && hasFilters && (
+                <p className="text-sm text-orange-600">
+                  Velg minst ett år for å kunne søke.
                 </p>
               )}
             </CardContent>
           </Card>
 
-          {result && (
+          {results.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Søkeresultat</CardTitle>
+                <CardTitle>Søkeresultater</CardTitle>
+                <CardDescription>
+                  {selectedYears.length === 1 ? 'Resultat for valgt år' : `Sammenligning for ${selectedYears.length} år`}
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div>
-                      <span className="text-sm text-muted-foreground">Yrke:</span>
-                      <p className="font-medium">{result.Yrke}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-muted-foreground">Kjønn:</span>
-                      <p className="font-medium">{result.Kjonn}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-muted-foreground">År:</span>
-                      <p className="font-medium">{result.Tid}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-muted-foreground">Sektor:</span>
-                      <p className="font-medium">{result.Sektor}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="border-t pt-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="text-center">
-                        <span className="text-sm text-muted-foreground">Månedslønn:</span>
-                        <div className="text-2xl font-bold text-green-600">
-                          {result.value ? result.value.toLocaleString('nb-NO') : 'N/A'} kr
+                <div className="space-y-6">
+                  {results.map((result, index) => (
+                    <div key={index} className="border rounded-lg p-4">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                        <div>
+                          <span className="text-sm text-muted-foreground">Yrke:</span>
+                          <p className="font-medium">{result.Yrke}</p>
+                        </div>
+                        <div>
+                          <span className="text-sm text-muted-foreground">Kjønn:</span>
+                          <p className="font-medium">{result.Kjonn}</p>
+                        </div>
+                        <div>
+                          <span className="text-sm text-muted-foreground">År:</span>
+                          <p className="font-medium">{result.Tid}</p>
+                        </div>
+                        <div>
+                          <span className="text-sm text-muted-foreground">Sektor:</span>
+                          <p className="font-medium">{result.Sektor}</p>
                         </div>
                       </div>
-                      <div className="text-center">
-                        <span className="text-sm text-muted-foreground">Årslønn:</span>
-                        <div className="text-2xl font-bold text-blue-600">
-                          {result.value ? (result.value * 12).toLocaleString('nb-NO') : 'N/A'} kr
+                      
+                      <div className="border-t pt-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="text-center">
+                            <span className="text-sm text-muted-foreground">Månedslønn:</span>
+                            <div className="text-2xl font-bold text-green-600">
+                              {result.value ? result.value.toLocaleString('nb-NO') : 'N/A'} kr
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <span className="text-sm text-muted-foreground">Årslønn:</span>
+                            <div className="text-2xl font-bold text-blue-600">
+                              {result.value ? (result.value * 12).toLocaleString('nb-NO') : 'N/A'} kr
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
