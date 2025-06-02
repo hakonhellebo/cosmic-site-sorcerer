@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -129,10 +130,10 @@ const CompanySearch: React.FC<CompanySearchProps> = ({ preloadedData }) => {
     }
   }, [companies, searchTerm, selectedIndustry, sortField, sortDirection]);
 
-  // Reset filtered companies when companies data loads
+  // Initial sort when companies data loads - this will automatically sort by employees desc
   useEffect(() => {
     if (companies.length > 0) {
-      setFilteredCompanies(companies);
+      filterAndSortCompanies();
     }
   }, [companies]);
 
