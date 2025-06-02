@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
@@ -62,6 +63,14 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
     try {
       console.log('Fetching salary trend for:', { yrke, kjonn, sektor });
       
+      // Try multiple endpoints like in SalarySearch
+      const baseEndpoints = [
+        `${API_BASE_URL}/lonn/`,
+        `${API_BASE_URL}/lonn`,
+        `${API_BASE_URL}/api/lonn/`,
+        `${API_BASE_URL}/api/lonn`
+      ];
+      
       const promises = years.map(async (year) => {
         const params = new URLSearchParams();
         params.append('yrke', yrke);
@@ -69,32 +78,50 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
         params.append('tid', year.toString());
         if (sektor) params.append('sektor', sektor);
 
-        const url = `${API_BASE_URL}/lonn/?${params.toString()}`;
-        console.log(`Fetching data for year ${year}:`, url);
-        
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-        });
-        
-        if (!response.ok) {
-          console.warn(`Failed to fetch data for ${year}: ${response.status}`);
-          return null;
+        // Try each endpoint until one works
+        for (const baseUrl of baseEndpoints) {
+          try {
+            const url = `${baseUrl}?${params.toString()}`;
+            console.log(`Fetching data for year ${year}:`, url);
+            
+            const response = await fetch(url, {
+              method: 'GET',
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+              },
+            });
+            
+            if (!response.ok) {
+              console.warn(`Failed to fetch data for ${year} from ${baseUrl}: ${response.status}`);
+              continue;
+            }
+            
+            const data = await response.json();
+            console.log(`Data for year ${year}:`, data);
+            
+            if (data && typeof data === 'object' && data.value !== undefined) {
+              return {
+                year: year,
+                salary: data.value
+              };
+            }
+            
+            // Handle different response formats
+            if (Array.isArray(data) && data.length > 0 && data[0].value !== undefined) {
+              return {
+                year: year,
+                salary: data[0].value
+              };
+            }
+            
+          } catch (err) {
+            console.warn(`Error fetching from ${baseUrl} for year ${year}:`, err);
+            continue;
+          }
         }
         
-        const data = await response.json();
-        console.log(`Data for year ${year}:`, data);
-        
-        if (data && typeof data === 'object' && data.value !== undefined) {
-          return {
-            year: year,
-            salary: data.value
-          };
-        }
-        
+        console.warn(`No working endpoint found for year ${year}`);
         return null;
       });
 
@@ -104,7 +131,7 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
       console.log('Valid trend results:', validResults);
       
       if (validResults.length === 0) {
-        setError('Ingen data funnet for de valgte kriteriene');
+        setError('Ingen data funnet for de valgte kriteriene. API-en kan være utilgjengelig.');
       } else {
         validResults.sort((a, b) => a.year - b.year);
         setTrendData(validResults);
