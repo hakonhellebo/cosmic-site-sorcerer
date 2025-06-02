@@ -29,7 +29,18 @@ export const useFavorites = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setFavorites(data || []);
+      
+      // Type the data properly to match our Favorite interface
+      const typedData: Favorite[] = (data || []).map(item => ({
+        id: item.id,
+        favorite_type: item.favorite_type as 'career' | 'education' | 'company',
+        favorite_id: item.favorite_id,
+        favorite_name: item.favorite_name,
+        favorite_data: item.favorite_data,
+        created_at: item.created_at
+      }));
+      
+      setFavorites(typedData);
     } catch (error) {
       console.error('Error fetching favorites:', error);
     } finally {
