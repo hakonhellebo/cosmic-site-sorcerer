@@ -268,6 +268,10 @@ const UniversityStatistics = () => {
     navigate(`/utdanning/${universityEncoded}/${studiekodeEncoded}`);
   };
 
+  const handleNTNUClick = () => {
+    navigate('/university/ntnu');
+  };
+
   return (
     <div className="space-y-8">
       {/* Data source indicator */}
@@ -303,6 +307,20 @@ const UniversityStatistics = () => {
                 ))}
               </SelectContent>
             </Select>
+            
+            {/* NTNU Button */}
+            {selectedUniversity === "Norges teknisk-naturvitenskapelige universitet" && (
+              <div className="mt-3">
+                <Button 
+                  onClick={handleNTNUClick}
+                  variant="outline" 
+                  className="w-full flex items-center gap-2"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Les mer om NTNU her
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -354,15 +372,31 @@ const UniversityStatistics = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">
-            Studielinjer ved {selectedUniversity === "alle" ? "alle universiteter" : selectedUniversity}
-            <Badge variant="secondary" className="ml-2">Student_data</Badge>
-          </CardTitle>
-          <CardDescription>
-            Viser {currentData.length} studielinjer hentet fra Student_data
-            {programSearchTerm && ` (søkeord: "${programSearchTerm}")`}
-            {loading && ' (Henter data...)'}
-          </CardDescription>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle className="text-2xl">
+                Studielinjer ved {selectedUniversity === "alle" ? "alle universiteter" : selectedUniversity}
+                <Badge variant="secondary" className="ml-2">Student_data</Badge>
+              </CardTitle>
+              <CardDescription>
+                Viser {currentData.length} studielinjer hentet fra Student_data
+                {programSearchTerm && ` (søkeord: "${programSearchTerm}")`}
+                {loading && ' (Henter data...)'}
+              </CardDescription>
+            </div>
+            
+            {/* NTNU Button in header for when NTNU is selected */}
+            {selectedUniversity === "Norges teknisk-naturvitenskapelige universitet" && (
+              <Button 
+                onClick={handleNTNUClick}
+                variant="outline" 
+                className="flex items-center gap-2"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Les mer om NTNU her
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {loading ? (
