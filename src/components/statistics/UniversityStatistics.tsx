@@ -69,13 +69,13 @@ const UniversityStatistics = () => {
           console.log("Total records in Student_data:", count);
         }
         
-        // Fetch all data in larger batches
+        // Fetch all data in larger batches with better logic
         let allData: any[] = [];
         let from = 0;
-        const batchSize = 2000; // Increased batch size
+        const batchSize = 1000; // Keep reasonable batch size to avoid timeouts
         let hasMore = true;
         let attemptCount = 0;
-        const maxAttempts = 50; // Safety limit
+        const maxAttempts = Math.ceil((count || 15000) / batchSize) + 5; // Dynamic max attempts based on count
         
         while (hasMore && attemptCount < maxAttempts) {
           attemptCount++;
@@ -96,28 +96,36 @@ const UniversityStatistics = () => {
             allData = [...allData, ...batchData];
             console.log(`Batch ${attemptCount}: Added ${batchData.length} records. Total so far: ${allData.length}`);
             
+            // Move to next batch
+            from += batchSize;
+            
             // If we got fewer records than the batch size, we're done
             if (batchData.length < batchSize) {
               console.log("Reached end of data - batch returned fewer records than requested");
               hasMore = false;
-            } else {
-              from += batchSize;
             }
           } else {
             console.log("No more data returned");
             hasMore = false;
           }
           
-          // Safety check against infinite loop
+          // Safety check against infinite loop and to ensure we got all data
           if (count && allData.length >= count) {
             console.log("Reached total count, stopping");
             hasMore = false;
           }
+          
+          // Add a small delay to avoid overwhelming the API
+          await new Promise(resolve => setTimeout(resolve, 100));
         }
         
         console.log("Final data count:", allData.length);
         console.log("Expected count:", count);
         console.log("Sample data:", allData.slice(0, 3));
+        
+        if (count && allData.length < count) {
+          console.warn(`Warning: Only fetched ${allData.length} out of ${count} records`);
+        }
         
         setAllStudentData(allData);
         
