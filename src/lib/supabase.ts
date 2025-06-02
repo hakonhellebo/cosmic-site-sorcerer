@@ -369,15 +369,15 @@ export const getAllResponses = async (table: 'high_school_responses' | 'universi
   }
 };
 
-// Get university data from Universitetsdata table
+// Get university data from Universitetsdata table - updated to fetch ALL data
 export const getUniversityData = async (institutionCode?: string, year?: string) => {
   try {
     console.log("Fetching university data with params:", { institutionCode, year });
     
     let query = supabase
       .from('Universitetsdata')
-      .select('*')
-      .order('Institusjonsnavn', { ascending: true }); // Add ordering for consistency
+      .select('*', { count: 'exact' }) // Request exact count and remove any default limits
+      .order('Institusjonsnavn', { ascending: true });
     
     if (institutionCode) {
       query = query.eq('Institusjonskode', institutionCode);
@@ -388,21 +388,51 @@ export const getUniversityData = async (institutionCode?: string, year?: string)
       query = query.eq('Årstall', year);
     }
     
-    console.log("Executing query to fetch all university data...");
-    const { data, error } = await query;
+    console.log("Executing query to fetch ALL university data (no limits)...");
     
-    console.log("University data query result:", { 
-      dataLength: data?.length, 
-      error: error?.message,
-      sampleData: data?.slice(0, 3) // Show first 3 rows as sample
-    });
+    // Fetch data in batches to handle large datasets
+    let allData: any[] = [];
+    let from = 0;
+    const batchSize = 1000;
+    let hasMore = true;
     
-    if (error) {
-      console.error("Supabase error in getUniversityData:", error);
-      throw error;
+    while (hasMore) {
+      console.log(`Fetching batch starting from ${from} with size ${batchSize}`);
+      
+      const { data: batchData, error, count } = await query
+        .range(from, from + batchSize - 1);
+      
+      if (error) {
+        console.error("Supabase error in getUniversityData:", error);
+        throw error;
+      }
+      
+      if (batchData && batchData.length > 0) {
+        allData = [...allData, ...batchData];
+        console.log(`Added ${batchData.length} records. Total so far: ${allData.length}`);
+        
+        // Check if we have more data to fetch
+        if (batchData.length < batchSize) {
+          hasMore = false;
+        } else {
+          from += batchSize;
+        }
+        
+        // If we have count, we can check against total
+        if (count !== null && allData.length >= count) {
+          hasMore = false;
+        }
+      } else {
+        hasMore = false;
+      }
     }
     
-    return { data, error: null };
+    console.log("University data query complete:", { 
+      totalRecords: allData.length,
+      sampleData: allData.slice(0, 3) // Show first 3 rows as sample
+    });
+    
+    return { data: allData, error: null };
   } catch (error) {
     console.error('Error fetching university data:', error);
     return { data: null, error };
