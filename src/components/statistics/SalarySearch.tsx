@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
@@ -604,14 +602,14 @@ const SalarySearch = () => {
                 <CardContent>
                   {viewMode === 'chart' && comparisonData.length > 0 && (
                     <ChartContainer config={chartConfig}>
-                      <ResponsiveContainer width="100%" height={150}>
+                      <ResponsiveContainer width="100%" height={120}>
                         <LineChart
                           data={comparisonData}
                           margin={{
-                            top: 20,
-                            right: 30,
-                            left: 20,
-                            bottom: 20,
+                            top: 15,
+                            right: 20,
+                            left: 15,
+                            bottom: 15,
                           }}
                         >
                           <CartesianGrid strokeDasharray="3 3" />
@@ -620,9 +618,12 @@ const SalarySearch = () => {
                             type="number"
                             scale="linear"
                             domain={['dataMin', 'dataMax']}
+                            tick={{ fontSize: 11 }}
                           />
                           <YAxis 
                             tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                            width={50}
+                            tick={{ fontSize: 11 }}
                           />
                           <ChartTooltip 
                             content={<ChartTooltipContent />}
@@ -635,9 +636,9 @@ const SalarySearch = () => {
                               type="monotone" 
                               dataKey={occupation} 
                               stroke={colors[index % colors.length]} 
-                              strokeWidth={3}
-                              dot={{ fill: colors[index % colors.length], stroke: colors[index % colors.length], strokeWidth: 2, r: 6 }}
-                              activeDot={{ r: 8, fill: colors[index % colors.length], stroke: 'white', strokeWidth: 2 }}
+                              strokeWidth={2}
+                              dot={{ fill: colors[index % colors.length], stroke: colors[index % colors.length], strokeWidth: 1, r: 4 }}
+                              activeDot={{ r: 6, fill: colors[index % colors.length], stroke: 'white', strokeWidth: 1 }}
                               connectNulls={false}
                             />
                           ))}
@@ -700,4 +701,3 @@ const SalarySearch = () => {
 };
 
 export default SalarySearch;
-

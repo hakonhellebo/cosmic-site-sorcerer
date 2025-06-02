@@ -321,29 +321,30 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig}>
-              <ResponsiveContainer width="100%" height={150}>
+              <ResponsiveContainer width="100%" height={120}>
                 <BarChart
                   data={trendData}
                   margin={{
-                    top: 40,
-                    right: 30,
-                    left: 80,
-                    bottom: 20,
+                    top: 30,
+                    right: 20,
+                    left: 60,
+                    bottom: 15,
                   }}
-                  maxBarSize={60}
-                  barCategoryGap="20%"
+                  maxBarSize={50}
+                  barCategoryGap="15%"
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
                     dataKey="year" 
-                    tick={{ fontSize: 12 }}
-                    tickMargin={10}
+                    tick={{ fontSize: 11 }}
+                    tickMargin={8}
                     axisLine={true}
                     tickLine={true}
                   />
                   <YAxis 
                     tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
-                    width={60}
+                    width={50}
+                    tick={{ fontSize: 11 }}
                   />
                   <ChartTooltip 
                     content={<ChartTooltipContent />}
@@ -353,7 +354,7 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
                   <Bar 
                     dataKey="salary" 
                     fill="var(--color-salary)"
-                    radius={[4, 4, 0, 0]}
+                    radius={[3, 3, 0, 0]}
                   >
                     <LabelList content={renderCustomLabel} />
                   </Bar>
