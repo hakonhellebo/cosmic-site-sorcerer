@@ -296,6 +296,10 @@ const UniversityStatistics = () => {
     navigate('/university/uit');
   };
 
+  const handleNMBUClick = () => {
+    navigate('/university/nmbu');
+  };
+
   return (
     <div className="space-y-8">
       {/* Data source indicator */}
@@ -426,6 +430,20 @@ const UniversityStatistics = () => {
                 >
                   <ExternalLink className="h-4 w-4" />
                   Les mer om UiT her
+                </Button>
+              </div>
+            )}
+
+            {/* NMBU Button */}
+            {selectedUniversity === "Norges miljø- og biovitenskapelige universitet" && (
+              <div className="mt-3">
+                <Button 
+                  onClick={handleNMBUClick}
+                  variant="outline" 
+                  className="w-full flex items-center gap-2"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Les mer om NMBU her
                 </Button>
               </div>
             )}
@@ -568,6 +586,17 @@ const UniversityStatistics = () => {
               >
                 <ExternalLink className="h-4 w-4" />
                 Les mer om UiT her
+              </Button>
+            )}
+
+            {selectedUniversity === "Norges miljø- og biovitenskapelige universitet" && (
+              <Button 
+                onClick={handleNMBUClick}
+                variant="outline" 
+                className="flex items-center gap-2"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Les mer om NMBU her
               </Button>
             )}
           </div>
