@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
@@ -12,6 +11,7 @@ import UniversityOsloMet from "./pages/UniversityOsloMet"
 import UniversityUiS from "./pages/UniversityUiS"
 import UniversityUiT from "./pages/UniversityUiT"
 import UniversityNMBU from "./pages/UniversityNMBU"
+import UniversityUiA from "./pages/UniversityUiA"
 
 const queryClient = new QueryClient()
 
@@ -32,6 +32,7 @@ const App = () => (
           <Route path="/university/uis" element={<UniversityUiS />} />
           <Route path="/university/uit" element={<UniversityUiT />} />
           <Route path="/university/nmbu" element={<UniversityNMBU />} />
+          <Route path="/university/uia" element={<UniversityUiA />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

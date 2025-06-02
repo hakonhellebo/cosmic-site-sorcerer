@@ -300,6 +300,10 @@ const UniversityStatistics = () => {
     navigate('/university/nmbu');
   };
 
+  const handleUiAClick = () => {
+    navigate('/university/uia');
+  };
+
   return (
     <div className="space-y-8">
       {/* Data source indicator */}
@@ -444,6 +448,20 @@ const UniversityStatistics = () => {
                 >
                   <ExternalLink className="h-4 w-4" />
                   Les mer om NMBU her
+                </Button>
+              </div>
+            )}
+
+            {/* UiA Button */}
+            {selectedUniversity === "Universitetet i Agder" && (
+              <div className="mt-3">
+                <Button 
+                  onClick={handleUiAClick}
+                  variant="outline" 
+                  className="w-full flex items-center gap-2"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Les mer om UiA her
                 </Button>
               </div>
             )}
@@ -597,6 +615,17 @@ const UniversityStatistics = () => {
               >
                 <ExternalLink className="h-4 w-4" />
                 Les mer om NMBU her
+              </Button>
+            )}
+
+            {selectedUniversity === "Universitetet i Agder" && (
+              <Button 
+                onClick={handleUiAClick}
+                variant="outline" 
+                className="flex items-center gap-2"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Les mer om UiA her
               </Button>
             )}
           </div>
