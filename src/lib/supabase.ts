@@ -372,9 +372,12 @@ export const getAllResponses = async (table: 'high_school_responses' | 'universi
 // Get university data from Universitetsdata table
 export const getUniversityData = async (institutionCode?: string, year?: string) => {
   try {
+    console.log("Fetching university data with params:", { institutionCode, year });
+    
     let query = supabase
       .from('Universitetsdata')
-      .select('*');
+      .select('*')
+      .order('Institusjonsnavn', { ascending: true }); // Add ordering for consistency
     
     if (institutionCode) {
       query = query.eq('Institusjonskode', institutionCode);
@@ -385,9 +388,20 @@ export const getUniversityData = async (institutionCode?: string, year?: string)
       query = query.eq('Årstall', year);
     }
     
+    console.log("Executing query to fetch all university data...");
     const { data, error } = await query;
     
-    if (error) throw error;
+    console.log("University data query result:", { 
+      dataLength: data?.length, 
+      error: error?.message,
+      sampleData: data?.slice(0, 3) // Show first 3 rows as sample
+    });
+    
+    if (error) {
+      console.error("Supabase error in getUniversityData:", error);
+      throw error;
+    }
+    
     return { data, error: null };
   } catch (error) {
     console.error('Error fetching university data:', error);

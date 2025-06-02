@@ -13,6 +13,7 @@ import { getUniversityData, supabaseAnonKey } from '@/lib/supabase';
 const Statistics = () => {
   const [universities, setUniversities] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [totalRecords, setTotalRecords] = useState(0);
 
   const fetchUniversities = async () => {
     setLoading(true);
@@ -21,6 +22,9 @@ const Statistics = () => {
       const { data, error } = await getUniversityData();
       
       if (data && !error) {
+        console.log(`Raw data: ${data.length} total records`);
+        setTotalRecords(data.length);
+        
         // Group by institution to get unique universities
         const uniqueUniversities = data.reduce((acc, item) => {
           const key = `${item.Institusjonskode}-${item.Institusjonsnavn}`;
@@ -41,7 +45,7 @@ const Statistics = () => {
         
         const universitiesList = Object.values(uniqueUniversities);
         setUniversities(universitiesList);
-        console.log("Found universities:", universitiesList);
+        console.log(`Found ${universitiesList.length} unique universities from ${data.length} total records`);
       } else {
         console.error("Error fetching universities:", error);
         alert(`❌ Feil: ${error?.message || 'Ukjent feil'}`);
@@ -122,6 +126,9 @@ const Statistics = () => {
                       <h4 className="font-medium mb-2">API Status:</h4>
                       <p className="text-sm text-green-600">✅ Universitetsdata er nå offentlig tilgjengelig</p>
                       <p className="text-sm text-gray-600">API-key: ...{supabaseAnonKey.slice(-10)}</p>
+                      {totalRecords > 0 && (
+                        <p className="text-sm text-blue-600">📊 Totalt {totalRecords} dataposter tilgjengelig</p>
+                      )}
                     </div>
                     
                     <Button 
@@ -161,9 +168,20 @@ const Statistics = () => {
                         disabled={loading}
                         variant="outline"
                       >
-                        {loading ? "Henter..." : "Hent universiteter"}
+                        {loading ? "Henter..." : "Hent alle universiteter"}
                       </Button>
                     </div>
+                    
+                    {totalRecords > 0 && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                        <p className="text-blue-800 text-sm">
+                          📊 Hentet {totalRecords} totale dataposter fra databasen
+                        </p>
+                        <p className="text-blue-700 text-xs mt-1">
+                          Viser {universities.length} unike universiteter/høyskoler
+                        </p>
+                      </div>
+                    )}
                     
                     {universities.length > 0 && (
                       <div className="space-y-3">
@@ -198,7 +216,7 @@ const Statistics = () => {
                     
                     {universities.length === 0 && !loading && (
                       <p className="text-sm text-muted-foreground">
-                        Klikk "Hent universiteter" for å se tilgjengelige institusjoner
+                        Klikk "Hent alle universiteter" for å se tilgjengelige institusjoner
                       </p>
                     )}
                   </div>
