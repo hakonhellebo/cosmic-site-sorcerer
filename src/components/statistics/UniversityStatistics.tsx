@@ -312,6 +312,10 @@ const UniversityStatistics = () => {
     navigate('/university/hivolda');
   };
 
+  const handleUSNClick = () => {
+    navigate('/university/usn');
+  };
+
   return (
     <div className="space-y-8">
       {/* Data source indicator */}
@@ -501,6 +505,20 @@ const UniversityStatistics = () => {
                 </Button>
               </div>
             )}
+
+            {/* USN Button */}
+            {selectedUniversity === "Universitetet i Sørøst-Norge" && (
+              <div className="mt-3">
+                <Button 
+                  onClick={handleUSNClick}
+                  variant="outline" 
+                  className="w-full flex items-center gap-2"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Les mer om USN her
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -684,6 +702,17 @@ const UniversityStatistics = () => {
               >
                 <ExternalLink className="h-4 w-4" />
                 Les mer om HiVolda her
+              </Button>
+            )}
+
+            {selectedUniversity === "Universitetet i Sørøst-Norge" && (
+              <Button 
+                onClick={handleUSNClick}
+                variant="outline" 
+                className="flex items-center gap-2"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Les mer om USN her
               </Button>
             )}
           </div>
