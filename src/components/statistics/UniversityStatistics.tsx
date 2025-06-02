@@ -58,19 +58,34 @@ const UniversityStatistics = () => {
       console.log("Fetching ALL data from Student_data...");
       
       try {
-        // Fetch all data in batches to avoid limits
+        // First, get the total count
+        const { count, error: countError } = await supabase
+          .from('Student_data')
+          .select('*', { count: 'exact', head: true });
+        
+        if (countError) {
+          console.error("Error getting count:", countError);
+        } else {
+          console.log("Total records in Student_data:", count);
+        }
+        
+        // Fetch all data in larger batches
         let allData: any[] = [];
         let from = 0;
-        const batchSize = 1000;
+        const batchSize = 2000; // Increased batch size
         let hasMore = true;
+        let attemptCount = 0;
+        const maxAttempts = 50; // Safety limit
         
-        while (hasMore) {
-          console.log(`Fetching batch starting from ${from} with size ${batchSize}`);
+        while (hasMore && attemptCount < maxAttempts) {
+          attemptCount++;
+          console.log(`Fetching batch ${attemptCount}: records ${from} to ${from + batchSize - 1}`);
           
           const { data: batchData, error } = await supabase
             .from('Student_data')
             .select('*')
-            .range(from, from + batchSize - 1);
+            .range(from, from + batchSize - 1)
+            .order('Lærestednavn', { ascending: true });
           
           if (error) {
             console.error("Supabase error:", error);
@@ -79,20 +94,30 @@ const UniversityStatistics = () => {
           
           if (batchData && batchData.length > 0) {
             allData = [...allData, ...batchData];
-            console.log(`Added ${batchData.length} records. Total so far: ${allData.length}`);
+            console.log(`Batch ${attemptCount}: Added ${batchData.length} records. Total so far: ${allData.length}`);
             
+            // If we got fewer records than the batch size, we're done
             if (batchData.length < batchSize) {
+              console.log("Reached end of data - batch returned fewer records than requested");
               hasMore = false;
             } else {
               from += batchSize;
             }
           } else {
+            console.log("No more data returned");
+            hasMore = false;
+          }
+          
+          // Safety check against infinite loop
+          if (count && allData.length >= count) {
+            console.log("Reached total count, stopping");
             hasMore = false;
           }
         }
         
         console.log("Final data count:", allData.length);
-        console.log("Sample data:", allData.slice(0, 5));
+        console.log("Expected count:", count);
+        console.log("Sample data:", allData.slice(0, 3));
         
         setAllStudentData(allData);
         
@@ -250,7 +275,7 @@ const UniversityStatistics = () => {
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2">
               <Search className="h-5 w-5" />
-              Søk på studieline
+              Søk på studielinje
             </CardTitle>
             <CardDescription>Søk etter studielinjer (f.eks. "psykologi", "økonomi")</CardDescription>
           </CardHeader>
