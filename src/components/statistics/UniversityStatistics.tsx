@@ -308,6 +308,10 @@ const UniversityStatistics = () => {
     navigate('/university/hvl');
   };
 
+  const handleHiVoldaClick = () => {
+    navigate('/university/hivolda');
+  };
+
   return (
     <div className="space-y-8">
       {/* Data source indicator */}
@@ -483,6 +487,20 @@ const UniversityStatistics = () => {
                 </Button>
               </div>
             )}
+
+            {/* HiVolda Button */}
+            {selectedUniversity === "Høgskulen i Volda" && (
+              <div className="mt-3">
+                <Button 
+                  onClick={handleHiVoldaClick}
+                  variant="outline" 
+                  className="w-full flex items-center gap-2"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Les mer om HiVolda her
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -655,6 +673,17 @@ const UniversityStatistics = () => {
               >
                 <ExternalLink className="h-4 w-4" />
                 Les mer om HVL her
+              </Button>
+            )}
+
+            {selectedUniversity === "Høgskulen i Volda" && (
+              <Button 
+                onClick={handleHiVoldaClick}
+                variant="outline" 
+                className="flex items-center gap-2"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Les mer om HiVolda her
               </Button>
             )}
           </div>

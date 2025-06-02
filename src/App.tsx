@@ -14,6 +14,7 @@ import UniversityUiT from "./pages/UniversityUiT"
 import UniversityNMBU from "./pages/UniversityNMBU"
 import UniversityUiA from "./pages/UniversityUiA"
 import UniversityHVL from "./pages/UniversityHVL"
+import UniversityHiVolda from "./pages/UniversityHiVolda"
 
 const queryClient = new QueryClient()
 
@@ -36,6 +37,7 @@ const App = () => (
           <Route path="/university/nmbu" element={<UniversityNMBU />} />
           <Route path="/university/uia" element={<UniversityUiA />} />
           <Route path="/university/hvl" element={<UniversityHVL />} />
+          <Route path="/university/hivolda" element={<UniversityHiVolda />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
