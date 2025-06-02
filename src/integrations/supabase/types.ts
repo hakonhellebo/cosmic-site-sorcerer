@@ -411,6 +411,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_favorites: {
+        Row: {
+          created_at: string
+          favorite_data: Json | null
+          favorite_id: string
+          favorite_name: string
+          favorite_type: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          favorite_data?: Json | null
+          favorite_id: string
+          favorite_name: string
+          favorite_type: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          favorite_data?: Json | null
+          favorite_id?: string
+          favorite_name?: string
+          favorite_type?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       "Utdanning til yrke": {
         Row: {
           antall_personer: number | null

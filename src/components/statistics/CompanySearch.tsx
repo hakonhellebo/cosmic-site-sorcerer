@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Building, MapPin, Users, ExternalLink, Filter, SortAsc, SortDesc } from "lucide-react";
+import { FavoriteButton } from "@/components/ui/favorite-button";
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
@@ -270,11 +271,13 @@ const CompanySearch = () => {
               {filteredCompanies.map((company, index) => (
                 <div
                   key={index}
-                  onClick={() => handleCompanyClick(company)}
-                  className="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                  className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex justify-between items-start">
-                    <div className="flex-1">
+                    <div 
+                      className="flex-1 cursor-pointer"
+                      onClick={() => handleCompanyClick(company)}
+                    >
                       <h3 className="font-semibold text-lg">{company.Selskap}</h3>
                       {company.Hovedbransje && (
                         <p className="text-sm text-blue-600 mb-1">{company.Hovedbransje}</p>
@@ -304,9 +307,22 @@ const CompanySearch = () => {
                         )}
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm">
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-2 ml-4">
+                      <FavoriteButton
+                        type="company"
+                        id={company.Selskap}
+                        name={company.Selskap}
+                        data={{
+                          industry: company.Hovedbransje,
+                          location: company.Lokasjon,
+                          employees: company.Ansatte,
+                          revenue: company['Driftsinntekter (MNOK)']
+                        }}
+                      />
+                      <Button variant="ghost" size="sm" onClick={() => handleCompanyClick(company)}>
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}

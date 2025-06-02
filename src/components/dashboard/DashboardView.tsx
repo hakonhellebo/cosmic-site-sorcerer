@@ -1,9 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserData } from '@/hooks/useUserProfile';
+import FavoritesView from './FavoritesView';
 
 interface DashboardViewProps {
   userData: UserData;
@@ -59,111 +61,124 @@ const DashboardView: React.FC<DashboardViewProps> = ({ userData, onResetProfile 
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* User Profile Summary */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Din profil</CardTitle>
-            <CardDescription>Oversikt over informasjonen du har oppgitt</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <h4 className="font-medium">Utdanning</h4>
-              <p className="text-sm text-muted-foreground">
-                {userData.education.degree} i {userData.education.fieldOfStudy}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {userData.education.institution} ({userData.education.graduationYear})
-              </p>
-            </div>
-            
-            <div>
-              <h4 className="font-medium">Karriereinteresser</h4>
-              <div className="flex flex-wrap gap-1 mt-1">
-                {userData.career.interests.map((interest, index) => (
-                  <span key={index} className="px-2 py-1 bg-primary/10 text-primary text-xs rounded">
-                    {careerInterests.find(ci => ci.id === interest)?.label || interest}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h4 className="font-medium">Arbeidsmiljø</h4>
-              <p className="text-sm text-muted-foreground">
-                {userData.career.workEnvironment === 'remote' && 'Fjernarbeid'}
-                {userData.career.workEnvironment === 'office' && 'Kontorbasert'}
-                {userData.career.workEnvironment === 'hybrid' && 'Hybrid'}
-              </p>
-            </div>
-
-            <div>
-              <h4 className="font-medium">Ønsket lønn</h4>
-              <p className="text-sm text-muted-foreground">
-                {formatSalary(userData.career.salaryRange[0])}
-              </p>
-            </div>
-
-            <div>
-              <h4 className="font-medium">Nøkkelferdigheter</h4>
-              <p className="text-sm text-muted-foreground">
-                {userData.skills.keySkills || 'Ikke spesifisert'}
-              </p>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button variant="outline" onClick={onResetProfile} className="w-full">
-              Oppdater profil
-            </Button>
-          </CardFooter>
-        </Card>
-
-        {/* Career Recommendations */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Dine karriereanbefalinger</CardTitle>
-            <CardDescription>Basert på din profil</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {getRecommendedCareers().map((career, index) => (
-                <div key={index} className="p-4 border rounded-lg">
-                  <h4 className="font-medium">{career.title}</h4>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {career.description}
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="overview">Oversikt</TabsTrigger>
+          <TabsTrigger value="favorites">Mine favoritter</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* User Profile Summary */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Din profil</CardTitle>
+                <CardDescription>Oversikt over informasjonen du har oppgitt</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="font-medium">Utdanning</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {userData.education.degree} i {userData.education.fieldOfStudy}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {userData.education.institution} ({userData.education.graduationYear})
                   </p>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button className="w-full" onClick={() => navigate('/statistikk')}>
-              Utforsk karrierestatistikk
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
+                
+                <div>
+                  <h4 className="font-medium">Karriereinteresser</h4>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {userData.career.interests.map((interest, index) => (
+                      <span key={index} className="px-2 py-1 bg-primary/10 text-primary text-xs rounded">
+                        {careerInterests.find(ci => ci.id === interest)?.label || interest}
+                      </span>
+                    ))}
+                  </div>
+                </div>
 
-      {/* Quick Actions */}
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Hurtighandlinger</CardTitle>
-          <CardDescription>Utforsk mer av EdPath</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
-            <Button variant="outline" onClick={() => navigate('/statistikk')}>
-              📊 Karrierestatistikk
-            </Button>
-            <Button variant="outline" onClick={() => navigate('/user-type-selection')}>
-              📝 Ta ny spørreundersøkelse
-            </Button>
-            <Button variant="outline" onClick={onResetProfile}>
-              ⚙️ Oppdater profil
-            </Button>
+                <div>
+                  <h4 className="font-medium">Arbeidsmiljø</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {userData.career.workEnvironment === 'remote' && 'Fjernarbeid'}
+                    {userData.career.workEnvironment === 'office' && 'Kontorbasert'}
+                    {userData.career.workEnvironment === 'hybrid' && 'Hybrid'}
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-medium">Ønsket lønn</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {formatSalary(userData.career.salaryRange[0])}
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-medium">Nøkkelferdigheter</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {userData.skills.keySkills || 'Ikke spesifisert'}
+                  </p>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button variant="outline" onClick={onResetProfile} className="w-full">
+                  Oppdater profil
+                </Button>
+              </CardFooter>
+            </Card>
+
+            {/* Career Recommendations */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Dine karriereanbefalinger</CardTitle>
+                <CardDescription>Basert på din profil</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {getRecommendedCareers().map((career, index) => (
+                    <div key={index} className="p-4 border rounded-lg">
+                      <h4 className="font-medium">{career.title}</h4>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {career.description}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button className="w-full" onClick={() => navigate('/statistikk')}>
+                  Utforsk karrierestatistikk
+                </Button>
+              </CardFooter>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Hurtighandlinger</CardTitle>
+              <CardDescription>Utforsk mer av EdPath</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-3">
+                <Button variant="outline" onClick={() => navigate('/statistikk')}>
+                  📊 Karrierestatistikk
+                </Button>
+                <Button variant="outline" onClick={() => navigate('/user-type-selection')}>
+                  📝 Ta ny spørreundersøkelse
+                </Button>
+                <Button variant="outline" onClick={onResetProfile}>
+                  ⚙️ Oppdater profil
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="favorites">
+          <FavoritesView />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
