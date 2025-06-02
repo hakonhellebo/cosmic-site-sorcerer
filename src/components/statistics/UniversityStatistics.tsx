@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Card, 
   CardContent, 
@@ -45,6 +46,7 @@ const UNIVERSITY_ORDER = [
 ];
 
 const UniversityStatistics = () => {
+  const navigate = useNavigate();
   const [selectedUniversity, setSelectedUniversity] = useState("alle");
   const [programSearchTerm, setProgramSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("snitt");
@@ -241,6 +243,31 @@ const UniversityStatistics = () => {
   
   const topPrograms = sortedPrograms.slice(0, 5);
 
+  // Helper function to generate a safe URL slug from university name
+  const generateUniversitySlug = (universityName: string) => {
+    return universityName
+      .toLowerCase()
+      .replace(/[æøå]/g, (char) => {
+        switch (char) {
+          case 'æ': return 'ae';
+          case 'ø': return 'o';
+          case 'å': return 'a';
+          default: return char;
+        }
+      })
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+  };
+
+  const handleProgramClick = (program: any) => {
+    // Create a safe URL for the education details page
+    const universitySlug = generateUniversitySlug(program.universitet);
+    const studiekodeSlug = program.studiekode.replace(/\s+/g, '-');
+    navigate(`/utdanning/${universitySlug}/${studiekodeSlug}`);
+  };
+
   return (
     <div className="space-y-8">
       {/* Data source indicator */}
@@ -396,11 +423,7 @@ const UniversityStatistics = () => {
                   <TableRow 
                     key={`${program.studiekode}-${program.studiested}-${program.universitet}-${index}`}
                     className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => {
-                      // Open in new tab - generate a mock URL for the study program
-                      const url = `/utdanning/${encodeURIComponent(program.universitet)}/${encodeURIComponent(program.studiekode)}`;
-                      window.open(url, '_blank');
-                    }}
+                    onClick={() => handleProgramClick(program)}
                   >
                     <TableCell className="font-medium">{program.linje}</TableCell>
                     <TableCell>{program.studiekode}</TableCell>
