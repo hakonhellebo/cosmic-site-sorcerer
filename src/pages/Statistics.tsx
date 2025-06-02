@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart, Users, Briefcase, Building, DollarSign } from 'lucide-react';
+import { BarChart, Users, Briefcase, Building, DollarSign, TestTube } from 'lucide-react';
 import CareerStatistics from '@/components/statistics/CareerStatistics';
 import UniversityStatistics from '@/components/statistics/UniversityStatistics';
 import CompanyStatistics from '@/components/statistics/CompanyStatistics';
@@ -21,7 +21,7 @@ const Statistics = () => {
         </div>
 
         <Tabs defaultValue="careers" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="careers" className="flex items-center gap-2">
               <Briefcase className="h-4 w-4" />
               Karrierer
@@ -37,6 +37,10 @@ const Statistics = () => {
             <TabsTrigger value="salary" className="flex items-center gap-2">
               <DollarSign className="h-4 w-4" />
               Lønn
+            </TabsTrigger>
+            <TabsTrigger value="test" className="flex items-center gap-2">
+              <TestTube className="h-4 w-4" />
+              Test
             </TabsTrigger>
           </TabsList>
 
@@ -54,6 +58,22 @@ const Statistics = () => {
 
           <TabsContent value="salary">
             <SalarySearch />
+          </TabsContent>
+
+          <TabsContent value="test">
+            <Card>
+              <CardHeader>
+                <CardTitle>Test-fane</CardTitle>
+                <CardDescription>
+                  Dette er en test-fane for utvikling og testing
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Her kan du legge til testfunksjonalitet eller eksperimentelle funksjoner.
+                </p>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
