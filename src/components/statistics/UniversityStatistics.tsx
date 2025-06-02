@@ -284,6 +284,10 @@ const UniversityStatistics = () => {
     navigate('/university/nhh');
   };
 
+  const handleOsloMetClick = () => {
+    navigate('/university/oslomet');
+  };
+
   return (
     <div className="space-y-8">
       {/* Data source indicator */}
@@ -372,6 +376,20 @@ const UniversityStatistics = () => {
                 >
                   <ExternalLink className="h-4 w-4" />
                   Les mer om NHH her
+                </Button>
+              </div>
+            )}
+
+            {/* OsloMet Button */}
+            {selectedUniversity === "OsloMet - storbyuniversitetet" && (
+              <div className="mt-3">
+                <Button 
+                  onClick={handleOsloMetClick}
+                  variant="outline" 
+                  className="w-full flex items-center gap-2"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Les mer om OsloMet her
                 </Button>
               </div>
             )}
@@ -481,6 +499,17 @@ const UniversityStatistics = () => {
               >
                 <ExternalLink className="h-4 w-4" />
                 Les mer om NHH her
+              </Button>
+            )}
+
+            {selectedUniversity === "OsloMet - storbyuniversitetet" && (
+              <Button 
+                onClick={handleOsloMetClick}
+                variant="outline" 
+                className="flex items-center gap-2"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Les mer om OsloMet her
               </Button>
             )}
           </div>
