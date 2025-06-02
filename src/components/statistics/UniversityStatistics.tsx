@@ -292,6 +292,10 @@ const UniversityStatistics = () => {
     navigate('/university/uis');
   };
 
+  const handleUiTClick = () => {
+    navigate('/university/uit');
+  };
+
   return (
     <div className="space-y-8">
       {/* Data source indicator */}
@@ -408,6 +412,20 @@ const UniversityStatistics = () => {
                 >
                   <ExternalLink className="h-4 w-4" />
                   Les mer om UiS her
+                </Button>
+              </div>
+            )}
+
+            {/* UiT Button */}
+            {selectedUniversity === "UiT Norges arktiske universitet" && (
+              <div className="mt-3">
+                <Button 
+                  onClick={handleUiTClick}
+                  variant="outline" 
+                  className="w-full flex items-center gap-2"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Les mer om UiT her
                 </Button>
               </div>
             )}
@@ -539,6 +557,17 @@ const UniversityStatistics = () => {
               >
                 <ExternalLink className="h-4 w-4" />
                 Les mer om UiS her
+              </Button>
+            )}
+
+            {selectedUniversity === "UiT Norges arktiske universitet" && (
+              <Button 
+                onClick={handleUiTClick}
+                variant="outline" 
+                className="flex items-center gap-2"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Les mer om UiT her
               </Button>
             )}
           </div>
