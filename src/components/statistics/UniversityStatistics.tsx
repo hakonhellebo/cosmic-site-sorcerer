@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Card, 
@@ -9,18 +8,24 @@ import {
 } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { Info, ExternalLink, TrendingUp, GraduationCap, Building, ChevronDown, Filter } from "lucide-react";
+import { Info, ExternalLink, TrendingUp, GraduationCap, Filter, Search } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { supabase } from '@/lib/supabase';
 import UniversityProgramCard from './UniversityProgramCard';
 
@@ -60,6 +65,8 @@ const UniversityStatistics = () => {
   const [loading, setLoading] = useState(false);
   const [universities, setUniversities] = useState<string[]>([]);
   const [availablePrograms, setAvailablePrograms] = useState<string[]>([]);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [programSearch, setProgramSearch] = useState("");
   
   // Fetch all data from Student_data when component mounts
   useEffect(() => {
@@ -233,6 +240,11 @@ const UniversityStatistics = () => {
   
   const topPrograms = sortedPrograms.slice(0, 5);
 
+  // Filter programs based on search
+  const filteredProgramsForSearch = availablePrograms.filter(program =>
+    program.toLowerCase().includes(programSearch.toLowerCase())
+  );
+
   return (
     <div className="space-y-8">
       {/* Data source indicator */}
@@ -245,7 +257,7 @@ const UniversityStatistics = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2">
@@ -280,58 +292,61 @@ const UniversityStatistics = () => {
             <CardDescription>Filtrer på spesifikke studielinjer</CardDescription>
           </CardHeader>
           <CardContent>
-            <Select value={selectedProgram} onValueChange={setSelectedProgram}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Velg studielinje" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="alle">Alle studielinjer</SelectItem>
-                {availablePrograms.map((program) => (
-                  <SelectItem key={program} value={program}>
-                    {program}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2">
-              <Building className="h-5 w-5" />
-              Studielinjer
-            </CardTitle>
-            <CardDescription>Se alle tilgjengelige studielinjer</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-full justify-between">
-                  <span>Se studielinjer ({availablePrograms.length})</span>
-                  <ChevronDown className="h-4 w-4" />
+            <Popover open={searchOpen} onOpenChange={setSearchOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={searchOpen}
+                  className="w-full justify-between"
+                >
+                  {selectedProgram === "alle" 
+                    ? "Alle studielinjer" 
+                    : selectedProgram.length > 30 
+                      ? selectedProgram.substring(0, 30) + "..." 
+                      : selectedProgram
+                  }
+                  <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-80 max-h-96 overflow-y-auto bg-white border shadow-lg z-50">
-                <DropdownMenuLabel className="sticky top-0 bg-white">
-                  Studielinjer ved {selectedUniversity === "alle" ? "alle universiteter" : selectedUniversity}
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {availablePrograms.length > 0 ? (
-                  availablePrograms.map((program, index) => (
-                    <DropdownMenuItem key={index} className="py-2 px-3">
-                      <div className="flex flex-col">
-                        <span className="font-medium text-sm">{program}</span>
-                      </div>
-                    </DropdownMenuItem>
-                  ))
-                ) : (
-                  <DropdownMenuItem disabled>
-                    {loading ? "Henter studielinjer..." : "Ingen studielinjer tilgjengelig"}
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0">
+                <Command>
+                  <CommandInput 
+                    placeholder="Søk etter studielinjer..." 
+                    value={programSearch}
+                    onValueChange={setProgramSearch}
+                  />
+                  <CommandList>
+                    <CommandEmpty>Ingen studielinjer funnet.</CommandEmpty>
+                    <CommandGroup>
+                      <CommandItem
+                        value="alle"
+                        onSelect={() => {
+                          setSelectedProgram("alle");
+                          setSearchOpen(false);
+                          setProgramSearch("");
+                        }}
+                      >
+                        Alle studielinjer
+                      </CommandItem>
+                      {filteredProgramsForSearch.map((program) => (
+                        <CommandItem
+                          key={program}
+                          value={program}
+                          onSelect={() => {
+                            setSelectedProgram(program);
+                            setSearchOpen(false);
+                            setProgramSearch("");
+                          }}
+                        >
+                          {program}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </CardContent>
         </Card>
 
