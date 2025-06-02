@@ -8,22 +8,42 @@ import CareerStatistics from '@/components/statistics/CareerStatistics';
 import UniversityStatistics from '@/components/statistics/UniversityStatistics';
 import CompanyStatistics from '@/components/statistics/CompanyStatistics';
 import SalarySearch from '@/components/statistics/SalarySearch';
-import { getUniversityData, supabaseAnonKey } from '@/lib/supabase';
+import { getUniversityData, supabaseAnonKey, supabase } from '@/lib/supabase';
 
 const Statistics = () => {
   const [universities, setUniversities] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [filterYear, setFilterYear] = useState('2024');
+  const [filterLevel, setFilterLevel] = useState('Bachelor, 3-årig');
 
   const fetchUniversities = async () => {
     setLoading(true);
     try {
-      console.log("Fetching all universities...");
-      const { data, error } = await getUniversityData();
+      console.log("Fetching universities with filters:", { year: filterYear, level: filterLevel });
+      
+      // Use a modified query that filters by year and level
+      let query = supabase
+        .from('Universitetsdata')
+        .select('*', { count: 'exact' })
+        .order('Institusjonsnavn', { ascending: true });
+      
+      // Apply filters
+      if (filterYear) {
+        query = query.eq('Årstall', filterYear);
+      }
+      
+      // Filter by qualification level if specified
+      if (filterLevel) {
+        query = query.ilike('Kvalifikasjonsnavn', `%${filterLevel}%`);
+      }
+      
+      console.log("Executing filtered query...");
+      const { data, error, count } = await query;
       
       if (data && !error) {
-        console.log(`Raw data: ${data.length} total records`);
-        setTotalRecords(data.length);
+        console.log(`Filtered data: ${data.length} records found (total available: ${count})`);
+        setTotalRecords(count || data.length);
         
         // Group by institution to get unique universities
         const uniqueUniversities = data.reduce((acc, item) => {
@@ -45,9 +65,9 @@ const Statistics = () => {
         
         const universitiesList = Object.values(uniqueUniversities);
         setUniversities(universitiesList);
-        console.log(`Found ${universitiesList.length} unique universities from ${data.length} total records`);
+        console.log(`Found ${universitiesList.length} unique universities from ${data.length} filtered records`);
       } else {
-        console.error("Error fetching universities:", error);
+        console.error("Error fetching filtered universities:", error);
         alert(`❌ Feil: ${error?.message || 'Ukjent feil'}`);
       }
     } catch (err) {
@@ -112,70 +132,75 @@ const Statistics = () => {
               <CardHeader>
                 <CardTitle>Test-fane - Universitetsdata API</CardTitle>
                 <CardDescription>
-                  Test av offentlig tilgang til universitetsdata
+                  Test av filtrert tilgang til universitetsdata
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
                   <div>
                     <p className="text-muted-foreground mb-4">
-                      Tester ny offentlig tilgang til universitetsdata med API-key.
+                      Tester filtrert tilgang til universitetsdata for raskere resultater.
                     </p>
                     
                     <div className="bg-gray-50 p-4 rounded-lg mb-4">
                       <h4 className="font-medium mb-2">API Status:</h4>
-                      <p className="text-sm text-green-600">✅ Universitetsdata er nå offentlig tilgjengelig</p>
+                      <p className="text-sm text-green-600">✅ Universitetsdata er tilgjengelig</p>
                       <p className="text-sm text-gray-600">API-key: ...{supabaseAnonKey.slice(-10)}</p>
                       {totalRecords > 0 && (
-                        <p className="text-sm text-blue-600">📊 Totalt {totalRecords} dataposter tilgjengelig</p>
+                        <p className="text-sm text-blue-600">📊 {totalRecords} filtrerte dataposter</p>
                       )}
                     </div>
                     
+                    {/* Filter controls */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">År:</label>
+                        <select 
+                          value={filterYear} 
+                          onChange={(e) => setFilterYear(e.target.value)}
+                          className="w-full p-2 border rounded-lg"
+                        >
+                          <option value="2024">2024</option>
+                          <option value="2023">2023</option>
+                          <option value="">Alle år</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Kvalifikasjonsnivå:</label>
+                        <select 
+                          value={filterLevel} 
+                          onChange={(e) => setFilterLevel(e.target.value)}
+                          className="w-full p-2 border rounded-lg"
+                        >
+                          <option value="Bachelor, 3-årig">Bachelor, 3-årig</option>
+                          <option value="Master, 2-årig">Master, 2-årig</option>
+                          <option value="">Alle nivåer</option>
+                        </select>
+                      </div>
+                    </div>
+                    
                     <Button 
-                      onClick={async () => {
-                        try {
-                          console.log("Testing public university data access...");
-                          const { data, error } = await getUniversityData();
-                          console.log("University data test result:", { 
-                            dataLength: data?.length, 
-                            error: error?.message,
-                            firstRow: data?.[0] 
-                          });
-                          
-                          if (data && data.length > 0) {
-                            alert(`✅ Suksess! Hentet ${data.length} rader fra universitetsdata`);
-                          } else if (error) {
-                            alert(`❌ Feil: ${error.message}`);
-                          } else {
-                            alert(`⚠️ Ingen data funnet`);
-                          }
-                        } catch (err) {
-                          console.error("Test error:", err);
-                          alert(`❌ Test feilet: ${err.message}`);
-                        }
-                      }}
+                      onClick={fetchUniversities}
+                      disabled={loading}
                       className="w-full mb-4"
                     >
-                      Test Universitetsdata API
+                      {loading ? "Henter filtrerte data..." : "Hent filtrerte universiteter"}
                     </Button>
                   </div>
 
                   <div className="border-t pt-6">
                     <div className="flex justify-between items-center mb-4">
-                      <h4 className="text-lg font-medium">Tilgjengelige universiteter og høyskoler</h4>
-                      <Button 
-                        onClick={fetchUniversities}
-                        disabled={loading}
-                        variant="outline"
-                      >
-                        {loading ? "Henter..." : "Hent alle universiteter"}
-                      </Button>
+                      <h4 className="text-lg font-medium">
+                        Universiteter og høyskoler 
+                        {filterYear && ` (${filterYear})`}
+                        {filterLevel && ` - ${filterLevel}`}
+                      </h4>
                     </div>
                     
                     {totalRecords > 0 && (
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
                         <p className="text-blue-800 text-sm">
-                          📊 Hentet {totalRecords} totale dataposter fra databasen
+                          📊 Hentet {totalRecords} dataposter med filtre
                         </p>
                         <p className="text-blue-700 text-xs mt-1">
                           Viser {universities.length} unike universiteter/høyskoler
@@ -186,7 +211,7 @@ const Statistics = () => {
                     {universities.length > 0 && (
                       <div className="space-y-3">
                         <p className="text-sm text-muted-foreground">
-                          Fant {universities.length} universiteter/høyskoler i databasen
+                          Fant {universities.length} universiteter/høyskoler med gitte filtre
                         </p>
                         <div className="grid gap-3 max-h-96 overflow-y-auto">
                           {universities.map((uni, index) => (
@@ -216,7 +241,7 @@ const Statistics = () => {
                     
                     {universities.length === 0 && !loading && (
                       <p className="text-sm text-muted-foreground">
-                        Klikk "Hent alle universiteter" for å se tilgjengelige institusjoner
+                        Klikk "Hent filtrerte universiteter" for å se tilgjengelige institusjoner
                       </p>
                     )}
                   </div>
