@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { navItems } from "./nav-items"
+import Dashboard from "./pages/Dashboard"
 import UniversityNTNU from "./pages/UniversityNTNU"
 import UniversityUiO from "./pages/UniversityUiO"
 import UniversityUiB from "./pages/UniversityUiB"
@@ -28,6 +29,7 @@ const App = () => (
           {navItems.map(({ to, page }) => (
             <Route key={to} path={to} element={page} />
           ))}
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/university/ntnu" element={<UniversityNTNU />} />
           <Route path="/university/uio" element={<UniversityUiO />} />
           <Route path="/university/uib" element={<UniversityUiB />} />
