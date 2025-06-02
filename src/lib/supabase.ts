@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 
 // Get environment variables or use provided project URL
@@ -377,11 +378,11 @@ export const getUniversityData = async (institutionCode?: string, year?: string)
     let query = supabase
       .from('Student_data')
       .select('*', { count: 'exact' })
-      .order('Lærestedsnavn', { ascending: true });
+      .order('Lærestednavn', { ascending: true });
     
     // Note: institutionCode and year filters might need adjustment based on new data structure
     if (institutionCode) {
-      // Since we don't have institution codes in the new structure, we might filter by Lærestedsnavn
+      // Since we don't have institution codes in the new structure, we might filter by Lærestednavn
       console.log("Institution code filtering not applicable with new data structure");
     }
     
@@ -443,11 +444,11 @@ const transformStudentDataToUniversityFormat = (studentData: any[]) => {
   
   // Group by study program
   const groupedData = studentData.reduce((acc, row) => {
-    const key = `${row.Lærestedsnavn}-${row.Studiekode}`;
+    const key = `${row.Lærestednavn}-${row.Studiekode}`;
     
     if (!acc[key]) {
       acc[key] = {
-        Institusjonsnavn: row.Lærestedsnavn,
+        Institusjonsnavn: row.Lærestednavn,
         Institusjonskode: row.Studiekode?.split(' ')[0] || '',
         Studnavn: row.Studienavn,
         Studiumkode: row.Studiekode,

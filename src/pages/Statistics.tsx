@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,7 +28,7 @@ const Statistics = () => {
     try {
       const { data, error } = await supabase
         .from('Student_data')
-        .select('Lærestedsnavn, "Utdanningsområde- og type"')
+        .select('Lærestednavn, "Utdanningsområde- og type"')
         .limit(1000);
       
       if (data && !error) {
@@ -55,7 +56,7 @@ const Statistics = () => {
       const { data, error } = await supabase
         .from('Student_data')
         .select('*', { count: 'exact' })
-        .order('Lærestedsnavn', { ascending: true });
+        .order('Lærestednavn', { ascending: true });
       
       if (data && !error) {
         console.log(`Query result: ${data.length} records found from Student_data`);
@@ -63,11 +64,11 @@ const Statistics = () => {
         
         // Group by institution to get unique universities
         const uniqueUniversities = data.reduce((acc, item) => {
-          const key = `${item.Lærestedsnavn}`;
+          const key = `${item.Lærestednavn}`;
           if (!acc[key]) {
             acc[key] = {
               kode: item.Studiekode?.split(' ')[0] || '',
-              navn: item.Lærestedsnavn,
+              navn: item.Lærestednavn,
               antallProgrammer: 0,
               programmer: []
             };
