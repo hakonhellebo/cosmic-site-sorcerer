@@ -19,6 +19,7 @@ import UniversityResultsPage from "./pages/UniversityResultsPage";
 import WorkerResultsPage from "./pages/WorkerResultsPage";
 import Statistics from "./pages/Statistics";
 import EducationDetailsPage from "./pages/EducationDetailsPage";
+import CompanyProfilePage from "./pages/CompanyProfilePage";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const App = () => (
           <Route path="/results/worker" element={<WorkerResultsPage />} />
           <Route path="/statistikk" element={<Statistics />} />
           <Route path="/utdanning/:universityId/:studiekode" element={<EducationDetailsPage />} />
+          <Route path="/bedrift/:companySlug" element={<CompanyProfilePage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </TooltipProvider>

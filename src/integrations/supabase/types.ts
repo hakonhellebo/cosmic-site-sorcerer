@@ -48,6 +48,42 @@ export type Database = {
         }
         Relationships: []
       }
+      Bedrifter: {
+        Row: {
+          Ansatte: string | null
+          Beskrivelse: string | null
+          "Driftsinntekter (MNOK)": string | null
+          Geografi: string | null
+          Hovedbransje: string | null
+          Karriereportal: string | null
+          Linker: string | null
+          Lokasjon: string | null
+          Selskap: string | null
+        }
+        Insert: {
+          Ansatte?: string | null
+          Beskrivelse?: string | null
+          "Driftsinntekter (MNOK)"?: string | null
+          Geografi?: string | null
+          Hovedbransje?: string | null
+          Karriereportal?: string | null
+          Linker?: string | null
+          Lokasjon?: string | null
+          Selskap?: string | null
+        }
+        Update: {
+          Ansatte?: string | null
+          Beskrivelse?: string | null
+          "Driftsinntekter (MNOK)"?: string | null
+          Geografi?: string | null
+          Hovedbransje?: string | null
+          Karriereportal?: string | null
+          Linker?: string | null
+          Lokasjon?: string | null
+          Selskap?: string | null
+        }
+        Relationships: []
+      }
       Clean_11418: {
         Row: {
           AvtaltVanlig: string | null
