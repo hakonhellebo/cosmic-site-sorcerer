@@ -9,7 +9,7 @@ import CompanyList from './company/CompanyList';
 
 interface Company {
   Selskap: string;
-  Huvudbransje: string;
+  Hovedbransje: string;
   Beskrivelse: string;
   Lokasjon: string;
   Ansatte: string;

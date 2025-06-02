@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface Company {
   Selskap: string;
-  Huvudbransje: string;
+  Hovedbransje: string;
   Beskrivelse: string;
   Lokasjon: string;
   Ansatte: string;
@@ -117,14 +117,14 @@ export const useCompanyData = () => {
     if (searchTerm) {
       filtered = filtered.filter(company => 
         company.Selskap?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        company.Huvudbransje?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        company.Hovedbransje?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         company.Beskrivelse?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
     
     // Apply industry filter
     if (selectedIndustry !== 'all') {
-      filtered = filtered.filter(company => company.Huvudbransje === selectedIndustry);
+      filtered = filtered.filter(company => company.Hovedbransje === selectedIndustry);
     }
     
     // Apply sorting
