@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
@@ -326,17 +325,15 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
                   margin={{
                     top: 40,
                     right: 30,
-                    left: 100,
+                    left: 80,
                     bottom: 20,
                   }}
                   maxBarSize={60}
+                  barCategoryGap="20%"
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
                     dataKey="year" 
-                    type="number"
-                    scale="linear"
-                    domain={['dataMin', 'dataMax']}
                     tick={{ fontSize: 12 }}
                     tickMargin={10}
                     axisLine={true}
@@ -344,6 +341,7 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
                   />
                   <YAxis 
                     tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                    width={60}
                   />
                   <ChartTooltip 
                     content={<ChartTooltipContent />}
