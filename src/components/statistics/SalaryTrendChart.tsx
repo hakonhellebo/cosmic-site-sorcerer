@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
@@ -61,6 +60,8 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
     setTrendData([]);
 
     try {
+      console.log('Fetching salary trend for:', { yrke, kjonn, sektor });
+      
       const promises = years.map(async (year) => {
         const params = new URLSearchParams();
         params.append('yrke', yrke);
@@ -69,6 +70,7 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
         if (sektor) params.append('sektor', sektor);
 
         const url = `${API_BASE_URL}/lonn/?${params.toString()}`;
+        console.log(`Fetching data for year ${year}:`, url);
         
         const response = await fetch(url, {
           method: 'GET',
@@ -84,6 +86,7 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
         }
         
         const data = await response.json();
+        console.log(`Data for year ${year}:`, data);
         
         if (data && typeof data === 'object' && data.value !== undefined) {
           return {
@@ -97,6 +100,8 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
 
       const results = await Promise.all(promises);
       const validResults = results.filter((result): result is TrendData => result !== null);
+      
+      console.log('Valid trend results:', validResults);
       
       if (validResults.length === 0) {
         setError('Ingen data funnet for de valgte kriteriene');

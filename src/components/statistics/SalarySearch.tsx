@@ -84,6 +84,8 @@ const SalarySearch = () => {
       setLoadingYrker(true);
       setApiStatus('Henter yrker fra API...');
       
+      console.log('Attempting to connect to API:', `${API_BASE_URL}/lonn/`);
+      
       const response = await fetch(`${API_BASE_URL}/lonn/`, {
         method: 'GET',
         headers: {
@@ -92,15 +94,24 @@ const SalarySearch = () => {
         },
       });
       
+      console.log('API response status:', response.status);
+      
       if (!response.ok) {
         throw new Error(`API feil: ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();
-      console.log('API response:', data);
+      console.log('API response data:', data);
+      console.log('Data type:', typeof data, 'Is array:', Array.isArray(data));
+      
+      if (!Array.isArray(data) || data.length === 0) {
+        throw new Error('API returnerte ingen data eller feil format');
+      }
       
       // Extract unique occupations from the data
-      const uniqueYrker = [...new Set(data.map((item: any) => item.Yrke))];
+      const uniqueYrker = [...new Set(data.map((item: any) => item.Yrke).filter(Boolean))];
+      console.log('Unique occupations found:', uniqueYrker.length);
+      
       const options = uniqueYrker.map(yrke => ({
         value: yrke as string,
         label: yrke as string
@@ -483,6 +494,12 @@ const SalarySearch = () => {
                 <p className="text-sm text-orange-600">
                   Velg minst ett yrke for å kunne søke.
                 </p>
+              )}
+
+              {error && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-700 text-sm">{error}</p>
+                </div>
               )}
             </CardContent>
           </Card>
