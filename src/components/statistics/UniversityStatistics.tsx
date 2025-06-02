@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Card, 
@@ -8,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { Info, ExternalLink, TrendingUp, GraduationCap, Building, ChevronDown } from "lucide-react";
+import { Info, ExternalLink, TrendingUp, GraduationCap, Building, ChevronDown, Filter } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -52,7 +53,8 @@ const UNIVERSITY_ORDER = [
 ];
 
 const UniversityStatistics = () => {
-  const [selectedUniversity, setSelectedUniversity] = useState("");
+  const [selectedUniversity, setSelectedUniversity] = useState("alle");
+  const [selectedProgram, setSelectedProgram] = useState("alle");
   const [sortBy, setSortBy] = useState("snitt");
   const [allStudentData, setAllStudentData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -128,10 +130,6 @@ const UniversityStatistics = () => {
         setUniversities(sortedUniversities);
         console.log("Found universities (in custom order):", sortedUniversities);
         
-        // Set first university as default
-        if (sortedUniversities.length > 0 && !selectedUniversity) {
-          setSelectedUniversity(sortedUniversities[0]);
-        }
       } catch (err) {
         console.error("Error:", err);
       }
@@ -143,11 +141,11 @@ const UniversityStatistics = () => {
   
   // Update available programs when university changes
   useEffect(() => {
-    if (allStudentData.length > 0 && selectedUniversity) {
+    if (allStudentData.length > 0) {
       // Filter data for selected university and get unique study programs from column C (Studienavn)
-      const universityData = allStudentData.filter(item => 
-        item.Lærestednavn === selectedUniversity
-      );
+      const universityData = selectedUniversity === "alle" 
+        ? allStudentData 
+        : allStudentData.filter(item => item.Lærestednavn === selectedUniversity);
       
       const programs = [...new Set(universityData.map(item => 
         item.Studienavn
@@ -160,32 +158,38 @@ const UniversityStatistics = () => {
   
   // Process data for display
   const getProcessedData = () => {
-    if (!selectedUniversity || allStudentData.length === 0) return [];
+    if (allStudentData.length === 0) return [];
     
     // Filter data for selected university
-    const universityData = allStudentData.filter(item => 
-      item.Lærestednavn === selectedUniversity
-    );
+    const universityData = selectedUniversity === "alle" 
+      ? allStudentData 
+      : allStudentData.filter(item => item.Lærestednavn === selectedUniversity);
+    
+    // Filter by selected program if not "alle"
+    const filteredData = selectedProgram === "alle" 
+      ? universityData 
+      : universityData.filter(item => item.Studienavn === selectedProgram);
     
     // Group by study program and aggregate the measures
     const programMap = new Map();
     
-    universityData.forEach(row => {
+    filteredData.forEach(row => {
       const studienavn = row.Studienavn;
       const studiested = row.Studiested;
+      const laerestednavn = row.Lærestednavn;
       const measureName = row['Measure Names'];
       const measureValue = row['Measure Values'];
       
       if (!studienavn || !measureName || !measureValue) return;
       
-      const key = `${studienavn}-${studiested}`;
+      const key = `${studienavn}-${studiested}-${laerestednavn}`;
       
       if (!programMap.has(key)) {
         programMap.set(key, {
           linje: studienavn,
           studiekode: row.Studiekode || 'N/A',
           studiested: studiested,
-          universitet: selectedUniversity,
+          universitet: laerestednavn,
           measures: {}
         });
       }
@@ -241,7 +245,7 @@ const UniversityStatistics = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2">
@@ -256,9 +260,35 @@ const UniversityStatistics = () => {
                 <SelectValue placeholder="Velg et universitet" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="alle">Alle universiteter</SelectItem>
                 {universities.map((uni) => (
                   <SelectItem key={uni} value={uni}>
                     {uni}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Filtrer studielinjer
+            </CardTitle>
+            <CardDescription>Filtrer på spesifikke studielinjer</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Select value={selectedProgram} onValueChange={setSelectedProgram}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Velg studielinje" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="alle">Alle studielinjer</SelectItem>
+                {availablePrograms.map((program) => (
+                  <SelectItem key={program} value={program}>
+                    {program}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -284,7 +314,7 @@ const UniversityStatistics = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-80 max-h-96 overflow-y-auto bg-white border shadow-lg z-50">
                 <DropdownMenuLabel className="sticky top-0 bg-white">
-                  Studielinjer ved {selectedUniversity}
+                  Studielinjer ved {selectedUniversity === "alle" ? "alle universiteter" : selectedUniversity}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {availablePrograms.length > 0 ? (
@@ -331,11 +361,12 @@ const UniversityStatistics = () => {
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">
-            Studielinjer ved {selectedUniversity || 'universitet'}
+            Studielinjer ved {selectedUniversity === "alle" ? "alle universiteter" : selectedUniversity}
             <Badge variant="secondary" className="ml-2">Student_data</Badge>
           </CardTitle>
           <CardDescription>
             Viser {currentData.length} studielinjer hentet fra Student_data
+            {selectedProgram !== "alle" && ` (filtrert på: ${selectedProgram})`}
             {loading && ' (Henter data...)'}
           </CardDescription>
         </CardHeader>
@@ -348,7 +379,7 @@ const UniversityStatistics = () => {
           ) : topPrograms.length > 0 ? (
             topPrograms.map((program, index) => (
               <UniversityProgramCard 
-                key={`${program.studiekode}-${program.studiested}`} 
+                key={`${program.studiekode}-${program.studiested}-${program.universitet}`} 
                 program={program} 
                 rank={index + 1} 
               />
@@ -358,9 +389,9 @@ const UniversityStatistics = () => {
               <Info className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium mb-2">Ingen data tilgjengelig</h3>
               <p className="text-muted-foreground">
-                {selectedUniversity ? 
-                  `Vi fant ingen studielinjer for ${selectedUniversity} i Student_data tabellen.` :
-                  'Velg et universitet for å se tilgjengelige studielinjer.'
+                {selectedUniversity === "alle" ? 
+                  'Vi fant ingen studielinjer i Student_data tabellen.' :
+                  `Vi fant ingen studielinjer for ${selectedUniversity} i Student_data tabellen.`
                 }
               </p>
             </div>
@@ -371,7 +402,10 @@ const UniversityStatistics = () => {
       <Card>
         <CardHeader>
           <CardTitle>Komplett liste over studielinjer</CardTitle>
-          <CardDescription>Alle tilgjengelige studielinjer ved {selectedUniversity} fra Student_data</CardDescription>
+          <CardDescription>
+            Alle tilgjengelige studielinjer ved {selectedUniversity === "alle" ? "alle universiteter" : selectedUniversity} fra Student_data
+            {selectedProgram !== "alle" && ` (filtrert på: ${selectedProgram})`}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -380,6 +414,7 @@ const UniversityStatistics = () => {
                 <TableRow>
                   <TableHead>Linje</TableHead>
                   <TableHead>Studiekode</TableHead>
+                  <TableHead>Universitet</TableHead>
                   <TableHead>Studiested</TableHead>
                   <TableHead className="text-right">Snitt</TableHead>
                   <TableHead className="text-right">Søkere møtt</TableHead>
@@ -389,9 +424,18 @@ const UniversityStatistics = () => {
               </TableHeader>
               <TableBody>
                 {sortedPrograms.map((program, index) => (
-                  <TableRow key={`${program.studiekode}-${program.studiested}-${index}`}>
+                  <TableRow 
+                    key={`${program.studiekode}-${program.studiested}-${program.universitet}-${index}`}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => {
+                      // Open in new tab - generate a mock URL for the study program
+                      const url = `/utdanning/${encodeURIComponent(program.universitet)}/${encodeURIComponent(program.studiekode)}`;
+                      window.open(url, '_blank');
+                    }}
+                  >
                     <TableCell className="font-medium">{program.linje}</TableCell>
                     <TableCell>{program.studiekode}</TableCell>
+                    <TableCell>{program.universitet}</TableCell>
                     <TableCell>{program.studiested}</TableCell>
                     <TableCell className="text-right">
                       {program.snitt > 0 ? program.snitt.toFixed(1) : 'Ikke oppgitt'}
