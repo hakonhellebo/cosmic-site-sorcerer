@@ -26,8 +26,8 @@ type SortDirection = 'asc' | 'desc';
 const CompanySearch = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState<string>('all');
-  const [sortField, setSortField] = useState<SortField>('name');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [sortField, setSortField] = useState<SortField>('employees');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [companies, setCompanies] = useState<Company[]>([]);
   const [filteredCompanies, setFilteredCompanies] = useState<Company[]>([]);
   const [industries, setIndustries] = useState<string[]>([]);
