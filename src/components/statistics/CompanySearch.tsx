@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,6 +32,7 @@ type SortField = 'name' | 'employees' | 'revenue';
 type SortDirection = 'asc' | 'desc';
 
 const CompanySearch: React.FC<CompanySearchProps> = ({ preloadedData }) => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('all');
   const [sortField, setSortField] = useState<SortField>('name');
@@ -146,6 +147,16 @@ const CompanySearch: React.FC<CompanySearchProps> = ({ preloadedData }) => {
     setSortDirection('asc');
   };
 
+  const handleCompanyClick = (company: Company) => {
+    const companySlug = company.Selskap.toLowerCase()
+      .replace(/[æåø]/g, (match) => ({ 'æ': 'ae', 'å': 'aa', 'ø': 'o' }[match] || match))
+      .replace(/[^a-z0-9]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+    
+    navigate(`/bedrift/${companySlug}`, { state: { company } });
+  };
+
   if (dataLoading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -257,11 +268,17 @@ const CompanySearch: React.FC<CompanySearchProps> = ({ preloadedData }) => {
       {/* Results */}
       <div className="grid gap-4">
         {filteredCompanies.map((company, index) => (
-          <Card key={index} className="hover:shadow-md transition-shadow">
+          <Card 
+            key={index} 
+            className="hover:shadow-md transition-shadow cursor-pointer"
+            onClick={() => handleCompanyClick(company)}
+          >
             <CardContent className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="text-lg font-semibold mb-2">{company.Selskap}</h3>
+                  <h3 className="text-lg font-semibold mb-2 text-blue-600 hover:text-blue-800">
+                    {company.Selskap}
+                  </h3>
                   <Badge variant="secondary" className="mb-2">
                     {company.Hovedbransje}
                   </Badge>
@@ -301,7 +318,12 @@ const CompanySearch: React.FC<CompanySearchProps> = ({ preloadedData }) => {
 
               <div className="flex gap-2">
                 {company.Linker && (
-                  <Button variant="outline" size="sm" asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    asChild
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <a href={company.Linker} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="h-3 w-3 mr-1" />
                       Nettside
@@ -309,7 +331,12 @@ const CompanySearch: React.FC<CompanySearchProps> = ({ preloadedData }) => {
                   </Button>
                 )}
                 {company.Karriereportal && (
-                  <Button variant="outline" size="sm" asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    asChild
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <a href={company.Karriereportal} target="_blank" rel="noopener noreferrer">
                       <Users className="h-3 w-3 mr-1" />
                       Karriere

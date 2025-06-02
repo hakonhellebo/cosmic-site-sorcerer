@@ -18,6 +18,7 @@ import UniversityUiA from "./pages/UniversityUiA"
 import UniversityHVL from "./pages/UniversityHVL"
 import UniversityHiVolda from "./pages/UniversityHiVolda"
 import UniversityUSN from "./pages/UniversityUSN"
+import CompanyProfilePage from "./pages/CompanyProfilePage"
 
 const queryClient = new QueryClient()
 
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/university/hvl" element={<UniversityHVL />} />
           <Route path="/university/hivolda" element={<UniversityHiVolda />} />
           <Route path="/university/usn" element={<UniversityUSN />} />
+          <Route path="/bedrift/:companySlug" element={<CompanyProfilePage />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
