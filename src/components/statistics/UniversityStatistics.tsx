@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Card, 
@@ -24,6 +23,34 @@ import {
 import { supabase } from '@/lib/supabase';
 import UniversityProgramCard from './UniversityProgramCard';
 
+// Custom university order as specified
+const UNIVERSITY_ORDER = [
+  "Norges teknisk-naturvitenskapelige universitet",
+  "Universitetet i Oslo",
+  "Universitetet i Bergen",
+  "Norges Handelshøyskole",
+  "OsloMet - storbyuniversitetet",
+  "UiT Norges arktiske universitet",
+  "Universitetet i Innlandet",
+  "Høgskulen på Vestlandet",
+  "Universitetet i Sørøst-Norge",
+  "Universitetet i Stavanger",
+  "Universitetet i Agder",
+  "Norges miljø- og biovitenskapelige universitet",
+  "NLA Høgskolen",
+  "Nord universitet",
+  "Høgskolen i Østfold",
+  "Høgskolen i Molde, Vitenskaplig høgskole i logistikk",
+  "VID vitenskapelige høgskole",
+  "Norges idrettshøgskole",
+  "Høgskulen i Volda",
+  "Politihøgskolen",
+  "Arkitektur- og designhøgskolen i Oslo",
+  "Ansgar høyskole",
+  "MF vitenskapelig høyskole",
+  "Fjellhaug Internasjonale Høgskole"
+];
+
 const UniversityStatistics = () => {
   const [selectedUniversity, setSelectedUniversity] = useState("");
   const [sortBy, setSortBy] = useState("snitt");
@@ -36,30 +63,74 @@ const UniversityStatistics = () => {
   useEffect(() => {
     const fetchStudentData = async () => {
       setLoading(true);
-      console.log("Fetching all data from Student_data...");
+      console.log("Fetching ALL data from Student_data...");
       
       try {
-        const { data, error } = await supabase
-          .from('Student_data')
-          .select('*');
+        // Fetch all data in batches to avoid limits
+        let allData: any[] = [];
+        let from = 0;
+        const batchSize = 1000;
+        let hasMore = true;
         
-        if (data && !error) {
-          console.log("Raw Student_data:", data.slice(0, 5));
-          console.log("Number of records:", data.length);
+        while (hasMore) {
+          console.log(`Fetching batch starting from ${from} with size ${batchSize}`);
           
-          setAllStudentData(data);
+          const { data: batchData, error } = await supabase
+            .from('Student_data')
+            .select('*')
+            .range(from, from + batchSize - 1);
           
-          // Extract unique universities from column A (Lærestednavn)
-          const uniqueUniversities = [...new Set(data.map(item => item.Lærestednavn).filter(Boolean))].sort();
-          setUniversities(uniqueUniversities);
-          console.log("Found universities:", uniqueUniversities);
-          
-          // Set first university as default
-          if (uniqueUniversities.length > 0 && !selectedUniversity) {
-            setSelectedUniversity(uniqueUniversities[0]);
+          if (error) {
+            console.error("Supabase error:", error);
+            break;
           }
-        } else {
-          console.error("Error fetching Student_data:", error);
+          
+          if (batchData && batchData.length > 0) {
+            allData = [...allData, ...batchData];
+            console.log(`Added ${batchData.length} records. Total so far: ${allData.length}`);
+            
+            if (batchData.length < batchSize) {
+              hasMore = false;
+            } else {
+              from += batchSize;
+            }
+          } else {
+            hasMore = false;
+          }
+        }
+        
+        console.log("Final data count:", allData.length);
+        console.log("Sample data:", allData.slice(0, 5));
+        
+        setAllStudentData(allData);
+        
+        // Extract unique universities and sort according to custom order
+        const uniqueUniversitiesSet = new Set(
+          allData.map(item => item.Lærestednavn).filter(Boolean)
+        );
+        
+        // Sort universities according to the custom order, then alphabetically for any not in the list
+        const sortedUniversities = Array.from(uniqueUniversitiesSet).sort((a, b) => {
+          const indexA = UNIVERSITY_ORDER.indexOf(a);
+          const indexB = UNIVERSITY_ORDER.indexOf(b);
+          
+          if (indexA !== -1 && indexB !== -1) {
+            return indexA - indexB;
+          } else if (indexA !== -1) {
+            return -1;
+          } else if (indexB !== -1) {
+            return 1;
+          } else {
+            return a.localeCompare(b);
+          }
+        });
+        
+        setUniversities(sortedUniversities);
+        console.log("Found universities (in custom order):", sortedUniversities);
+        
+        // Set first university as default
+        if (sortedUniversities.length > 0 && !selectedUniversity) {
+          setSelectedUniversity(sortedUniversities[0]);
         }
       } catch (err) {
         console.error("Error:", err);
