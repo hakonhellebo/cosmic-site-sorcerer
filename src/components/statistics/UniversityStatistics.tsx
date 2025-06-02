@@ -34,7 +34,7 @@ const UNIVERSITY_ORDER = [
   "NLA Høgskolen",
   "Nord universitet",
   "Høgskulen i Østfold",
-  "Høgskolen i Molde, Vitenskaplig høgskole i logistikk",
+  "Høgskulen i Molde, Vitenskaplig høgskole i logistikk",
   "VID vitenskapelige høgskole",
   "Norges idrettshøgskole",
   "Høgskulen i Volda",
@@ -288,6 +288,10 @@ const UniversityStatistics = () => {
     navigate('/university/oslomet');
   };
 
+  const handleUiSClick = () => {
+    navigate('/university/uis');
+  };
+
   return (
     <div className="space-y-8">
       {/* Data source indicator */}
@@ -390,6 +394,20 @@ const UniversityStatistics = () => {
                 >
                   <ExternalLink className="h-4 w-4" />
                   Les mer om OsloMet her
+                </Button>
+              </div>
+            )}
+
+            {/* UiS Button */}
+            {selectedUniversity === "Universitetet i Stavanger" && (
+              <div className="mt-3">
+                <Button 
+                  onClick={handleUiSClick}
+                  variant="outline" 
+                  className="w-full flex items-center gap-2"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Les mer om UiS her
                 </Button>
               </div>
             )}
@@ -510,6 +528,17 @@ const UniversityStatistics = () => {
               >
                 <ExternalLink className="h-4 w-4" />
                 Les mer om OsloMet her
+              </Button>
+            )}
+
+            {selectedUniversity === "Universitetet i Stavanger" && (
+              <Button 
+                onClick={handleUiSClick}
+                variant="outline" 
+                className="flex items-center gap-2"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Les mer om UiS her
               </Button>
             )}
           </div>
