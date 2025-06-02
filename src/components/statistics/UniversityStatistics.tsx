@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Card, 
@@ -20,7 +21,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { universityData } from '@/data/universityStatistics';
 import { getUniversityData } from '@/lib/supabase';
 import UniversityProgramCard from './UniversityProgramCard';
 
@@ -43,13 +43,12 @@ const UniversityStatistics = () => {
   useEffect(() => {
     const fetchAllUniversityData = async () => {
       setLoading(true);
-      console.log("Fetching all university data from Supabase...");
+      console.log("Fetching all university data from Student_data...");
       
-      // Fetch all data without filtering by institution
       const { data, error } = await getUniversityData();
       
       if (data && !error) {
-        console.log("Raw university data from Supabase:", data);
+        console.log("Raw university data from Student_data:", data);
         console.log("Number of records:", data.length);
         
         // Group data by institution
@@ -99,7 +98,7 @@ const UniversityStatistics = () => {
     }
   }, [selectedUniversity, allSupabaseData]);
   
-  // Get current university data - use Supabase data when available
+  // Get current university data - use Student_data from Supabase
   const getCurrentUniversityData = () => {
     if (allSupabaseData.length > 0) {
       // Map university IDs to institution names
@@ -122,7 +121,7 @@ const UniversityStatistics = () => {
       console.log(`Found ${universityData.length} records for ${targetInstitution}`);
       
       if (universityData.length > 0) {
-        // Transform Supabase data to match expected format
+        // Transform Student_data to match expected format
         return universityData.map((item, index) => {
           const linje = item.Studnavn || item.Kvalifikasjonsnavn || `Studie ${index + 1}`;
           const studiekode = item.Studiumkode || item.Kvalifikasjonskode || `CODE${index + 1}`;
@@ -130,15 +129,15 @@ const UniversityStatistics = () => {
           return {
             linje,
             studiekode,
-            snitt: 0, // Supabase data doesn't have grade averages
-            sokereMott: Math.floor(Math.random() * 100) + 50, // Mock data
-            sokereTilbudJaSvar: Math.floor(Math.random() * 80) + 40,
-            sokereTilbud: Math.floor(Math.random() * 120) + 60,
-            sokereKvalifisert: Math.floor(Math.random() * 150) + 80,
-            sokere: Math.floor(Math.random() * 200) + 100,
-            planlagteStudieplasser: Math.floor(Math.random() * 50) + 20,
+            snitt: parseFloat(item.snitt) || 0,
+            sokereMott: parseInt(item.sokereMott) || 0,
+            sokereTilbudJaSvar: parseInt(item.sokereTilbudJaSvar) || 0,
+            sokereTilbud: parseInt(item.sokereTilbud) || 0,
+            sokereKvalifisert: parseInt(item.sokereKvalifisert) || 0,
+            sokere: parseInt(item.sokere) || 0,
+            planlagteStudieplasser: parseInt(item.planlagteStudieplasser) || 0,
             universitet: selectedUniversity,
-            sokereMottPerStudieplass: Math.floor(Math.random() * 5) + 1,
+            sokereMottPerStudieplass: parseFloat(item.sokerePerPlass) || 0,
             beskrivelse: `${linje} ved ${targetInstitution}`,
             link: item.Institusjonsnavn?.includes('NHH') ? "https://www.nhh.no/studier/" : "#"
           };
@@ -146,12 +145,12 @@ const UniversityStatistics = () => {
       }
     }
     
-    // Fallback to hardcoded data
-    return universityData[selectedUniversity] || [];
+    // Return empty array if no data
+    return [];
   };
   
   const currentUniversityData = getCurrentUniversityData();
-  const isUsingSupabaseData = allSupabaseData.length > 0 && currentUniversityData.length > 0;
+  const isUsingSupabaseData = allSupabaseData.length > 0;
   
   const sortedPrograms = [...currentUniversityData].sort((a, b) => {
     if (sortBy === "snitt") {
@@ -176,7 +175,7 @@ const UniversityStatistics = () => {
       {isUsingSupabaseData && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <p className="text-green-800 text-sm">
-            ✅ Viser data hentet fra Supabase (Universitetsdata tabell)
+            ✅ Viser data hentet fra Student_data tabell
           </p>
           <p className="text-green-700 text-xs mt-1">
             Totalt {allSupabaseData.length} poster hentet fra databasen
@@ -202,7 +201,7 @@ const UniversityStatistics = () => {
                 {universities.map((uni) => (
                   <SelectItem key={uni.id} value={uni.id}>
                     {uni.name}
-                    {isUsingSupabaseData && ' (Supabase data)'}
+                    {isUsingSupabaseData && ' (Student_data)'}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -277,13 +276,13 @@ const UniversityStatistics = () => {
           <CardTitle className="text-2xl">
             Studielinjer ved {universities.find(u => u.id === selectedUniversity)?.name || 'universitet'}
             {isUsingSupabaseData && (
-              <Badge variant="secondary" className="ml-2">Supabase data</Badge>
+              <Badge variant="secondary" className="ml-2">Student_data</Badge>
             )}
           </CardTitle>
           <CardDescription>
             {isUsingSupabaseData ? 
-              `Viser ${currentUniversityData.length} studielinjer hentet fra Supabase` :
-              'Bruker hardkodede testdata'
+              `Viser ${currentUniversityData.length} studielinjer hentet fra Student_data` :
+              'Ingen data tilgjengelig fra Student_data'
             }
             {loading && ' (Henter data...)'}
           </CardDescription>
@@ -292,7 +291,7 @@ const UniversityStatistics = () => {
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
-              <p>Henter data fra Supabase...</p>
+              <p>Henter data fra Student_data...</p>
             </div>
           ) : topPrograms.length > 0 ? (
             topPrograms.map((program, index) => (
@@ -307,7 +306,7 @@ const UniversityStatistics = () => {
               <Info className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium mb-2">Ingen data tilgjengelig</h3>
               <p className="text-muted-foreground">
-                Vi fant ingen data for {universities.find(u => u.id === selectedUniversity)?.name} i databasen ennå.
+                Vi fant ingen data for {universities.find(u => u.id === selectedUniversity)?.name} i Student_data tabellen ennå.
               </p>
             </div>
           )}
@@ -316,8 +315,8 @@ const UniversityStatistics = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Komplett liste over studielinjer (2024)</CardTitle>
-          <CardDescription>Alle tilgjengelige studielinjer ved {universities.find(u => u.id === selectedUniversity)?.name} for 2024</CardDescription>
+          <CardTitle>Komplett liste over studielinjer</CardTitle>
+          <CardDescription>Alle tilgjengelige studielinjer ved {universities.find(u => u.id === selectedUniversity)?.name} fra Student_data</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
