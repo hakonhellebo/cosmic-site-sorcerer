@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
@@ -325,7 +326,7 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
                   margin={{
                     top: 40,
                     right: 30,
-                    left: 60,
+                    left: 100,
                     bottom: 20,
                   }}
                   maxBarSize={60}
