@@ -15,16 +15,15 @@ import { cn } from "@/lib/utils";
 import SalaryTrendChart from './SalaryTrendChart';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
-import { loadYrkeOptions, searchSalaryData, YrkeOption, SalaryResult } from '@/services/salaryApi';
+
+// Use the correct EdPath backend URL (without /lonn/ at the end)
+const API_BASE_URL = 'https://edpath-backend-production.up.railway.app';
 
 interface SalaryResult {
   Yrke: string;
   Kjonn: string;
   Tid: number;
   Sektor: string;
-  MaaleMetode: string;
-  AvtaltVanlig: string;
-  ContentsCode: string;
   value: number;
 }
 
@@ -43,16 +42,13 @@ const SalarySearch = () => {
   const [kjonn, setKjonn] = useState('');
   const [selectedYears, setSelectedYears] = useState<string[]>([]);
   const [sektor, setSektor] = useState('');
-  const [maaleMetode, setMaaleMetode] = useState('');
-  const [avtaltVanlig, setAvtaltVanlig] = useState('');
-  const [contentsCode, setContentsCode] = useState('');
   const [results, setResults] = useState<SalaryResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [yrkeOptions, setYrkeOptions] = useState<YrkeOption[]>([]);
   const [loadingYrker, setLoadingYrker] = useState(false);
   const [yrkeDropdownOpen, setYrkeDropdownOpen] = useState(false);
-  const [apiStatus, setApiStatus] = useState<string>('Klar til å laste yrker...');
+  const [apiStatus, setApiStatus] = useState<string>('Tester tilkobling...');
   const [viewMode, setViewMode] = useState<'chart' | 'table'>('chart');
 
   const years = Array.from({ length: 7 }, (_, i) => 2018 + i); // 2018-2024
@@ -70,31 +66,6 @@ const SalarySearch = () => {
     { value: 'Kommune og fylkeskommune', label: 'Kommune og fylkeskommune' }
   ];
 
-  const measurementMethodOptions = [
-    { value: 'Gjennomsnitt', label: 'Gjennomsnitt' },
-    { value: 'Median', label: 'Median' },
-    { value: 'Nedre kvartil', label: 'Nedre kvartil' },
-    { value: 'Øvre kvartil', label: 'Øvre kvartil' },
-    { value: 'Antall arbeidsforhold med lønn', label: 'Antall arbeidsforhold med lønn' },
-    { value: 'Antall heltidsekvivalenter', label: 'Antall heltidsekvivalenter' }
-  ];
-
-  const workTimeOptions = [
-    { value: 'Alt', label: 'Alt' },
-    { value: 'Heltidsansatte', label: 'Heltidsansatte' },
-    { value: 'Deltidsansatte', label: 'Deltidsansatte' }
-  ];
-
-  const contentsCodeOptions = [
-    { value: 'Månedslønn (kr)', label: 'Månedslønn (kr)' },
-    { value: 'Avtalt månedslønn (kr)', label: 'Avtalt månedslønn (kr)' },
-    { value: 'Uregelmessige tillegg (kr)', label: 'Uregelmessige tillegg (kr)' },
-    { value: 'Bonus (kr)', label: 'Bonus (kr)' },
-    { value: 'Overtidsgodtgjørelse (kr)', label: 'Overtidsgodtgjørelse (kr)' },
-    { value: 'Alder (år)', label: 'Alder (år)' },
-    { value: 'Avtalt arbeidstid per uke (timer)', label: 'Avtalt arbeidstid per uke (timer)' }
-  ];
-
   // Color palette for different occupations
   const colors = [
     'hsl(220, 70%, 50%)', // Blue
@@ -107,16 +78,36 @@ const SalarySearch = () => {
     'hsl(340, 82%, 52%)', // Pink
   ];
 
-  // Load occupations from API with optimized caching
-  const loadYrkerWithStatus = async () => {
+  // Load occupations from API
+  const loadYrkeOptions = async () => {
     try {
       setLoadingYrker(true);
       setApiStatus('Henter yrker fra API...');
       
-      const options = await loadYrkeOptions();
+      const response = await fetch(`${API_BASE_URL}/lonn/`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API feil: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('API response:', data);
+      
+      // Extract unique occupations from the data
+      const uniqueYrker = [...new Set(data.map((item: any) => item.Yrke))];
+      const options = uniqueYrker.map(yrke => ({
+        value: yrke as string,
+        label: yrke as string
+      }));
       
       setYrkeOptions(options);
-      setApiStatus(`✅ ${options.length} yrker lastet (cached)`);
+      setApiStatus(`✅ API tilkoblet - ${options.length} yrker lastet`);
       
     } catch (err) {
       console.error('Error loading yrker:', err);
@@ -128,14 +119,9 @@ const SalarySearch = () => {
     }
   };
 
-  // Load occupations when component mounts, but only if needed
+  // Load occupations when component mounts
   useEffect(() => {
-    // Only load if we don't have options already
-    if (yrkeOptions.length === 0) {
-      loadYrkerWithStatus();
-    } else {
-      setApiStatus(`✅ ${yrkeOptions.length} yrker tilgjengelig`);
-    }
+    loadYrkeOptions();
   }, []);
 
   const handleYrkeAdd = (yrke: string) => {
@@ -159,8 +145,10 @@ const SalarySearch = () => {
 
   const handleSelectAllYears = () => {
     if (selectedYears.length === years.length) {
+      // If all years are selected, deselect all
       setSelectedYears([]);
     } else {
+      // Select all years
       setSelectedYears(years.map(year => year.toString()));
     }
   };
@@ -171,34 +159,55 @@ const SalarySearch = () => {
     setResults([]);
 
     try {
-      console.log('Starting search with filters:', { 
-        selectedYrker, 
-        kjonn, 
-        selectedYears, 
-        sektor, 
-        maaleMetode, 
-        avtaltVanlig, 
-        contentsCode 
-      });
+      console.log('Starting search with filters:', { selectedYrker, kjonn, selectedYears, sektor });
       
       const allResults: SalaryResult[] = [];
 
-      // Search for each selected occupation using the optimized API service
+      // Search for each selected occupation
       for (const yrke of selectedYrker) {
-        const results = await searchSalaryData({
-          yrke,
-          kjonn,
-          selectedYears,
-          sektor,
-          maaleMetode,
-          avtaltVanlig,
-          contentsCode
+        const params = new URLSearchParams();
+        params.append('yrke', yrke);
+        if (kjonn) params.append('kjonn', kjonn);
+        if (sektor) params.append('sektor', sektor);
+        
+        // Add multiple years
+        selectedYears.forEach(year => {
+          params.append('tid', year);
+        });
+
+        const url = `${API_BASE_URL}/lonn/?${params.toString()}`;
+        console.log('Search URL for', yrke, ':', url);
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
         });
         
-        allResults.push(...results);
+        if (!response.ok) {
+          throw new Error(`API feil: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Search response for', yrke, ':', data);
+        
+        // Handle array response (multiple years)
+        if (Array.isArray(data) && data.length > 0) {
+          const mappedResults = data.map(item => ({
+            Yrke: yrke,
+            Kjonn: kjonn || 'Ikke spesifisert', 
+            Tid: item.Tid,
+            Sektor: sektor || 'Ikke spesifisert',
+            value: item.value
+          }));
+          allResults.push(...mappedResults);
+        }
       }
 
       if (allResults.length > 0) {
+        // Sort by year for better visualization
         allResults.sort((a, b) => a.Tid - b.Tid);
         setResults(allResults);
       } else {
@@ -214,7 +223,7 @@ const SalarySearch = () => {
     }
   };
 
-  const hasFilters = selectedYrker.length > 0 || kjonn || selectedYears.length > 0 || sektor || maaleMetode || avtaltVanlig || contentsCode;
+  const hasFilters = selectedYrker.length > 0 || kjonn || selectedYears.length > 0 || sektor;
 
   // Prepare chart data for comparison visualization
   const prepareComparisonData = (): ComparisonData[] => {
@@ -241,21 +250,6 @@ const SalarySearch = () => {
     return config;
   }, {} as any);
 
-  const getValueUnit = (contentsCode: string) => {
-    if (contentsCode.includes('kr')) return 'kr';
-    if (contentsCode.includes('år')) return 'år';
-    if (contentsCode.includes('timer')) return 'timer';
-    return '';
-  };
-
-  const formatValue = (value: number, contentsCode: string) => {
-    const unit = getValueUnit(contentsCode);
-    if (unit === 'kr') {
-      return `${value.toLocaleString('nb-NO')} kr`;
-    }
-    return `${value.toLocaleString('nb-NO')} ${unit}`;
-  };
-
   return (
     <div className="space-y-6">
       <Tabs defaultValue="single" className="space-y-6">
@@ -275,18 +269,18 @@ const SalarySearch = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <DollarSign className="h-5 w-5" />
-                Avansert lønnssøk & sammenligning
+                Lønnssøk & Sammenligning
               </CardTitle>
               <CardDescription>
-                Søk og sammenlign detaljerte lønnsdata med flere filtreringsmuligheter. Velg målemetode, innholdstype og andre kriterier for å få presise resultater.
+                Søk og sammenlign lønnsdata mellom forskjellige yrker, kjønn, år og sektorer. Velg flere yrker for å sammenligne.
               </CardDescription>
               <div className="text-sm text-muted-foreground">
                 API Status: {apiStatus}
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="space-y-2 md:col-span-2 lg:col-span-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2 md:col-span-2">
                   <label className="text-sm font-medium">Yrker (velg opptil 8 for sammenligning)</label>
                   <div className="space-y-2">
                     <Popover open={yrkeDropdownOpen} onOpenChange={setYrkeDropdownOpen}>
@@ -362,54 +356,6 @@ const SalarySearch = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Målemetode</label>
-                  <Select value={maaleMetode} onValueChange={setMaaleMetode}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Velg målemetode" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {measurementMethodOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Innholdstype</label>
-                  <Select value={contentsCode} onValueChange={setContentsCode}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Velg innholdstype" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {contentsCodeOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Arbeidstid</label>
-                  <Select value={avtaltVanlig} onValueChange={setAvtaltVanlig}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Velg arbeidstid" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {workTimeOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
                   <label className="text-sm font-medium">Kjønn</label>
                   <Select value={kjonn} onValueChange={setKjonn}>
                     <SelectTrigger>
@@ -473,7 +419,7 @@ const SalarySearch = () => {
                   )}
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 md:col-span-2">
                   <label className="text-sm font-medium">Sektor</label>
                   <Select value={sektor} onValueChange={setSektor}>
                     <SelectTrigger>
@@ -512,9 +458,6 @@ const SalarySearch = () => {
                       setKjonn('');
                       setSelectedYears([]);
                       setSektor('');
-                      setMaaleMetode('');
-                      setAvtaltVanlig('');
-                      setContentsCode('');
                       setResults([]);
                       setError(null);
                     }}
@@ -541,12 +484,6 @@ const SalarySearch = () => {
                   Velg minst ett yrke for å kunne søke.
                 </p>
               )}
-
-              {error && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-700 text-sm">{error}</p>
-                </div>
-              )}
             </CardContent>
           </Card>
 
@@ -559,12 +496,10 @@ const SalarySearch = () => {
                     <div>
                       <CardTitle className="flex items-center gap-2">
                         <TrendingUp className="h-5 w-5" />
-                        Sammenligning av data
+                        Sammenligning av lønn
                       </CardTitle>
                       <CardDescription>
                         {selectedYrker.length > 1 ? `Sammenligning av ${selectedYrker.length} yrker` : selectedYrker[0]}
-                        {maaleMetode && ` - ${maaleMetode}`}
-                        {contentsCode && ` - ${contentsCode}`}
                         {kjonn && ` - ${kjonn}`}
                         {sektor && ` - ${sektor}`}
                       </CardDescription>
@@ -600,17 +535,11 @@ const SalarySearch = () => {
                             domain={['dataMin', 'dataMax']}
                           />
                           <YAxis 
-                            tickFormatter={(value) => {
-                              const unit = getValueUnit(contentsCode);
-                              if (unit === 'kr') {
-                                return `${(value / 1000).toFixed(0)}k`;
-                              }
-                              return value.toLocaleString('nb-NO');
-                            }}
+                            tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
                           />
                           <ChartTooltip 
                             content={<ChartTooltipContent />}
-                            formatter={(value: number, name: string) => [formatValue(value, contentsCode), name]}
+                            formatter={(value: number, name: string) => [`${value.toLocaleString('nb-NO')} kr`, name]}
                             labelFormatter={(year) => `År ${year}`}
                           />
                           {uniqueOccupations.map((occupation, index) => (
@@ -647,7 +576,7 @@ const SalarySearch = () => {
                               <TableCell className="font-medium">{yearData.year}</TableCell>
                               {uniqueOccupations.map(occupation => (
                                 <TableCell key={occupation}>
-                                  {yearData[occupation] ? formatValue(yearData[occupation], contentsCode) : 'N/A'}
+                                  {yearData[occupation] ? `${yearData[occupation].toLocaleString('nb-NO')} kr` : 'N/A'}
                                 </TableCell>
                               ))}
                             </TableRow>
