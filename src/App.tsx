@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { navItems } from "./nav-items"
 import UniversityNTNU from "./pages/UniversityNTNU"
+import UniversityUiO from "./pages/UniversityUiO"
 
 const queryClient = new QueryClient()
 
@@ -18,6 +19,7 @@ const App = () => (
             <Route key={to} path={to} element={page} />
           ))}
           <Route path="/university/ntnu" element={<UniversityNTNU />} />
+          <Route path="/university/uio" element={<UniversityUiO />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

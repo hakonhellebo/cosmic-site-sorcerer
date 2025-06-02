@@ -272,6 +272,10 @@ const UniversityStatistics = () => {
     navigate('/university/ntnu');
   };
 
+  const handleUiOClick = () => {
+    navigate('/university/uio');
+  };
+
   return (
     <div className="space-y-8">
       {/* Data source indicator */}
@@ -318,6 +322,20 @@ const UniversityStatistics = () => {
                 >
                   <ExternalLink className="h-4 w-4" />
                   Les mer om NTNU her
+                </Button>
+              </div>
+            )}
+
+            {/* UiO Button */}
+            {selectedUniversity === "Universitetet i Oslo" && (
+              <div className="mt-3">
+                <Button 
+                  onClick={handleUiOClick}
+                  variant="outline" 
+                  className="w-full flex items-center gap-2"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Les mer om UiO her
                 </Button>
               </div>
             )}
@@ -385,7 +403,7 @@ const UniversityStatistics = () => {
               </CardDescription>
             </div>
             
-            {/* NTNU Button in header for when NTNU is selected */}
+            {/* University buttons in header */}
             {selectedUniversity === "Norges teknisk-naturvitenskapelige universitet" && (
               <Button 
                 onClick={handleNTNUClick}
@@ -394,6 +412,17 @@ const UniversityStatistics = () => {
               >
                 <ExternalLink className="h-4 w-4" />
                 Les mer om NTNU her
+              </Button>
+            )}
+
+            {selectedUniversity === "Universitetet i Oslo" && (
+              <Button 
+                onClick={handleUiOClick}
+                variant="outline" 
+                className="flex items-center gap-2"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Les mer om UiO her
               </Button>
             )}
           </div>
