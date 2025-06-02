@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,32 +22,27 @@ const UniversityNTNU = () => {
       const { data, error } = await getUniversityData();
       
       if (data && !error) {
-        // Filter for NTNU programs
+        // Filter for NTNU programs using the new Student_data structure
         const ntnuData = data.filter(item => 
-          item.Institusjonsnavn === 'Norges teknisk-naturvitenskapelige universitet'
+          item.Institusjonsnavn === 'Norges teknisk-naturvitenskapelige universitet' ||
+          item.Institusjonsnavn?.toLowerCase().includes('ntnu') ||
+          item.Institusjonsnavn?.toLowerCase().includes('teknisk-naturvitenskapelige')
         );
         
-        // Group by study program
-        const groupedPrograms = ntnuData.reduce((acc, item) => {
-          const key = item.Studnavn || item.Kvalifikasjonsnavn || 'Ukjent program';
-          if (!acc[key]) {
-            acc[key] = {
-              name: key,
-              code: item.Studiumkode || item.Kvalifikasjonskode,
-              level: item.Nivånavn,
-              department: item.Avdelingsnavn,
-              count: 0
-            };
-          }
-          acc[key].count++;
-          return acc;
-        }, {});
+        // Transform to expected format
+        const programsList = ntnuData.map((item, index) => ({
+          name: item.Studnavn || `Studie ${index + 1}`,
+          code: item.Studiumkode || item.Studiekode || `CODE${index + 1}`,
+          level: item.Nivånavn || 'Bachelor',
+          department: item.Avdelingsnavn || item['Utdanningsområde- og type'] || 'Ukjent avdeling',
+          count: 1
+        })).slice(0, 12); // Show top 12 programs
         
-        const programsList = Object.values(groupedPrograms).slice(0, 12); // Show top 12 programs
         setNtnuPrograms(programsList);
+        console.log(`Found ${programsList.length} NTNU programs from Student_data`);
       }
     } catch (error) {
-      console.error('Error fetching NTNU data:', error);
+      console.error('Error fetching NTNU data from Student_data:', error);
     } finally {
       setLoading(false);
     }
@@ -202,14 +196,14 @@ const UniversityNTNU = () => {
               Populære studieprogram ved NTNU
             </CardTitle>
             <CardDescription>
-              {loading ? 'Henter studieprogram...' : `Viser ${ntnuPrograms.length} studieprogram`}
+              {loading ? 'Henter studieprogram...' : `Viser ${ntnuPrograms.length} studieprogram (fra Student_data)`}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                <span className="ml-2">Henter studieprogram...</span>
+                <span className="ml-2">Henter studieprogram fra Student_data...</span>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -244,7 +238,7 @@ const UniversityNTNU = () => {
             {!loading && ntnuPrograms.length === 0 && (
               <div className="text-center py-12">
                 <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">Ingen studieprogram funnet i databasen</p>
+                <p className="text-gray-500">Ingen NTNU studieprogram funnet i Student_data</p>
               </div>
             )}
           </CardContent>

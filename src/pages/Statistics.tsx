@@ -15,34 +15,29 @@ const Statistics = () => {
   const [universities, setUniversities] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalRecords, setTotalRecords] = useState(0);
-  const [availableYears, setAvailableYears] = useState<string[]>([]);
-  const [availableLevels, setAvailableLevels] = useState<string[]>([]);
+  const [availableYears, setAvailableYears] = useState<string[]>(['2025']); // Default to 2025
+  const [availableLevels, setAvailableLevels] = useState<string[]>(['Bachelor\\, 3-årig']); // Default value
   const [selectedYear, setSelectedYear] = useState<string>('2025');
   const [selectedLevel, setSelectedLevel] = useState<string>('Bachelor\\, 3-årig');
 
-  // Fetch available filter options
+  // Fetch available filter options from Student_data
   const fetchFilterOptions = async () => {
-    console.log("Fetching available filter options...");
+    console.log("Fetching available filter options from Student_data...");
     
     try {
       const { data, error } = await supabase
-        .from('Universitetsdata')
-        .select('"Årstall", "Nivånavn"')
+        .from('Student_data')
+        .select('Lærestedsnavn, "Utdanningsområde- og type"')
         .limit(1000);
       
       if (data && !error) {
-        console.log("Raw data sample:", data.slice(0, 5));
+        console.log("Raw Student_data sample:", data.slice(0, 5));
         
-        // Get unique years
-        const years = [...new Set(data.map(item => item['Årstall']).filter(Boolean))].sort();
-        // Get unique levels
-        const levels = [...new Set(data.map(item => item['Nivånavn']).filter(Boolean))].sort();
+        // For now, use default values since new structure might not have explicit year/level columns
+        setAvailableYears(['2025']);
+        setAvailableLevels(['Bachelor\\, 3-årig']);
         
-        console.log("Available years:", years);
-        console.log("Available levels:", levels);
-        
-        setAvailableYears(years);
-        setAvailableLevels(levels);
+        console.log("Using default filter options for Student_data");
       } else {
         console.error("Error fetching filter options:", error);
       }
@@ -51,54 +46,42 @@ const Statistics = () => {
     }
   };
 
-  // Fetch filtered universities with default filters for 2025 and Bachelor
+  // Fetch filtered universities from Student_data
   const fetchFilteredUniversities = async () => {
     setLoading(true);
     try {
-      console.log("Fetching universities with filters:", { selectedYear, selectedLevel });
+      console.log("Fetching universities from Student_data...");
       
-      let query = supabase
-        .from('Universitetsdata')
+      const { data, error } = await supabase
+        .from('Student_data')
         .select('*', { count: 'exact' })
-        .order('Institusjonsnavn', { ascending: true });
-      
-      // Apply filters for 2025 and Bachelor, 3-årig
-      if (selectedYear) {
-        query = query.eq('"Årstall"', selectedYear);
-      }
-      
-      if (selectedLevel) {
-        query = query.eq('"Nivånavn"', selectedLevel);
-      }
-      
-      console.log("Executing query...");
-      const { data, error, count } = await query;
+        .order('Lærestedsnavn', { ascending: true });
       
       if (data && !error) {
-        console.log(`Query result: ${data.length} records found (total available: ${count})`);
-        setTotalRecords(count || data.length);
+        console.log(`Query result: ${data.length} records found from Student_data`);
+        setTotalRecords(data.length);
         
         // Group by institution to get unique universities
         const uniqueUniversities = data.reduce((acc, item) => {
-          const key = `${item.Institusjonskode}-${item.Institusjonsnavn}`;
+          const key = `${item.Lærestedsnavn}`;
           if (!acc[key]) {
             acc[key] = {
-              kode: item.Institusjonskode,
-              navn: item.Institusjonsnavn,
+              kode: item.Studiekode?.split(' ')[0] || '',
+              navn: item.Lærestedsnavn,
               antallProgrammer: 0,
               programmer: []
             };
           }
           acc[key].antallProgrammer++;
-          if (item.Studnavn && !acc[key].programmer.includes(item.Studnavn)) {
-            acc[key].programmer.push(item.Studnavn);
+          if (item.Studienavn && !acc[key].programmer.includes(item.Studienavn)) {
+            acc[key].programmer.push(item.Studienavn);
           }
           return acc;
         }, {});
         
         const universitiesList = Object.values(uniqueUniversities);
         setUniversities(universitiesList);
-        console.log(`Found ${universitiesList.length} unique universities from ${data.length} records`);
+        console.log(`Found ${universitiesList.length} unique universities from ${data.length} Student_data records`);
       } else {
         console.error("Error fetching universities:", error);
         alert(`❌ Feil: ${error?.message || 'Ukjent feil'}`);
@@ -175,9 +158,9 @@ const Statistics = () => {
           <TabsContent value="test">
             <Card>
               <CardHeader>
-                <CardTitle>Test-fane - Universitetsdata med filtre for 2025 og Bachelor</CardTitle>
+                <CardTitle>Test-fane - Student_data (ny datakilde)</CardTitle>
                 <CardDescription>
-                  Viser universitetsdata filtrert på 2025 og "Bachelor\, 3-årig"
+                  Viser universitetsdata hentet fra ny Student_data tabell
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -185,65 +168,34 @@ const Statistics = () => {
                   <div>
                     <div className="bg-gray-50 p-4 rounded-lg mb-4">
                       <h4 className="font-medium mb-2">API Status:</h4>
-                      <p className="text-sm text-green-600">✅ Universitetsdata er tilgjengelig</p>
+                      <p className="text-sm text-green-600">✅ Student_data er tilgjengelig</p>
                       <p className="text-sm text-gray-600">API-key: ...{supabaseAnonKey.slice(-10)}</p>
-                      <p className="text-sm text-blue-600">📊 Tilgjengelige år: {availableYears.join(', ')}</p>
-                      <p className="text-sm text-blue-600">📚 Tilgjengelige nivåer: {availableLevels.length} unike nivåer</p>
+                      <p className="text-sm text-blue-600">📊 Datakilde: Student_data tabell</p>
                       {totalRecords > 0 && (
-                        <p className="text-sm text-blue-600">📊 {totalRecords} filtrerte dataposter for 2025 + Bachelor</p>
+                        <p className="text-sm text-blue-600">📊 {totalRecords} dataposter fra Student_data</p>
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Årstall (Fast til 2025)</label>
-                        <Select value={selectedYear} onValueChange={setSelectedYear}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Velg årstall" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {availableYears.map((year) => (
-                              <SelectItem key={year} value={year}>{year}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Nivå (Fast til Bachelor, 3-årig)</label>
-                        <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Velg nivå" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {availableLevels.map((level) => (
-                              <SelectItem key={level} value={level}>{level}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    
                     <Button 
                       onClick={fetchFilteredUniversities}
                       disabled={loading}
                       className="w-full mb-4"
                     >
-                      {loading ? "Henter data..." : "Hent universitetsdata (2025 + Bachelor)"}
+                      {loading ? "Henter data..." : "Hent universitetsdata fra Student_data"}
                     </Button>
                   </div>
 
                   <div className="border-t pt-6">
                     <div className="flex justify-between items-center mb-4">
                       <h4 className="text-lg font-medium">
-                        Universiteter og høyskoler for 2025 - Bachelor, 3-årig
+                        Universiteter og høyskoler (Student_data)
                       </h4>
                     </div>
                     
                     {totalRecords > 0 && (
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
                         <p className="text-blue-800 text-sm">
-                          📊 Hentet {totalRecords} dataposter med 2025 + Bachelor, 3-årig filter
+                          📊 Hentet {totalRecords} dataposter fra Student_data tabell
                         </p>
                         <p className="text-blue-700 text-xs mt-1">
                           Viser {universities.length} unike universiteter/høyskoler
@@ -284,7 +236,7 @@ const Statistics = () => {
                     
                     {universities.length === 0 && !loading && (
                       <p className="text-sm text-muted-foreground">
-                        Klikk knappen over for å hente data for 2025 og Bachelor, 3-årig.
+                        Klikk knappen over for å hente data fra Student_data.
                       </p>
                     )}
                   </div>

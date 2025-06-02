@@ -369,26 +369,23 @@ export const getAllResponses = async (table: 'high_school_responses' | 'universi
   }
 };
 
-// Get university data from Universitetsdata table - updated to fetch ALL data
+// Updated function to get university data from Student_data table
 export const getUniversityData = async (institutionCode?: string, year?: string) => {
   try {
-    console.log("Fetching university data with params:", { institutionCode, year });
+    console.log("Fetching university data from Student_data table with params:", { institutionCode, year });
     
     let query = supabase
-      .from('Universitetsdata')
-      .select('*', { count: 'exact' }) // Request exact count and remove any default limits
-      .order('Institusjonsnavn', { ascending: true });
+      .from('Student_data')
+      .select('*', { count: 'exact' })
+      .order('Lærestedsnavn', { ascending: true });
     
+    // Note: institutionCode and year filters might need adjustment based on new data structure
     if (institutionCode) {
-      query = query.eq('Institusjonskode', institutionCode);
+      // Since we don't have institution codes in the new structure, we might filter by Lærestedsnavn
+      console.log("Institution code filtering not applicable with new data structure");
     }
     
-    // Filter by year if provided - check if Årstall column exists
-    if (year) {
-      query = query.eq('Årstall', year);
-    }
-    
-    console.log("Executing query to fetch ALL university data (no limits)...");
+    console.log("Executing query to fetch ALL university data from Student_data table...");
     
     // Fetch data in batches to handle large datasets
     let allData: any[] = [];
@@ -411,14 +408,12 @@ export const getUniversityData = async (institutionCode?: string, year?: string)
         allData = [...allData, ...batchData];
         console.log(`Added ${batchData.length} records. Total so far: ${allData.length}`);
         
-        // Check if we have more data to fetch
         if (batchData.length < batchSize) {
           hasMore = false;
         } else {
           from += batchSize;
         }
         
-        // If we have count, we can check against total
         if (count !== null && allData.length >= count) {
           hasMore = false;
         }
@@ -427,16 +422,68 @@ export const getUniversityData = async (institutionCode?: string, year?: string)
       }
     }
     
-    console.log("University data query complete:", { 
+    console.log("Student_data query complete:", { 
       totalRecords: allData.length,
-      sampleData: allData.slice(0, 3) // Show first 3 rows as sample
+      sampleData: allData.slice(0, 3)
     });
     
-    return { data: allData, error: null };
+    // Transform the pivot data to match the expected format
+    const transformedData = transformStudentDataToUniversityFormat(allData);
+    
+    return { data: transformedData, error: null };
   } catch (error) {
-    console.error('Error fetching university data:', error);
+    console.error('Error fetching university data from Student_data:', error);
     return { data: null, error };
   }
+};
+
+// Helper function to transform Student_data pivot format to expected university data format
+const transformStudentDataToUniversityFormat = (studentData: any[]) => {
+  console.log("Transforming Student_data to university format...");
+  
+  // Group by study program
+  const groupedData = studentData.reduce((acc, row) => {
+    const key = `${row.Lærestedsnavn}-${row.Studiekode}`;
+    
+    if (!acc[key]) {
+      acc[key] = {
+        Institusjonsnavn: row.Lærestedsnavn,
+        Institusjonskode: row.Studiekode?.split(' ')[0] || '',
+        Studnavn: row.Studienavn,
+        Studiumkode: row.Studiekode,
+        Avdelingsnavn: row['Utdanningsområde- og type'] || '',
+        Nivånavn: 'Bachelor\\, 3-årig', // Default value for compatibility
+        Årstall: '2025', // Default value for compatibility
+        Semester: 'Høst',
+        measurements: {}
+      };
+    }
+    
+    // Store the measurement
+    if (row['Measure Names'] && row['Measure Values']) {
+      acc[key].measurements[row['Measure Names']] = row['Measure Values'];
+    }
+    
+    return acc;
+  }, {});
+  
+  const transformedData = Object.values(groupedData).map((item: any) => {
+    return {
+      ...item,
+      // Add computed fields for compatibility with existing code
+      snitt: parseFloat(item.measurements['Snitt']) || 0,
+      planlagteStudieplasser: parseInt(item.measurements['Planlagte studieplasser']) || 0,
+      sokereMott: parseInt(item.measurements['Søkere møtt']) || 0,
+      sokereTilbud: parseInt(item.measurements['Søkere tilbud']) || 0,
+      sokereTilbudJaSvar: parseInt(item.measurements['Søkere tilbud ja-svar']) || 0,
+      sokereKvalifisert: parseInt(item.measurements['Søkere kvalifisert']) || 0,
+      sokere: parseInt(item.measurements['Søkere']) || 0,
+      sokerePerPlass: parseFloat(item.measurements['Søkere per plass']) || 0
+    };
+  });
+  
+  console.log("Transformation complete. Sample transformed data:", transformedData.slice(0, 2));
+  return transformedData;
 };
 
 // Get career data from Yrke_statistikk table

@@ -273,6 +273,36 @@ export type Database = {
         }
         Relationships: []
       }
+      Student_data: {
+        Row: {
+          Lærestednavn: string | null
+          "Measure Names": string | null
+          "Measure Values": string | null
+          Studiekode: string | null
+          Studienavn: string | null
+          Studiested: string | null
+          "Utdanningsområde- og type": string | null
+        }
+        Insert: {
+          Lærestednavn?: string | null
+          "Measure Names"?: string | null
+          "Measure Values"?: string | null
+          Studiekode?: string | null
+          Studienavn?: string | null
+          Studiested?: string | null
+          "Utdanningsområde- og type"?: string | null
+        }
+        Update: {
+          Lærestednavn?: string | null
+          "Measure Names"?: string | null
+          "Measure Values"?: string | null
+          Studiekode?: string | null
+          Studienavn?: string | null
+          Studiested?: string | null
+          "Utdanningsområde- og type"?: string | null
+        }
+        Relationships: []
+      }
       Universitetsdata: {
         Row: {
           Årstall: string | null
