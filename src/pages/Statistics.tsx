@@ -8,9 +8,51 @@ import CareerStatistics from '@/components/statistics/CareerStatistics';
 import UniversityStatistics from '@/components/statistics/UniversityStatistics';
 import CompanyStatistics from '@/components/statistics/CompanyStatistics';
 import SalarySearch from '@/components/statistics/SalarySearch';
-import { getUniversityData } from '@/lib/supabase';
+import { getUniversityData, supabaseAnonKey } from '@/lib/supabase';
 
 const Statistics = () => {
+  const [universities, setUniversities] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchUniversities = async () => {
+    setLoading(true);
+    try {
+      console.log("Fetching all universities...");
+      const { data, error } = await getUniversityData();
+      
+      if (data && !error) {
+        // Group by institution to get unique universities
+        const uniqueUniversities = data.reduce((acc, item) => {
+          const key = `${item.Institusjonskode}-${item.Institusjonsnavn}`;
+          if (!acc[key]) {
+            acc[key] = {
+              kode: item.Institusjonskode,
+              navn: item.Institusjonsnavn,
+              antallProgrammer: 0,
+              programmer: []
+            };
+          }
+          acc[key].antallProgrammer++;
+          if (item.Studnavn && !acc[key].programmer.includes(item.Studnavn)) {
+            acc[key].programmer.push(item.Studnavn);
+          }
+          return acc;
+        }, {});
+        
+        const universitiesList = Object.values(uniqueUniversities);
+        setUniversities(universitiesList);
+        console.log("Found universities:", universitiesList);
+      } else {
+        console.error("Error fetching universities:", error);
+        alert(`❌ Feil: ${error?.message || 'Ukjent feil'}`);
+      }
+    } catch (err) {
+      console.error("Fetch universities error:", err);
+      alert(`❌ Feil: ${err.message}`);
+    }
+    setLoading(false);
+  };
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
@@ -70,44 +112,96 @@ const Statistics = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <p className="text-muted-foreground">
-                    Tester ny offentlig tilgang til universitetsdata med API-key.
-                  </p>
-                  
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="font-medium mb-2">API Status:</h4>
-                    <p className="text-sm text-green-600">✅ Universitetsdata er nå offentlig tilgjengelig</p>
-                    <p className="text-sm text-gray-600">API-key: ...eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpjZmNsb2p6eXFlenV1d3h6cnpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MTYzODMsImV4cCI6MjA1OTA5MjM4M30.EvRcjK9lCiuuV7FBLE4M7g9mifFsUQg7nIMefi9VJaQ.slice(-10)}</p>
-                  </div>
-                  
-                  <Button 
-                    onClick={async () => {
-                      try {
-                        console.log("Testing public university data access...");
-                        const { data, error } = await getUniversityData();
-                        console.log("University data test result:", { 
-                          dataLength: data?.length, 
-                          error: error?.message,
-                          firstRow: data?.[0] 
-                        });
-                        
-                        if (data && data.length > 0) {
-                          alert(`✅ Suksess! Hentet ${data.length} rader fra universitetsdata`);
-                        } else if (error) {
-                          alert(`❌ Feil: ${error.message}`);
-                        } else {
-                          alert(`⚠️ Ingen data funnet`);
+                <div className="space-y-6">
+                  <div>
+                    <p className="text-muted-foreground mb-4">
+                      Tester ny offentlig tilgang til universitetsdata med API-key.
+                    </p>
+                    
+                    <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                      <h4 className="font-medium mb-2">API Status:</h4>
+                      <p className="text-sm text-green-600">✅ Universitetsdata er nå offentlig tilgjengelig</p>
+                      <p className="text-sm text-gray-600">API-key: ...{supabaseAnonKey.slice(-10)}</p>
+                    </div>
+                    
+                    <Button 
+                      onClick={async () => {
+                        try {
+                          console.log("Testing public university data access...");
+                          const { data, error } = await getUniversityData();
+                          console.log("University data test result:", { 
+                            dataLength: data?.length, 
+                            error: error?.message,
+                            firstRow: data?.[0] 
+                          });
+                          
+                          if (data && data.length > 0) {
+                            alert(`✅ Suksess! Hentet ${data.length} rader fra universitetsdata`);
+                          } else if (error) {
+                            alert(`❌ Feil: ${error.message}`);
+                          } else {
+                            alert(`⚠️ Ingen data funnet`);
+                          }
+                        } catch (err) {
+                          console.error("Test error:", err);
+                          alert(`❌ Test feilet: ${err.message}`);
                         }
-                      } catch (err) {
-                        console.error("Test error:", err);
-                        alert(`❌ Test feilet: ${err.message}`);
-                      }
-                    }}
-                    className="w-full"
-                  >
-                    Test Universitetsdata API
-                  </Button>
+                      }}
+                      className="w-full mb-4"
+                    >
+                      Test Universitetsdata API
+                    </Button>
+                  </div>
+
+                  <div className="border-t pt-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h4 className="text-lg font-medium">Tilgjengelige universiteter og høyskoler</h4>
+                      <Button 
+                        onClick={fetchUniversities}
+                        disabled={loading}
+                        variant="outline"
+                      >
+                        {loading ? "Henter..." : "Hent universiteter"}
+                      </Button>
+                    </div>
+                    
+                    {universities.length > 0 && (
+                      <div className="space-y-3">
+                        <p className="text-sm text-muted-foreground">
+                          Fant {universities.length} universiteter/høyskoler i databasen
+                        </p>
+                        <div className="grid gap-3 max-h-96 overflow-y-auto">
+                          {universities.map((uni, index) => (
+                            <div key={index} className="border rounded-lg p-3 bg-white">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h5 className="font-medium text-sm">{uni.navn}</h5>
+                                  <p className="text-xs text-gray-500">Kode: {uni.kode}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-xs text-gray-600">{uni.antallProgrammer} programmer</p>
+                                </div>
+                              </div>
+                              {uni.programmer.length > 0 && (
+                                <div className="mt-2">
+                                  <p className="text-xs text-gray-500">
+                                    Eksempler: {uni.programmer.slice(0, 2).join(", ")}
+                                    {uni.programmer.length > 2 && " ..."}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {universities.length === 0 && !loading && (
+                      <p className="text-sm text-muted-foreground">
+                        Klikk "Hent universiteter" for å se tilgjengelige institusjoner
+                      </p>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
