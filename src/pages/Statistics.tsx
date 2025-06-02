@@ -18,8 +18,8 @@ const Statistics = () => {
   const [totalRecords, setTotalRecords] = useState(0);
   const [availableYears, setAvailableYears] = useState<string[]>([]);
   const [availableLevels, setAvailableLevels] = useState<string[]>([]);
-  const [selectedYear, setSelectedYear] = useState<string>('');
-  const [selectedLevel, setSelectedLevel] = useState<string>('');
+  const [selectedYear, setSelectedYear] = useState<string>('2025');
+  const [selectedLevel, setSelectedLevel] = useState<string>('Bachelor\\, 3-årig');
 
   // Fetch available filter options
   const fetchFilterOptions = async () => {
@@ -28,16 +28,16 @@ const Statistics = () => {
     try {
       const { data, error } = await supabase
         .from('Universitetsdata')
-        .select('Årstall, Nivånavn')
+        .select('"Årstall", "Nivånavn"')
         .limit(1000);
       
       if (data && !error) {
         console.log("Raw data sample:", data.slice(0, 5));
         
         // Get unique years
-        const years = [...new Set(data.map(item => item.Årstall).filter(Boolean))].sort();
+        const years = [...new Set(data.map(item => item['Årstall']).filter(Boolean))].sort();
         // Get unique levels
-        const levels = [...new Set(data.map(item => item.Nivånavn).filter(Boolean))].sort();
+        const levels = [...new Set(data.map(item => item['Nivånavn']).filter(Boolean))].sort();
         
         console.log("Available years:", years);
         console.log("Available levels:", levels);
@@ -52,7 +52,7 @@ const Statistics = () => {
     }
   };
 
-  // Fetch filtered universities
+  // Fetch filtered universities with default filters for 2025 and Bachelor
   const fetchFilteredUniversities = async () => {
     setLoading(true);
     try {
@@ -63,12 +63,13 @@ const Statistics = () => {
         .select('*', { count: 'exact' })
         .order('Institusjonsnavn', { ascending: true });
       
+      // Apply filters for 2025 and Bachelor, 3-årig
       if (selectedYear) {
-        query = query.eq('Årstall', selectedYear);
+        query = query.eq('"Årstall"', selectedYear);
       }
       
       if (selectedLevel) {
-        query = query.eq('Nivånavn', selectedLevel);
+        query = query.eq('"Nivånavn"', selectedLevel);
       }
       
       console.log("Executing query...");
@@ -114,6 +115,13 @@ const Statistics = () => {
   useEffect(() => {
     fetchFilterOptions();
   }, []);
+
+  // Auto-fetch data when component mounts with default filters
+  useEffect(() => {
+    if (availableYears.length > 0 && availableLevels.length > 0) {
+      fetchFilteredUniversities();
+    }
+  }, [availableYears, availableLevels]);
 
   return (
     <Layout>
@@ -168,18 +176,14 @@ const Statistics = () => {
           <TabsContent value="test">
             <Card>
               <CardHeader>
-                <CardTitle>Test-fane - Universitetsdata med dynamiske filtre</CardTitle>
+                <CardTitle>Test-fane - Universitetsdata med filtre for 2025 og Bachelor</CardTitle>
                 <CardDescription>
-                  Utforsk universitetsdata med filtre basert på tilgjengelige verdier
+                  Viser universitetsdata filtrert på 2025 og "Bachelor\, 3-årig"
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
                   <div>
-                    <p className="text-muted-foreground mb-4">
-                      Velg filtre basert på tilgjengelige data i tabellen, eller la filtrene stå tomme for å hente alt.
-                    </p>
-                    
                     <div className="bg-gray-50 p-4 rounded-lg mb-4">
                       <h4 className="font-medium mb-2">API Status:</h4>
                       <p className="text-sm text-green-600">✅ Universitetsdata er tilgjengelig</p>
@@ -187,19 +191,18 @@ const Statistics = () => {
                       <p className="text-sm text-blue-600">📊 Tilgjengelige år: {availableYears.join(', ')}</p>
                       <p className="text-sm text-blue-600">📚 Tilgjengelige nivåer: {availableLevels.length} unike nivåer</p>
                       {totalRecords > 0 && (
-                        <p className="text-sm text-blue-600">📊 {totalRecords} filtrerte dataposter</p>
+                        <p className="text-sm text-blue-600">📊 {totalRecords} filtrerte dataposter for 2025 + Bachelor</p>
                       )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <div>
-                        <label className="block text-sm font-medium mb-2">Årstall</label>
+                        <label className="block text-sm font-medium mb-2">Årstall (Fast til 2025)</label>
                         <Select value={selectedYear} onValueChange={setSelectedYear}>
                           <SelectTrigger>
-                            <SelectValue placeholder="Velg årstall (eller la stå tom)" />
+                            <SelectValue placeholder="Velg årstall" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">Alle år</SelectItem>
                             {availableYears.map((year) => (
                               <SelectItem key={year} value={year}>{year}</SelectItem>
                             ))}
@@ -208,13 +211,12 @@ const Statistics = () => {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium mb-2">Nivå</label>
+                        <label className="block text-sm font-medium mb-2">Nivå (Fast til Bachelor, 3-årig)</label>
                         <Select value={selectedLevel} onValueChange={setSelectedLevel}>
                           <SelectTrigger>
-                            <SelectValue placeholder="Velg nivå (eller la stå tom)" />
+                            <SelectValue placeholder="Velg nivå" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">Alle nivåer</SelectItem>
                             {availableLevels.map((level) => (
                               <SelectItem key={level} value={level}>{level}</SelectItem>
                             ))}
@@ -228,23 +230,21 @@ const Statistics = () => {
                       disabled={loading}
                       className="w-full mb-4"
                     >
-                      {loading ? "Henter data..." : "Hent universitetsdata"}
+                      {loading ? "Henter data..." : "Hent universitetsdata (2025 + Bachelor)"}
                     </Button>
                   </div>
 
                   <div className="border-t pt-6">
                     <div className="flex justify-between items-center mb-4">
                       <h4 className="text-lg font-medium">
-                        Universiteter og høyskoler
-                        {selectedYear && ` (${selectedYear})`}
-                        {selectedLevel && ` - ${selectedLevel}`}
+                        Universiteter og høyskoler for 2025 - Bachelor, 3-årig
                       </h4>
                     </div>
                     
                     {totalRecords > 0 && (
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
                         <p className="text-blue-800 text-sm">
-                          📊 Hentet {totalRecords} dataposter med valgte filtre
+                          📊 Hentet {totalRecords} dataposter med 2025 + Bachelor, 3-årig filter
                         </p>
                         <p className="text-blue-700 text-xs mt-1">
                           Viser {universities.length} unike universiteter/høyskoler
@@ -285,7 +285,7 @@ const Statistics = () => {
                     
                     {universities.length === 0 && !loading && (
                       <p className="text-sm text-muted-foreground">
-                        Klikk knappen over for å hente data. Prøv forskjellige filterkombinationer eller la filtrene stå tomme for å se alle data.
+                        Klikk knappen over for å hente data for 2025 og Bachelor, 3-årig.
                       </p>
                     )}
                   </div>
