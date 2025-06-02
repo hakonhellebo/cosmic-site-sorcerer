@@ -6,7 +6,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Loader2, TrendingUp, ChevronDown, Check } from "lucide-react";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell, LabelList } from 'recharts';
 import { cn } from "@/lib/utils";
 
 interface YrkeOption {
@@ -150,6 +150,24 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
       label: "Lønn",
       color: "#3b82f6", // Blue color
     },
+  };
+
+  // Custom label renderer for showing values on top of bars
+  const renderCustomLabel = (props: any) => {
+    const { x, y, width, value } = props;
+    return (
+      <text 
+        x={x + width / 2} 
+        y={y - 5} 
+        fill="#374151" 
+        textAnchor="middle" 
+        dy={-6} 
+        fontSize="12"
+        fontWeight="500"
+      >
+        {value ? `${(value / 1000).toFixed(0)}k` : ''}
+      </text>
+    );
   };
 
   const hasFilters = yrke;
@@ -305,11 +323,12 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
                 <BarChart
                   data={trendData}
                   margin={{
-                    top: 20,
+                    top: 40,
                     right: 30,
                     left: 20,
                     bottom: 20,
                   }}
+                  maxBarSize={60}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
@@ -330,7 +349,9 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
                     dataKey="salary" 
                     fill="var(--color-salary)"
                     radius={[4, 4, 0, 0]}
-                  />
+                  >
+                    <LabelList content={renderCustomLabel} />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
