@@ -21,147 +21,136 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getUniversityData } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import UniversityProgramCard from './UniversityProgramCard';
 
 const UniversityStatistics = () => {
-  const [selectedUniversity, setSelectedUniversity] = useState("nhh");
+  const [selectedUniversity, setSelectedUniversity] = useState("");
   const [sortBy, setSortBy] = useState("snitt");
-  const [allSupabaseData, setAllSupabaseData] = useState<any[]>([]);
+  const [allStudentData, setAllStudentData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [universities, setUniversities] = useState<string[]>([]);
   const [availablePrograms, setAvailablePrograms] = useState<string[]>([]);
   
-  const universities = [
-    { id: 'nhh', name: 'Norges Handelshøyskole' },
-    { id: 'ntnu', name: 'Norges teknisk-naturvitenskapelige universitet' },
-    { id: 'uio', name: 'Universitetet i Oslo' },
-    { id: 'uib', name: 'Universitetet i Bergen' },
-    { id: 'oslomet', name: 'OsloMet - storbyuniversitetet' }
-  ];
-
-  // Fetch all university data from Supabase when component mounts
+  // Fetch all data from Student_data when component mounts
   useEffect(() => {
-    const fetchAllUniversityData = async () => {
+    const fetchStudentData = async () => {
       setLoading(true);
-      console.log("Fetching all university data from Student_data...");
+      console.log("Fetching all data from Student_data...");
       
-      const { data, error } = await getUniversityData();
-      
-      if (data && !error) {
-        console.log("Raw university data from Student_data:", data);
-        console.log("Number of records:", data.length);
+      try {
+        const { data, error } = await supabase
+          .from('Student_data')
+          .select('*');
         
-        // Group data by institution
-        const groupedData = data.reduce((acc, item) => {
-          const institusjonsnavn = item.Institusjonsnavn || 'Unknown';
-          if (!acc[institusjonsnavn]) {
-            acc[institusjonsnavn] = [];
+        if (data && !error) {
+          console.log("Raw Student_data:", data.slice(0, 5));
+          console.log("Number of records:", data.length);
+          
+          setAllStudentData(data);
+          
+          // Extract unique universities from column A (Lærestednavn)
+          const uniqueUniversities = [...new Set(data.map(item => item.Lærestednavn).filter(Boolean))].sort();
+          setUniversities(uniqueUniversities);
+          console.log("Found universities:", uniqueUniversities);
+          
+          // Set first university as default
+          if (uniqueUniversities.length > 0 && !selectedUniversity) {
+            setSelectedUniversity(uniqueUniversities[0]);
           }
-          acc[institusjonsnavn].push(item);
-          return acc;
-        }, {});
-        
-        console.log("Grouped university data by institution:", groupedData);
-        setAllSupabaseData(data);
-      } else {
-        console.error("Error fetching university data:", error);
+        } else {
+          console.error("Error fetching Student_data:", error);
+        }
+      } catch (err) {
+        console.error("Error:", err);
       }
       setLoading(false);
     };
 
-    fetchAllUniversityData();
+    fetchStudentData();
   }, []);
   
-  // Update available programs when university or data changes
+  // Update available programs when university changes
   useEffect(() => {
-    if (allSupabaseData.length > 0) {
-      const institutionMap = {
-        'nhh': 'Norges Handelshøyskole',
-        'ntnu': 'Norges teknisk-naturvitenskapelige universitet',
-        'uio': 'Universitetet i Oslo',
-        'uib': 'Universitetet i Bergen',
-        'oslomet': 'OsloMet - storbyuniversitetet'
-      };
-      
-      const targetInstitution = institutionMap[selectedUniversity];
-      const universityData = allSupabaseData.filter(item => 
-        item.Institusjonsnavn === targetInstitution
+    if (allStudentData.length > 0 && selectedUniversity) {
+      // Filter data for selected university and get unique study programs from column C (Studienavn)
+      const universityData = allStudentData.filter(item => 
+        item.Lærestednavn === selectedUniversity
       );
       
-      // Extract unique study programs
       const programs = [...new Set(universityData.map(item => 
-        item.Studnavn || item.Kvalifikasjonsnavn
+        item.Studienavn
       ).filter(Boolean))].sort();
       
       setAvailablePrograms(programs);
-      console.log(`Found ${programs.length} unique programs for ${targetInstitution}:`, programs);
+      console.log(`Found ${programs.length} programs for ${selectedUniversity}:`, programs);
     }
-  }, [selectedUniversity, allSupabaseData]);
+  }, [selectedUniversity, allStudentData]);
   
-  // Get current university data - use Student_data from Supabase
-  const getCurrentUniversityData = () => {
-    if (allSupabaseData.length > 0) {
-      // Map university IDs to institution names
-      const institutionMap = {
-        'nhh': 'Norges Handelshøyskole',
-        'ntnu': 'Norges teknisk-naturvitenskapelige universitet',
-        'uio': 'Universitetet i Oslo',
-        'uib': 'Universitetet i Bergen',
-        'oslomet': 'OsloMet - storbyuniversitetet'
-      };
+  // Process data for display
+  const getProcessedData = () => {
+    if (!selectedUniversity || allStudentData.length === 0) return [];
+    
+    // Filter data for selected university
+    const universityData = allStudentData.filter(item => 
+      item.Lærestednavn === selectedUniversity
+    );
+    
+    // Group by study program and aggregate the measures
+    const programMap = new Map();
+    
+    universityData.forEach(row => {
+      const studienavn = row.Studienavn;
+      const studiested = row.Studiested;
+      const measureName = row['Measure Names'];
+      const measureValue = row['Measure Values'];
       
-      const targetInstitution = institutionMap[selectedUniversity];
-      console.log("Looking for institution:", targetInstitution);
+      if (!studienavn || !measureName || !measureValue) return;
       
-      // Filter data for selected university
-      const universityData = allSupabaseData.filter(item => 
-        item.Institusjonsnavn === targetInstitution
-      );
+      const key = `${studienavn}-${studiested}`;
       
-      console.log(`Found ${universityData.length} records for ${targetInstitution}`);
-      
-      if (universityData.length > 0) {
-        // Transform Student_data to match expected format
-        return universityData.map((item, index) => {
-          const linje = item.Studnavn || item.Kvalifikasjonsnavn || `Studie ${index + 1}`;
-          const studiekode = item.Studiumkode || item.Kvalifikasjonskode || `CODE${index + 1}`;
-          
-          return {
-            linje,
-            studiekode,
-            snitt: parseFloat(item.snitt) || 0,
-            sokereMott: parseInt(item.sokereMott) || 0,
-            sokereTilbudJaSvar: parseInt(item.sokereTilbudJaSvar) || 0,
-            sokereTilbud: parseInt(item.sokereTilbud) || 0,
-            sokereKvalifisert: parseInt(item.sokereKvalifisert) || 0,
-            sokere: parseInt(item.sokere) || 0,
-            planlagteStudieplasser: parseInt(item.planlagteStudieplasser) || 0,
-            universitet: selectedUniversity,
-            sokereMottPerStudieplass: parseFloat(item.sokerePerPlass) || 0,
-            beskrivelse: `${linje} ved ${targetInstitution}`,
-            link: item.Institusjonsnavn?.includes('NHH') ? "https://www.nhh.no/studier/" : "#"
-          };
+      if (!programMap.has(key)) {
+        programMap.set(key, {
+          linje: studienavn,
+          studiekode: row.Studiekode || 'N/A',
+          studiested: studiested,
+          universitet: selectedUniversity,
+          measures: {}
         });
       }
-    }
+      
+      const program = programMap.get(key);
+      program.measures[measureName] = parseFloat(measureValue) || 0;
+    });
     
-    // Return empty array if no data
-    return [];
+    // Convert to array and add computed fields
+    const processedData = Array.from(programMap.values()).map(program => ({
+      ...program,
+      snitt: program.measures['Snitt'] || 0,
+      planlagteStudieplasser: program.measures['Planlagte studieplasser'] || 0,
+      sokereMott: program.measures['Søkere møtt'] || 0,
+      sokereTilbud: program.measures['Søkere tilbud'] || 0,
+      sokereTilbudJaSvar: program.measures['Søkere tilbud ja-svar'] || 0,
+      sokereKvalifisert: program.measures['Søkere kvalifisert'] || 0,
+      sokere: program.measures['Søkere'] || 0,
+      sokereMottPerStudieplass: program.measures['Søkere per plass'] || 0
+    }));
+    
+    return processedData;
   };
   
-  const currentUniversityData = getCurrentUniversityData();
-  const isUsingSupabaseData = allSupabaseData.length > 0;
+  const currentData = getProcessedData();
   
-  const sortedPrograms = [...currentUniversityData].sort((a, b) => {
+  const sortedPrograms = [...currentData].sort((a, b) => {
     if (sortBy === "snitt") {
-      const aVal = a.snitt === -1 || a.snitt === 0 ? -Infinity : a.snitt;
-      const bVal = b.snitt === -1 || b.snitt === 0 ? -Infinity : b.snitt;
+      const aVal = a.snitt === 0 ? -Infinity : a.snitt;
+      const bVal = b.snitt === 0 ? -Infinity : b.snitt;
       return bVal - aVal;
     } else if (sortBy === "popularity") {
       return b.sokereMott - a.sokereMott;
     } else if (sortBy === "competition") {
-      const aRatio = a.sokereKvalifisert / a.planlagteStudieplasser;
-      const bRatio = b.sokereKvalifisert / b.planlagteStudieplasser;
+      const aRatio = a.planlagteStudieplasser > 0 ? a.sokereKvalifisert / a.planlagteStudieplasser : 0;
+      const bRatio = b.planlagteStudieplasser > 0 ? b.sokereKvalifisert / b.planlagteStudieplasser : 0;
       return bRatio - aRatio;
     }
     return 0;
@@ -172,16 +161,14 @@ const UniversityStatistics = () => {
   return (
     <div className="space-y-8">
       {/* Data source indicator */}
-      {isUsingSupabaseData && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <p className="text-green-800 text-sm">
-            ✅ Viser data hentet fra Student_data tabell
-          </p>
-          <p className="text-green-700 text-xs mt-1">
-            Totalt {allSupabaseData.length} poster hentet fra databasen
-          </p>
-        </div>
-      )}
+      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+        <p className="text-green-800 text-sm">
+          ✅ Viser data hentet fra Student_data tabell
+        </p>
+        <p className="text-green-700 text-xs mt-1">
+          Totalt {allStudentData.length} poster hentet fra databasen
+        </p>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
@@ -199,9 +186,8 @@ const UniversityStatistics = () => {
               </SelectTrigger>
               <SelectContent>
                 {universities.map((uni) => (
-                  <SelectItem key={uni.id} value={uni.id}>
-                    {uni.name}
-                    {isUsingSupabaseData && ' (Student_data)'}
+                  <SelectItem key={uni} value={uni}>
+                    {uni}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -225,9 +211,9 @@ const UniversityStatistics = () => {
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-80 max-h-96 overflow-y-auto bg-white border shadow-lg">
+              <DropdownMenuContent className="w-80 max-h-96 overflow-y-auto bg-white border shadow-lg z-50">
                 <DropdownMenuLabel className="sticky top-0 bg-white">
-                  Studielinjer ved {universities.find(u => u.id === selectedUniversity)?.name}
+                  Studielinjer ved {selectedUniversity}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {availablePrograms.length > 0 ? (
@@ -274,16 +260,11 @@ const UniversityStatistics = () => {
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">
-            Studielinjer ved {universities.find(u => u.id === selectedUniversity)?.name || 'universitet'}
-            {isUsingSupabaseData && (
-              <Badge variant="secondary" className="ml-2">Student_data</Badge>
-            )}
+            Studielinjer ved {selectedUniversity || 'universitet'}
+            <Badge variant="secondary" className="ml-2">Student_data</Badge>
           </CardTitle>
           <CardDescription>
-            {isUsingSupabaseData ? 
-              `Viser ${currentUniversityData.length} studielinjer hentet fra Student_data` :
-              'Ingen data tilgjengelig fra Student_data'
-            }
+            Viser {currentData.length} studielinjer hentet fra Student_data
             {loading && ' (Henter data...)'}
           </CardDescription>
         </CardHeader>
@@ -296,7 +277,7 @@ const UniversityStatistics = () => {
           ) : topPrograms.length > 0 ? (
             topPrograms.map((program, index) => (
               <UniversityProgramCard 
-                key={program.studiekode} 
+                key={`${program.studiekode}-${program.studiested}`} 
                 program={program} 
                 rank={index + 1} 
               />
@@ -306,7 +287,10 @@ const UniversityStatistics = () => {
               <Info className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium mb-2">Ingen data tilgjengelig</h3>
               <p className="text-muted-foreground">
-                Vi fant ingen data for {universities.find(u => u.id === selectedUniversity)?.name} i Student_data tabellen ennå.
+                {selectedUniversity ? 
+                  `Vi fant ingen studielinjer for ${selectedUniversity} i Student_data tabellen.` :
+                  'Velg et universitet for å se tilgjengelige studielinjer.'
+                }
               </p>
             </div>
           )}
@@ -316,7 +300,7 @@ const UniversityStatistics = () => {
       <Card>
         <CardHeader>
           <CardTitle>Komplett liste over studielinjer</CardTitle>
-          <CardDescription>Alle tilgjengelige studielinjer ved {universities.find(u => u.id === selectedUniversity)?.name} fra Student_data</CardDescription>
+          <CardDescription>Alle tilgjengelige studielinjer ved {selectedUniversity} fra Student_data</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -325,6 +309,7 @@ const UniversityStatistics = () => {
                 <TableRow>
                   <TableHead>Linje</TableHead>
                   <TableHead>Studiekode</TableHead>
+                  <TableHead>Studiested</TableHead>
                   <TableHead className="text-right">Snitt</TableHead>
                   <TableHead className="text-right">Søkere møtt</TableHead>
                   <TableHead className="text-right">Studieplasser</TableHead>
@@ -332,17 +317,18 @@ const UniversityStatistics = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedPrograms.map((program) => (
-                  <TableRow key={program.studiekode}>
+                {sortedPrograms.map((program, index) => (
+                  <TableRow key={`${program.studiekode}-${program.studiested}-${index}`}>
                     <TableCell className="font-medium">{program.linje}</TableCell>
                     <TableCell>{program.studiekode}</TableCell>
+                    <TableCell>{program.studiested}</TableCell>
                     <TableCell className="text-right">
-                      {program.snitt > 0 ? program.snitt : 'Ikke oppgitt'}
+                      {program.snitt > 0 ? program.snitt.toFixed(1) : 'Ikke oppgitt'}
                     </TableCell>
                     <TableCell className="text-right">{program.sokereMott}</TableCell>
                     <TableCell className="text-right">{program.planlagteStudieplasser}</TableCell>
                     <TableCell className="text-right">
-                      {program.planlagteStudieplasser > 0 ? (program.sokereKvalifisert / program.planlagteStudieplasser).toFixed(1) : 'N/A'}
+                      {program.sokereMottPerStudieplass > 0 ? program.sokereMottPerStudieplass.toFixed(1) : 'N/A'}
                     </TableCell>
                   </TableRow>
                 ))}
