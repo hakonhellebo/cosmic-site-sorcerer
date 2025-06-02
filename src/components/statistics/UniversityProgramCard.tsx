@@ -32,15 +32,15 @@ const UniversityProgramCard = ({ program, rank }) => {
   
   // Generate a fake URL based on program name
   const generateProgramUrl = (programName) => {
-    const baseUrl = program.universitet === 'ntnu' 
+    const baseUrl = program.universitet.toLowerCase().includes('ntnu') 
       ? 'https://www.ntnu.no/studier/' 
-      : program.universitet === 'uio'
+      : program.universitet.toLowerCase().includes('oslo')
       ? 'https://www.uio.no/studier/'
-      : program.universitet === 'nhh'
+      : program.universitet.toLowerCase().includes('handelshøyskole')
       ? 'https://www.nhh.no/studier/'
-      : program.universitet === 'uib'
+      : program.universitet.toLowerCase().includes('bergen')
       ? 'https://www.uib.no/studier/'
-      : 'https://www.oslomet.no/studier/';
+      : 'https://www.samordnaopptak.no/';
       
     // Convert program name to URL friendly format
     const urlName = programName.toLowerCase()
@@ -70,8 +70,10 @@ const UniversityProgramCard = ({ program, rank }) => {
   };
   
   const handleCardClick = () => {
-    // Navigate to the detailed education page
-    navigate(`/utdanning/${program.universitet}/${program.studiekode}`);
+    // Navigate to the detailed education page using proper encoding
+    const universityEncoded = encodeURIComponent(program.universitet);
+    const studiekodeEncoded = encodeURIComponent(program.studiekode);
+    navigate(`/utdanning/${universityEncoded}/${studiekodeEncoded}`);
   };
   
   return (

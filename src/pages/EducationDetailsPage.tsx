@@ -1,20 +1,107 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, ExternalLink, GraduationCap, Users, TrendingUp, Building } from "lucide-react";
-import { universityData } from '@/data/universityStatistics';
+import { supabase } from '@/lib/supabase';
 
 const EducationDetailsPage = () => {
   const { universityId, studiekode } = useParams();
   const navigate = useNavigate();
+  const [program, setProgram] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   
-  // Find the specific program
-  const universityPrograms = universityData[universityId || ''] || [];
-  const program = universityPrograms.find(p => p.studiekode === studiekode);
+  useEffect(() => {
+    const fetchProgramData = async () => {
+      setLoading(true);
+      console.log("Fetching program data for:", { universityId, studiekode });
+      
+      try {
+        // Decode the university name from URL
+        const decodedUniversityName = decodeURIComponent(universityId || '');
+        const decodedStudiekode = decodeURIComponent(studiekode || '').replace(/-/g, ' ');
+        
+        console.log("Decoded params:", { decodedUniversityName, decodedStudiekode });
+        
+        // Fetch data from Student_data table
+        const { data, error } = await supabase
+          .from('Student_data')
+          .select('*')
+          .ilike('Lærestednavn', `%${decodedUniversityName}%`)
+          .eq('Studiekode', decodedStudiekode);
+        
+        if (error) {
+          console.error("Error fetching program data:", error);
+          return;
+        }
+        
+        console.log("Found data:", data);
+        
+        if (data && data.length > 0) {
+          // Process the data to get all measures for this program
+          const programData = data.reduce((acc, row) => {
+            const measureName = row['Measure Names'];
+            const measureValue = row['Measure Values'];
+            
+            if (!acc.basic) {
+              acc.basic = {
+                linje: row.Studienavn,
+                studiekode: row.Studiekode,
+                universitet: row.Lærestednavn,
+                studiested: row.Studiested,
+                utdanningsomrade: row['Utdanningsområde- og type']
+              };
+            }
+            
+            if (measureName && measureValue) {
+              acc.measures[measureName] = parseFloat(measureValue) || 0;
+            }
+            
+            return acc;
+          }, { basic: null, measures: {} });
+          
+          // Convert to expected format
+          const processedProgram = {
+            ...programData.basic,
+            snitt: programData.measures['Snitt'] || 0,
+            planlagteStudieplasser: programData.measures['Planlagte studieplasser'] || 0,
+            sokereMott: programData.measures['Søkere møtt'] || 0,
+            sokereTilbud: programData.measures['Søkere tilbud'] || 0,
+            sokereTilbudJaSvar: programData.measures['Søkere tilbud ja-svar'] || 0,
+            sokereKvalifisert: programData.measures['Søkere kvalifisert'] || 0,
+            sokere: programData.measures['Søkere'] || 0,
+            sokereMottPerStudieplass: programData.measures['Søkere per plass'] || 0
+          };
+          
+          setProgram(processedProgram);
+          console.log("Processed program:", processedProgram);
+        }
+      } catch (err) {
+        console.error("Error:", err);
+      }
+      setLoading(false);
+    };
+
+    if (universityId && studiekode) {
+      fetchProgramData();
+    }
+  }, [universityId, studiekode]);
+  
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container mx-auto py-20 px-4">
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p>Henter utdanningsdata...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
   
   if (!program) {
     return (
@@ -51,17 +138,6 @@ const EducationDetailsPage = () => {
     competitionLevel = "Moderat";
     competitionColor = "bg-yellow-100 text-yellow-800";
   }
-  
-  const getUniversityName = (id: string) => {
-    const universities = {
-      'nhh': 'Norges Handelshøyskole',
-      'ntnu': 'Norges teknisk-naturvitenskapelige universitet',
-      'uio': 'Universitetet i Oslo',
-      'uib': 'Universitetet i Bergen',
-      'oslomet': 'OsloMet - storbyuniversitetet'
-    };
-    return universities[id] || 'Ukjent universitet';
-  };
 
   return (
     <Layout>
@@ -80,8 +156,11 @@ const EducationDetailsPage = () => {
             {/* Header */}
             <div className="text-center">
               <h1 className="text-4xl font-bold mb-4">{program.linje}</h1>
-              <p className="text-xl text-muted-foreground mb-2">{getUniversityName(universityId || '')}</p>
-              <Badge variant="outline" className="text-sm">Studiekode: {program.studiekode}</Badge>
+              <p className="text-xl text-muted-foreground mb-2">{program.universitet}</p>
+              <div className="flex gap-2 justify-center">
+                <Badge variant="outline" className="text-sm">Studiekode: {program.studiekode}</Badge>
+                <Badge variant="outline" className="text-sm">Studiested: {program.studiested}</Badge>
+              </div>
             </div>
             
             {/* Key Metrics */}
@@ -95,7 +174,7 @@ const EducationDetailsPage = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold">
-                    {program.snitt > 0 ? program.snitt : 'Ikke oppgitt'}
+                    {program.snitt > 0 ? program.snitt.toFixed(1) : 'Ikke oppgitt'}
                   </div>
                 </CardContent>
               </Card>
@@ -186,12 +265,12 @@ const EducationDetailsPage = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-4">
-                  {program.beskrivelse || "Dette studiet gir deg fagkompetanse og analytiske ferdigheter innen et spennende felt med gode jobbmuligheter."}
+                  Dette studiet tilhører kategorien "{program.utdanningsomrade}" og gir deg fagkompetanse og analytiske ferdigheter innen et spennende felt med gode jobbmuligheter.
                 </p>
                 <Button variant="outline" asChild>
-                  <a href={program.link || '#'} target="_blank" rel="noopener noreferrer">
+                  <a href={`https://www.samordnaopptak.no`} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="mr-2 h-4 w-4" />
-                    Les mer på universitetets nettsider
+                    Les mer på Samordna opptak
                   </a>
                 </Button>
               </CardContent>

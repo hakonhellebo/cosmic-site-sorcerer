@@ -262,10 +262,10 @@ const UniversityStatistics = () => {
   };
 
   const handleProgramClick = (program: any) => {
-    // Create a safe URL for the education details page
-    const universitySlug = generateUniversitySlug(program.universitet);
-    const studiekodeSlug = program.studiekode.replace(/\s+/g, '-');
-    navigate(`/utdanning/${universitySlug}/${studiekodeSlug}`);
+    // Create a proper URL for the education details page using encoded values
+    const universityEncoded = encodeURIComponent(program.universitet);
+    const studiekodeEncoded = encodeURIComponent(program.studiekode);
+    navigate(`/utdanning/${universityEncoded}/${studiekodeEncoded}`);
   };
 
   return (
