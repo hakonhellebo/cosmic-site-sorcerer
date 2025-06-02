@@ -35,8 +35,8 @@ const CompanySearch: React.FC<CompanySearchProps> = ({ preloadedData }) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('all');
-  const [sortField, setSortField] = useState<SortField>('name');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [sortField, setSortField] = useState<SortField>('employees');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [filteredCompanies, setFilteredCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -143,8 +143,8 @@ const CompanySearch: React.FC<CompanySearchProps> = ({ preloadedData }) => {
   const handleReset = () => {
     setSearchTerm('');
     setSelectedIndustry('all');
-    setSortField('name');
-    setSortDirection('asc');
+    setSortField('employees');
+    setSortDirection('desc');
   };
 
   const handleCompanyClick = (company: Company) => {
