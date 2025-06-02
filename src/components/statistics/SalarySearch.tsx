@@ -602,7 +602,7 @@ const SalarySearch = () => {
                 <CardContent>
                   {viewMode === 'chart' && comparisonData.length > 0 && (
                     <ChartContainer config={chartConfig}>
-                      <ResponsiveContainer width="100%" height={400}>
+                      <ResponsiveContainer width="100%" height={300}>
                         <LineChart
                           data={comparisonData}
                           margin={{
