@@ -33,7 +33,7 @@ const UNIVERSITY_ORDER = [
   "Norges miljø- og biovitenskapelige universitet",
   "NLA Høgskolen",
   "Nord universitet",
-  "Høgskolen i Østfold",
+  "Høgskulen i Østfold",
   "Høgskolen i Molde, Vitenskaplig høgskole i logistikk",
   "VID vitenskapelige høgskole",
   "Norges idrettshøgskole",
@@ -280,6 +280,10 @@ const UniversityStatistics = () => {
     navigate('/university/uib');
   };
 
+  const handleNHHClick = () => {
+    navigate('/university/nhh');
+  };
+
   return (
     <div className="space-y-8">
       {/* Data source indicator */}
@@ -354,6 +358,20 @@ const UniversityStatistics = () => {
                 >
                   <ExternalLink className="h-4 w-4" />
                   Les mer om UiB her
+                </Button>
+              </div>
+            )}
+
+            {/* NHH Button */}
+            {selectedUniversity === "Norges Handelshøyskole" && (
+              <div className="mt-3">
+                <Button 
+                  onClick={handleNHHClick}
+                  variant="outline" 
+                  className="w-full flex items-center gap-2"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Les mer om NHH her
                 </Button>
               </div>
             )}
@@ -452,6 +470,17 @@ const UniversityStatistics = () => {
               >
                 <ExternalLink className="h-4 w-4" />
                 Les mer om UiB her
+              </Button>
+            )}
+
+            {selectedUniversity === "Norges Handelshøyskole" && (
+              <Button 
+                onClick={handleNHHClick}
+                variant="outline" 
+                className="flex items-center gap-2"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Les mer om NHH her
               </Button>
             )}
           </div>

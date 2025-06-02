@@ -7,6 +7,7 @@ import { navItems } from "./nav-items"
 import UniversityNTNU from "./pages/UniversityNTNU"
 import UniversityUiO from "./pages/UniversityUiO"
 import UniversityUiB from "./pages/UniversityUiB"
+import UniversityNHH from "./pages/UniversityNHH"
 
 const queryClient = new QueryClient()
 
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/university/ntnu" element={<UniversityNTNU />} />
           <Route path="/university/uio" element={<UniversityUiO />} />
           <Route path="/university/uib" element={<UniversityUiB />} />
+          <Route path="/university/nhh" element={<UniversityNHH />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
