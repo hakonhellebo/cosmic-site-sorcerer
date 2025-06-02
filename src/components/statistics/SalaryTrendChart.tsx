@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Loader2, TrendingUp, ChevronDown, Check } from "lucide-react";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { cn } from "@/lib/utils";
 
 interface YrkeOption {
@@ -149,7 +148,7 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
   const chartConfig = {
     salary: {
       label: "Lønn",
-      color: "hsl(var(--chart-1))",
+      color: "#3b82f6", // Blue color
     },
   };
 
@@ -303,7 +302,7 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
           <CardContent>
             <ChartContainer config={chartConfig}>
               <ResponsiveContainer width="100%" height={400}>
-                <LineChart
+                <BarChart
                   data={trendData}
                   margin={{
                     top: 20,
@@ -327,15 +326,12 @@ const SalaryTrendChart: React.FC<SalaryTrendChartProps> = ({ yrkeOptions }) => {
                     formatter={(value: number) => [`${value.toLocaleString('nb-NO')} kr`, 'Månedslønn']}
                     labelFormatter={(year) => `År ${year}`}
                   />
-                  <Line 
-                    type="monotone" 
+                  <Bar 
                     dataKey="salary" 
-                    stroke="var(--color-salary)" 
-                    strokeWidth={3}
-                    dot={{ r: 6 }}
-                    activeDot={{ r: 8 }}
+                    fill="var(--color-salary)"
+                    radius={[4, 4, 0, 0]}
                   />
-                </LineChart>
+                </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
             
