@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Card, 
@@ -9,10 +8,18 @@ import {
 } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { Info, ExternalLink, TrendingUp, GraduationCap, Building } from "lucide-react";
+import { Info, ExternalLink, TrendingUp, GraduationCap, Building, ChevronDown } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { universityData } from '@/data/universityStatistics';
 import { getUniversityData } from '@/lib/supabase';
 import UniversityProgramCard from './UniversityProgramCard';
@@ -22,6 +29,7 @@ const UniversityStatistics = () => {
   const [sortBy, setSortBy] = useState("snitt");
   const [allSupabaseData, setAllSupabaseData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [availablePrograms, setAvailablePrograms] = useState<string[]>([]);
   
   const universities = [
     { id: 'nhh', name: 'Norges Handelshøyskole' },
@@ -64,6 +72,32 @@ const UniversityStatistics = () => {
 
     fetchAllUniversityData();
   }, []);
+  
+  // Update available programs when university or data changes
+  useEffect(() => {
+    if (allSupabaseData.length > 0) {
+      const institutionMap = {
+        'nhh': 'Norges Handelshøyskole',
+        'ntnu': 'Norges teknisk-naturvitenskapelige universitet',
+        'uio': 'Universitetet i Oslo',
+        'uib': 'Universitetet i Bergen',
+        'oslomet': 'OsloMet - storbyuniversitetet'
+      };
+      
+      const targetInstitution = institutionMap[selectedUniversity];
+      const universityData = allSupabaseData.filter(item => 
+        item.Institusjonsnavn === targetInstitution
+      );
+      
+      // Extract unique study programs
+      const programs = [...new Set(universityData.map(item => 
+        item.Studnavn || item.Kvalifikasjonsnavn
+      ).filter(Boolean))].sort();
+      
+      setAvailablePrograms(programs);
+      console.log(`Found ${programs.length} unique programs for ${targetInstitution}:`, programs);
+    }
+  }, [selectedUniversity, allSupabaseData]);
   
   // Get current university data - use Supabase data when available
   const getCurrentUniversityData = () => {
@@ -150,7 +184,7 @@ const UniversityStatistics = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2">
@@ -173,6 +207,45 @@ const UniversityStatistics = () => {
                 ))}
               </SelectContent>
             </Select>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2">
+              <Building className="h-5 w-5" />
+              Studielinjer
+            </CardTitle>
+            <CardDescription>Se alle tilgjengelige studielinjer</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  <span>Se studielinjer ({availablePrograms.length})</span>
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-80 max-h-96 overflow-y-auto bg-white border shadow-lg">
+                <DropdownMenuLabel className="sticky top-0 bg-white">
+                  Studielinjer ved {universities.find(u => u.id === selectedUniversity)?.name}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {availablePrograms.length > 0 ? (
+                  availablePrograms.map((program, index) => (
+                    <DropdownMenuItem key={index} className="py-2 px-3">
+                      <div className="flex flex-col">
+                        <span className="font-medium text-sm">{program}</span>
+                      </div>
+                    </DropdownMenuItem>
+                  ))
+                ) : (
+                  <DropdownMenuItem disabled>
+                    {loading ? "Henter studielinjer..." : "Ingen studielinjer tilgjengelig"}
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </CardContent>
         </Card>
 
