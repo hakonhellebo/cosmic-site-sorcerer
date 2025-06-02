@@ -4,15 +4,27 @@ import UniversitySelector from './university/UniversitySelector';
 import ProgramSearch from './university/ProgramSearch';
 import SortSelector from './university/SortSelector';
 import ProgramsList from './university/ProgramsList';
-import { useUniversityData } from './university/hooks/useUniversityData';
 import { processUniversityData, sortPrograms } from './university/utils/dataProcessor';
 
-const UniversityStatistics = () => {
+interface PreloadedData {
+  allStudentData: any[];
+  universities: string[];
+  loading: boolean;
+}
+
+interface UniversityStatisticsProps {
+  preloadedData?: PreloadedData;
+}
+
+const UniversityStatistics: React.FC<UniversityStatisticsProps> = ({ preloadedData }) => {
   const [selectedUniversity, setSelectedUniversity] = useState("alle");
   const [programSearchTerm, setProgramSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("snitt");
   
-  const { allStudentData, loading, universities } = useUniversityData();
+  // Use preloaded data if available, otherwise empty arrays
+  const allStudentData = preloadedData?.allStudentData || [];
+  const universities = preloadedData?.universities || [];
+  const loading = preloadedData?.loading || false;
   
   const processedData = processUniversityData(allStudentData, selectedUniversity, programSearchTerm);
   const sortedPrograms = sortPrograms(processedData, sortBy);
@@ -22,7 +34,7 @@ const UniversityStatistics = () => {
       {/* Data source indicator */}
       <div className="bg-green-50 border border-green-200 rounded-lg p-4">
         <p className="text-green-800 text-sm">
-          ✅ Viser data hentet fra Student_data tabell
+          ✅ Viser data hentet fra Student_data tabell (forhåndsinnlastet)
         </p>
         <p className="text-green-700 text-xs mt-1">
           Totalt {allStudentData.length} poster hentet fra databasen

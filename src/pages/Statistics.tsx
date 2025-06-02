@@ -11,68 +11,156 @@ import CompanyStatistics from '@/components/statistics/CompanyStatistics';
 import SalarySearch from '@/components/statistics/SalarySearch';
 import SalaryTrendChart from '@/components/statistics/SalaryTrendChart';
 import { supabaseAnonKey, supabase } from '@/lib/supabase';
-import { useCompanyData } from '@/hooks/useCompanyData';
-import { useUniversityData } from '@/components/statistics/university/hooks/useUniversityData';
 
 const Statistics = () => {
-  const [universities, setUniversities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [totalRecords, setTotalRecords] = useState(0);
-  const [yrkeOptions, setYrkeOptions] = useState<{value: string, label: string}[]>([]);
+  const [allData, setAllData] = useState({
+    universities: [],
+    companies: [],
+    allStudentData: [],
+    yrkeOptions: []
+  });
 
-  // Use existing hooks to preload data
-  const { companies, loading: companiesLoading } = useCompanyData();
-  const { allStudentData, loading: universityLoading, universities: universityList } = useUniversityData();
-
-  // Fetch salary/career data for trend chart
-  const fetchYrkeOptions = async () => {
-    try {
-      console.log("Fetching yrke options for salary trends...");
-      
-      const { data, error } = await supabase
-        .from('Clean_11418')
-        .select('Yrke')
-        .not('Yrke', 'is', null)
-        .order('Yrke', { ascending: true });
-      
-      if (data && !error) {
-        // Get unique job titles
-        const uniqueYrker = [...new Set(data.map(item => item.Yrke))];
-        const options = uniqueYrker.map(yrke => ({
-          value: yrke,
-          label: yrke
-        }));
-        setYrkeOptions(options);
-        console.log(`Found ${options.length} unique job titles for salary trends`);
-      } else {
-        console.error("Error fetching yrke options:", error);
-      }
-    } catch (err) {
-      console.error("Error:", err);
-    }
-  };
-
-  // Load all data when component mounts
+  // Load ALL data when component mounts
   useEffect(() => {
-    const loadAllData = async () => {
+    const loadAllStatisticsData = async () => {
       setLoading(true);
-      console.log("Loading all statistics data...");
+      console.log("Loading ALL statistics data on page load...");
       
-      // Fetch salary data
-      await fetchYrkeOptions();
-      
-      // Set total records from university data
-      setTotalRecords(allStudentData.length);
-      
-      setLoading(false);
-      console.log("All statistics data loaded");
+      try {
+        // Load university data
+        console.log("Fetching ALL data from Student_data...");
+        const { count } = await supabase
+          .from('Student_data')
+          .select('*', { count: 'exact', head: true });
+        
+        console.log(`Total records in Student_data: ${count}`);
+        
+        let allStudentData: any[] = [];
+        let from = 0;
+        const batchSize = 1000;
+        let hasMore = true;
+        let batchNum = 1;
+        
+        while (hasMore && allStudentData.length < (count || 0)) {
+          console.log(`Fetching batch ${batchNum}: records ${from} to ${from + batchSize - 1}`);
+          
+          const { data: batchData, error } = await supabase
+            .from('Student_data')
+            .select('*')
+            .range(from, from + batchSize - 1)
+            .order('Lærestednavn', { ascending: true });
+          
+          if (error) {
+            console.error("Error fetching batch:", error);
+            break;
+          }
+          
+          if (batchData && batchData.length > 0) {
+            allStudentData = [...allStudentData, ...batchData];
+            console.log(`Batch ${batchNum}: Added ${batchData.length} records. Total so far: ${allStudentData.length}`);
+            
+            if (batchData.length < batchSize) {
+              console.log("Reached end of data - batch returned fewer records than requested");
+              hasMore = false;
+            } else {
+              from += batchSize;
+              batchNum++;
+            }
+          } else {
+            hasMore = false;
+          }
+        }
+        
+        console.log(`Final data count: ${allStudentData.length}`);
+        console.log(`Expected count: ${count}`);
+        console.log("Sample data:", allStudentData.slice(0, 3));
+        
+        // Extract universities list
+        const uniqueUniversities = [...new Set(allStudentData.map(item => item.Lærestednavn))].filter(Boolean);
+        const orderedUniversities = [
+          "Norges teknisk-naturvitenskapelige universitet",
+          "Universitetet i Oslo", 
+          "Universitetet i Bergen",
+          "Norges Handelshøyskole",
+          "OsloMet - storbyuniversitetet",
+          "UiT Norges arktiske universitet",
+          "Universitetet i Innlandet",
+          "Høgskulen på Vestlandet",
+          "Universitetet i Sørøst-Norge",
+          "Universitetet i Stavanger",
+          "Universitetet i Agder",
+          "Norges miljø- og biovitenskapelige universitet",
+          ...uniqueUniversities.filter(uni => ![
+            "Norges teknisk-naturvitenskapelige universitet",
+            "Universitetet i Oslo", 
+            "Universitetet i Bergen",
+            "Norges Handelshøyskole",
+            "OsloMet - storbyuniversitetet",
+            "UiT Norges arktiske universitet",
+            "Universitetet i Innlandet",
+            "Høgskulen på Vestlandet",
+            "Universitetet i Sørøst-Norge",
+            "Universitetet i Stavanger",
+            "Universitetet i Agder",
+            "Norges miljø- og biovitenskapelige universitet"
+          ].includes(uni))
+        ];
+        
+        console.log("Found universities (in custom order):", orderedUniversities);
+
+        // Load company data
+        console.log("Fetching companies data...");
+        const { data: companiesData, error: companiesError } = await supabase
+          .from('Bedrifter')
+          .select('*')
+          .order('Selskap', { ascending: true });
+        
+        if (companiesError) {
+          console.error("Error fetching companies:", companiesError);
+        } else {
+          console.log(`Fetched ${companiesData?.length || 0} companies`);
+        }
+
+        // Load salary/career data
+        console.log("Fetching yrke options for salary trends...");
+        const { data: yrkeData, error: yrkeError } = await supabase
+          .from('Clean_11418')
+          .select('Yrke')
+          .not('Yrke', 'is', null)
+          .order('Yrke', { ascending: true });
+        
+        let yrkeOptions: {value: string, label: string}[] = [];
+        if (yrkeData && !yrkeError) {
+          const uniqueYrker = [...new Set(yrkeData.map(item => item.Yrke))];
+          yrkeOptions = uniqueYrker.map(yrke => ({
+            value: yrke,
+            label: yrke
+          }));
+          console.log(`Found ${yrkeOptions.length} unique job titles for salary trends`);
+        } else {
+          console.error("Error fetching yrke options:", yrkeError);
+        }
+
+        // Set all data at once
+        setAllData({
+          universities: orderedUniversities,
+          companies: companiesData || [],
+          allStudentData: allStudentData,
+          yrkeOptions: yrkeOptions
+        });
+
+        console.log("All statistics data loaded successfully!");
+        
+      } catch (error) {
+        console.error("Error loading statistics data:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    loadAllData();
-  }, [allStudentData.length]);
-
-  // Overall loading state
-  const isLoading = loading || companiesLoading || universityLoading;
+    loadAllStatisticsData();
+  }, []); // Only run once when component mounts
 
   return (
     <Layout>
@@ -82,10 +170,10 @@ const Statistics = () => {
           <p className="text-muted-foreground">
             Utforsk statistikk om karrierer, universiteter, bedrifter og lønninger
           </p>
-          {isLoading && (
+          {loading && (
             <div className="mt-4 flex items-center gap-2 text-blue-600">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
-              <span className="text-sm">Laster data...</span>
+              <span className="text-sm">Laster all data...</span>
             </div>
           )}
         </div>
@@ -118,26 +206,37 @@ const Statistics = () => {
             <div className="space-y-6">
               <CareerStatistics />
               
-              {yrkeOptions.length > 0 && (
-                <SalaryTrendChart yrkeOptions={yrkeOptions} />
+              {allData.yrkeOptions.length > 0 && (
+                <SalaryTrendChart yrkeOptions={allData.yrkeOptions} />
               )}
             </div>
           </TabsContent>
 
           <TabsContent value="universities">
-            <UniversityStatistics />
+            <UniversityStatistics 
+              preloadedData={{
+                allStudentData: allData.allStudentData,
+                universities: allData.universities,
+                loading: loading
+              }}
+            />
           </TabsContent>
 
           <TabsContent value="companies">
-            <CompanyStatistics />
+            <CompanyStatistics 
+              preloadedData={{
+                companies: allData.companies,
+                loading: loading
+              }}
+            />
           </TabsContent>
 
           <TabsContent value="salary">
             <div className="space-y-6">
               <SalarySearch />
               
-              {yrkeOptions.length > 0 && (
-                <SalaryTrendChart yrkeOptions={yrkeOptions} />
+              {allData.yrkeOptions.length > 0 && (
+                <SalaryTrendChart yrkeOptions={allData.yrkeOptions} />
               )}
             </div>
           </TabsContent>
@@ -155,14 +254,14 @@ const Statistics = () => {
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <h4 className="font-medium mb-2">Data Status:</h4>
                     <div className="space-y-2 text-sm">
-                      <p className={`${allStudentData.length > 0 ? 'text-green-600' : 'text-yellow-600'}`}>
-                        ✅ Universitetsdata: {allStudentData.length} poster
+                      <p className={`${allData.allStudentData.length > 0 ? 'text-green-600' : 'text-yellow-600'}`}>
+                        ✅ Universitetsdata: {allData.allStudentData.length} poster
                       </p>
-                      <p className={`${companies.length > 0 ? 'text-green-600' : 'text-yellow-600'}`}>
-                        ✅ Bedriftsdata: {companies.length} poster
+                      <p className={`${allData.companies.length > 0 ? 'text-green-600' : 'text-yellow-600'}`}>
+                        ✅ Bedriftsdata: {allData.companies.length} poster
                       </p>
-                      <p className={`${yrkeOptions.length > 0 ? 'text-green-600' : 'text-yellow-600'}`}>
-                        ✅ Lønnsdata: {yrkeOptions.length} yrker
+                      <p className={`${allData.yrkeOptions.length > 0 ? 'text-green-600' : 'text-yellow-600'}`}>
+                        ✅ Lønnsdata: {allData.yrkeOptions.length} yrker
                       </p>
                       <p className="text-gray-600">
                         API-key: ...{supabaseAnonKey.slice(-10)}
@@ -170,19 +269,19 @@ const Statistics = () => {
                     </div>
                   </div>
 
-                  {universityList.length > 0 && (
+                  {allData.universities.length > 0 && (
                     <div className="border-t pt-6">
                       <h4 className="text-lg font-medium mb-4">
-                        Universiteter ({universityList.length})
+                        Universiteter ({allData.universities.length})
                       </h4>
                       <div className="grid gap-2 max-h-48 overflow-y-auto">
-                        {universityList.slice(0, 10).map((uni, index) => (
+                        {allData.universities.slice(0, 10).map((uni, index) => (
                           <div key={index} className="text-sm p-2 bg-white border rounded">
                             {uni}
                           </div>
                         ))}
-                        {universityList.length > 10 && (
-                          <p className="text-xs text-gray-500">... og {universityList.length - 10} flere</p>
+                        {allData.universities.length > 10 && (
+                          <p className="text-xs text-gray-500">... og {allData.universities.length - 10} flere</p>
                         )}
                       </div>
                     </div>
