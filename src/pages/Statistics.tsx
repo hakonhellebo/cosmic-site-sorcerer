@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,29 +14,32 @@ const Statistics = () => {
   const [universities, setUniversities] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalRecords, setTotalRecords] = useState(0);
-  const [filterYear, setFilterYear] = useState('2024');
-  const [filterLevel, setFilterLevel] = useState('Bachelor, 3-årig');
+  const [filterYear, setFilterYear] = useState('');
+  const [filterLevel, setFilterLevel] = useState('');
+  const [availableYears, setAvailableYears] = useState<string[]>([]);
+  const [availableLevels, setAvailableLevels] = useState<string[]>([]);
 
   const fetchUniversities = async () => {
     setLoading(true);
     try {
       console.log("Fetching universities with filters:", { year: filterYear, level: filterLevel });
       
-      // Use a modified query that filters by year and level
       let query = supabase
         .from('Universitetsdata')
         .select('*', { count: 'exact' })
         .order('Institusjonsnavn', { ascending: true });
       
-      // Apply filters
-      if (filterYear) {
+      // Apply filters only if specified
+      if (filterYear && filterYear !== '') {
         query = query.eq('Årstall', filterYear);
       }
       
-      // Filter by qualification level if specified
-      if (filterLevel) {
+      if (filterLevel && filterLevel !== '') {
         query = query.ilike('Kvalifikasjonsnavn', `%${filterLevel}%`);
       }
+      
+      // Limit to first 1000 records for testing
+      query = query.limit(1000);
       
       console.log("Executing filtered query...");
       const { data, error, count } = await query;
@@ -66,6 +69,16 @@ const Statistics = () => {
         const universitiesList = Object.values(uniqueUniversities);
         setUniversities(universitiesList);
         console.log(`Found ${universitiesList.length} unique universities from ${data.length} filtered records`);
+        
+        // Extract unique years and levels from the data for filter options
+        const years = [...new Set(data.map(item => item.Årstall).filter(Boolean))].sort();
+        const levels = [...new Set(data.map(item => item.Kvalifikasjonsnavn).filter(Boolean))].sort();
+        
+        setAvailableYears(years);
+        setAvailableLevels(levels);
+        
+        console.log("Available years:", years);
+        console.log("Available levels:", levels.slice(0, 10)); // Show first 10 levels
       } else {
         console.error("Error fetching filtered universities:", error);
         alert(`❌ Feil: ${error?.message || 'Ukjent feil'}`);
@@ -76,6 +89,35 @@ const Statistics = () => {
     }
     setLoading(false);
   };
+
+  // Fetch available data on component mount to populate filters
+  const fetchAvailableData = async () => {
+    try {
+      console.log("Fetching sample data to populate filters...");
+      const { data, error } = await supabase
+        .from('Universitetsdata')
+        .select('Årstall, Kvalifikasjonsnavn')
+        .limit(1000);
+      
+      if (data && !error) {
+        const years = [...new Set(data.map(item => item.Årstall).filter(Boolean))].sort();
+        const levels = [...new Set(data.map(item => item.Kvalifikasjonsnavn).filter(Boolean))].sort();
+        
+        setAvailableYears(years);
+        setAvailableLevels(levels);
+        
+        console.log("Sample data - Available years:", years);
+        console.log("Sample data - Available levels:", levels.slice(0, 10));
+      }
+    } catch (err) {
+      console.error("Error fetching sample data:", err);
+    }
+  };
+
+  // Fetch sample data on mount
+  React.useEffect(() => {
+    fetchAvailableData();
+  }, []);
 
   return (
     <Layout>
@@ -132,14 +174,14 @@ const Statistics = () => {
               <CardHeader>
                 <CardTitle>Test-fane - Universitetsdata API</CardTitle>
                 <CardDescription>
-                  Test av filtrert tilgang til universitetsdata
+                  Test av tilgang til universitetsdata med bedre filtrering
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
                   <div>
                     <p className="text-muted-foreground mb-4">
-                      Tester filtrert tilgang til universitetsdata for raskere resultater.
+                      Tester tilgang til universitetsdata. La filtrene stå tomme for å se all tilgjengelig data.
                     </p>
                     
                     <div className="bg-gray-50 p-4 rounded-lg mb-4">
@@ -148,6 +190,9 @@ const Statistics = () => {
                       <p className="text-sm text-gray-600">API-key: ...{supabaseAnonKey.slice(-10)}</p>
                       {totalRecords > 0 && (
                         <p className="text-sm text-blue-600">📊 {totalRecords} filtrerte dataposter</p>
+                      )}
+                      {availableYears.length > 0 && (
+                        <p className="text-sm text-gray-600">🗓️ Tilgjengelige år: {availableYears.join(', ')}</p>
                       )}
                     </div>
                     
@@ -160,9 +205,10 @@ const Statistics = () => {
                           onChange={(e) => setFilterYear(e.target.value)}
                           className="w-full p-2 border rounded-lg"
                         >
-                          <option value="2024">2024</option>
-                          <option value="2023">2023</option>
                           <option value="">Alle år</option>
+                          {availableYears.map(year => (
+                            <option key={year} value={year}>{year}</option>
+                          ))}
                         </select>
                       </div>
                       <div>
@@ -172,9 +218,10 @@ const Statistics = () => {
                           onChange={(e) => setFilterLevel(e.target.value)}
                           className="w-full p-2 border rounded-lg"
                         >
-                          <option value="Bachelor, 3-årig">Bachelor, 3-årig</option>
-                          <option value="Master, 2-årig">Master, 2-årig</option>
                           <option value="">Alle nivåer</option>
+                          {availableLevels.slice(0, 20).map(level => (
+                            <option key={level} value={level}>{level}</option>
+                          ))}
                         </select>
                       </div>
                     </div>
@@ -184,7 +231,7 @@ const Statistics = () => {
                       disabled={loading}
                       className="w-full mb-4"
                     >
-                      {loading ? "Henter filtrerte data..." : "Hent filtrerte universiteter"}
+                      {loading ? "Henter data..." : "Hent universitetsdata"}
                     </Button>
                   </div>
 
@@ -200,7 +247,7 @@ const Statistics = () => {
                     {totalRecords > 0 && (
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
                         <p className="text-blue-800 text-sm">
-                          📊 Hentet {totalRecords} dataposter med filtre
+                          📊 Hentet {totalRecords} dataposter med aktuelle filtre
                         </p>
                         <p className="text-blue-700 text-xs mt-1">
                           Viser {universities.length} unike universiteter/høyskoler
@@ -211,7 +258,7 @@ const Statistics = () => {
                     {universities.length > 0 && (
                       <div className="space-y-3">
                         <p className="text-sm text-muted-foreground">
-                          Fant {universities.length} universiteter/høyskoler med gitte filtre
+                          Fant {universities.length} universiteter/høyskoler
                         </p>
                         <div className="grid gap-3 max-h-96 overflow-y-auto">
                           {universities.map((uni, index) => (
@@ -241,7 +288,8 @@ const Statistics = () => {
                     
                     {universities.length === 0 && !loading && (
                       <p className="text-sm text-muted-foreground">
-                        Klikk "Hent filtrerte universiteter" for å se tilgjengelige institusjoner
+                        Klikk "Hent universitetsdata" for å se tilgjengelige institusjoner. 
+                        La filtrene stå tomme for å se all data.
                       </p>
                     )}
                   </div>
