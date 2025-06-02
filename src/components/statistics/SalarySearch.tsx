@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
@@ -603,7 +604,7 @@ const SalarySearch = () => {
                 <CardContent>
                   {viewMode === 'chart' && comparisonData.length > 0 && (
                     <ChartContainer config={chartConfig}>
-                      <ResponsiveContainer width="100%" height={200}>
+                      <ResponsiveContainer width="100%" height={150}>
                         <LineChart
                           data={comparisonData}
                           margin={{
@@ -699,3 +700,4 @@ const SalarySearch = () => {
 };
 
 export default SalarySearch;
+
