@@ -364,7 +364,7 @@ const UniversityUiS = () => {
                 </TabsList>
                 
                 {Object.entries(groupedStats).map(([category, stats]) => (
-                  <TabsContent key={category} value={category} className="space-y-4 mt-6">
+                  <TabsContent key={category} value={category} className="space-y-4 mt-8">
                     <div className="grid gap-4">
                       {stats.map((stat, index) => {
                         const latest = getLatestValue(stat);

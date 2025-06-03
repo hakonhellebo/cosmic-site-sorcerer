@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ExternalLink, Users, MapPin, BookOpen, Award, Briefcase, FlaskConical, Heart, GraduationCap, TrendingUp, BarChart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -365,7 +366,7 @@ const UniversityUiA = () => {
                 </TabsList>
                 
                 {Object.entries(groupedStats).map(([category, stats]) => (
-                  <TabsContent key={category} value={category} className="space-y-4 mt-6">
+                  <TabsContent key={category} value={category} className="space-y-4 mt-8">
                     <div className="grid gap-4">
                       {stats.map((stat, index) => {
                         const latest = getLatestValue(stat);
