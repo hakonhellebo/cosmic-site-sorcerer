@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ExternalLink, Users, MapPin, BookOpen, Award, Briefcase, FlaskConical, Heart, GraduationCap, TrendingUp, BarChart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -355,12 +354,12 @@ const UniversityUiT = () => {
             </CardHeader>
             <CardContent>
               <Tabs defaultValue={Object.keys(groupedStats)[0]} className="w-full">
-                <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
+                <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 bg-gray-100">
                   {Object.keys(groupedStats).map((category) => (
                     <TabsTrigger 
                       key={category} 
                       value={category}
-                      className="text-xs"
+                      className="text-xs data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
                     >
                       {category.replace('og', '&')}
                     </TabsTrigger>

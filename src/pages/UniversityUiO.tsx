@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ExternalLink, Users, MapPin, BookOpen, Award, Briefcase, FlaskConical, Heart, GraduationCap, TrendingUp, BarChart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -105,10 +104,10 @@ const UniversityUiO = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-4xl font-bold mb-2">Universitetet i Oslo (UiO)</h1>
-              <p className="text-xl text-muted-foreground">Norges eldste og mest anerkjente universitet</p>
+              <p className="text-xl text-muted-foreground">Norges eldste og mest prestisjetunge universitet</p>
             </div>
             <Badge variant="secondary" className="w-fit">
-              Grunnlagt 1811
+              Hovedstad
             </Badge>
           </div>
         </div>
@@ -123,13 +122,14 @@ const UniversityUiO = () => {
           </CardHeader>
           <CardContent>
             <p className="text-lg">
-              Universitetet i Oslo (UiO) er Norges eldste og et av de mest anerkjente universitetene i landet, grunnlagt i 1811. 
-              UiO ligger midt i Oslo – hovedstaden, og gir studentene unike muligheter både faglig, sosialt og karrieremessig. 
-              Universitetet har et stort og bredt fagtilbud, ledende forskningsmiljøer og et levende studentmiljø.
+              Universitetet i Oslo (UiO) er Norges eldste og største universitet, grunnlagt i 1811. 
+              Som landets mest prestisjetunge læresteder tilbyr UiO utdanning og forskning av høyeste 
+              internasjonale kvalitet innen et bredt spekter av fagområder.
             </p>
           </CardContent>
         </Card>
 
+        {/* Nøkkeltall */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardHeader>
@@ -139,7 +139,7 @@ const UniversityUiO = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">28 000+</p>
+              <p className="text-2xl font-bold">27 000+</p>
             </CardContent>
           </Card>
 
@@ -147,11 +147,11 @@ const UniversityUiO = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MapPin className="h-5 w-5" />
-                Hovedcampus
+                Campus
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-lg">Blindern, sentrum, Gaustad og Tøyen</p>
+              <p className="text-lg">Blindern og andre steder i Oslo</p>
             </CardContent>
           </Card>
 
@@ -163,34 +163,36 @@ const UniversityUiO = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">200+</p>
-              <p className="text-sm text-muted-foreground">Bachelor, master, profesjon, årsstudier, ph.d.</p>
+              <p className="text-lg">200+ utdanningstilbud</p>
             </CardContent>
           </Card>
         </div>
 
+        {/* Fagområder */}
         <Card className="mb-8">
           <CardHeader>
             <CardTitle>Fagområder</CardTitle>
-            <CardDescription>UiO har Norges bredeste spekter av studier innen:</CardDescription>
+            <CardDescription>UiO tilbyr utdanninger innen:</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ul className="space-y-2">
-                <li>• Humaniora (historie, språk, filosofi, arkeologi m.m.)</li>
-                <li>• Samfunnsvitenskap (psykologi, statsvitenskap, sosiologi, pedagogikk, samfunnsøkonomi)</li>
-                <li>• Jus og rettsvitenskap (landets eldste og største jusfakultet)</li>
-                <li>• Realfag og teknologi (matematikk, informatikk, fysikk, biologi m.m.)</li>
+                <li>• Medisin og helsefag</li>
+                <li>• Jus og samfunnsvitenskap</li>
+                <li>• Humaniora og teologi</li>
+                <li>• Matematikk og naturvitenskap</li>
               </ul>
               <ul className="space-y-2">
-                <li>• Medisin og odontologi (medisinstudiet, tannlege, ernæring)</li>
-                <li>• Teologi og religion</li>
-                <li>• Utdanningsvitenskap og lærerutdanning</li>
+                <li>• Utdanningsvitenskap og psykologi</li>
+                <li>• Odontologi (tannmedisin)</li>
+                <li>• Informatikk og teknologi</li>
+                <li>• Økonomi og administrasjon</li>
               </ul>
             </div>
           </CardContent>
         </Card>
 
+        {/* Særlig kjent for */}
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -201,25 +203,26 @@ const UniversityUiO = () => {
           <CardContent>
             <div className="space-y-4">
               <div>
-                <h4 className="font-semibold mb-2">Sterke forskningsmiljøer</h4>
-                <p>UiO er internasjonalt ledende innen flere fag, særlig medisin, rettsvitenskap og humaniora.</p>
+                <h4 className="font-semibold mb-2">Prestisjefylte utdanninger</h4>
+                <p>Medisin, jus, og andre profesjonsstudier med høye opptakskrav.</p>
               </div>
               <div>
-                <h4 className="font-semibold mb-2">Stort fagmiljø og bredde</h4>
-                <p>Egner seg for alle, fra tradisjonelle akademiske studier til innovative og tverrfaglige programmer.</p>
+                <h4 className="font-semibold mb-2">Forskning i verdensklasse</h4>
+                <p>Internasjonalt anerkjent forskning og flere nobelprisvinnnere.</p>
               </div>
               <div>
-                <h4 className="font-semibold mb-2">Bycampus i Oslo</h4>
-                <p>Gir tilgang til Norges beste jobb- og praksismuligheter, næringsliv, offentlig sektor og kulturtilbud.</p>
+                <h4 className="font-semibold mb-2">Akademisk tradisjon</h4>
+                <p>Over 200 års historie som Norges ledende universitet.</p>
               </div>
               <div>
-                <h4 className="font-semibold mb-2">Jus, psykologi, medisin</h4>
-                <p>Svært ettertraktede studier, kjent for høy kvalitet.</p>
+                <h4 className="font-semibold mb-2">Internasjonalt fokus</h4>
+                <p>Sterke internasjonale koblinger og utvekslingsprogrammer.</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
+        {/* Opptakskrav og Karrieremuligheter */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Card>
             <CardHeader>
@@ -227,9 +230,9 @@ const UniversityUiO = () => {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                <li>• De fleste bachelorprogram krever generell studiekompetanse</li>
-                <li>• Enkelte programmer (f.eks. medisin, psykologi, jus, realfag) har svært høye karakterkrav eller spesifikke opptakskrav</li>
-                <li>• Profesjonsstudier har ofte opptak via egne kvoter</li>
+                <li>• Svært høye karakterkrav for mange studier</li>
+                <li>• Medisin og jus er blant de mest konkurranseutsatte</li>
+                <li>• Enkelte fag krever spesifikke realfagskrav</li>
               </ul>
             </CardContent>
           </Card>
@@ -243,15 +246,15 @@ const UniversityUiO = () => {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                <li>• Utdanning fra UiO er anerkjent både nasjonalt og internasjonalt</li>
-                <li>• Solid grunnlag for jobb i næringsliv, offentlig sektor, forskning, helse og skole</li>
-                <li>• Eget karrieresenter og mange koblinger mot arbeidslivet i Oslo-regionen</li>
-                <li>• Mange UiO-alumni har ledende roller i norsk samfunnsliv</li>
+                <li>• Utmerkede jobbmuligheter i alle sektorer</li>
+                <li>• Sterkt nettverk og alumnifellesskap</li>
+                <li>• Høy status og anerkjennelse hos arbeidsgivere</li>
               </ul>
             </CardContent>
           </Card>
         </div>
 
+        {/* Forskning og Studentliv */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Card>
             <CardHeader>
@@ -262,9 +265,9 @@ const UniversityUiO = () => {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                <li>• Satsing på forskning innen helse, klima, digitalisering, samfunn og demokrati</li>
-                <li>• Sterkt fokus på tverrfaglighet og internasjonalt samarbeid</li>
-                <li>• Store forskningsprosjekter og flere Sentre for fremragende forskning (SFF)</li>
+                <li>• Ledende forskning innen alle fagområder</li>
+                <li>• Flere nobelpriser og internasjonale utmerkelser</li>
+                <li>• Tett samarbeid med forskningsinstitusjoner globalt</li>
               </ul>
             </CardContent>
           </Card>
@@ -278,25 +281,24 @@ const UniversityUiO = () => {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                <li>• Over 250 studentforeninger og organisasjoner</li>
-                <li>• Alt fra idrett og musikk til faglige og politiske lag</li>
-                <li>• Blindern og sentrum er pulserende studentmiljøer</li>
-                <li>• Studentersamfunnet som møteplass</li>
-                <li>• Mange arrangementer, festivaler og aktiviteter året rundt</li>
+                <li>• Rikt studentliv i hovedstaden</li>
+                <li>• Mange studentorganisasjoner og foreninger</li>
+                <li>• Tilgang til kulturliv, jobb og praksis i Oslo</li>
               </ul>
             </CardContent>
           </Card>
         </div>
 
+        {/* Noe for deg? */}
         <Card className="mb-8">
           <CardHeader>
             <CardTitle>Noe for deg?</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              <li>• Passer for deg som vil studere midt i hovedstaden, med tilgang til byliv, arbeidsmarked og et stort sosialt nettverk</li>
-              <li>• Har du interesse for akademia, forskning eller vil ta en profesjonsutdanning, finner du alt på UiO</li>
-              <li>• Universitetet tilbyr stor valgfrihet, mulighet for utveksling og mange spesialiseringsretninger</li>
+              <li>• Perfekt for deg med høye karakterer og store ambisjoner</li>
+              <li>• Godt valg hvis du vil ha prestisjefylt utdanning og forskning</li>
+              <li>• Passer for deg som vil studere i hovedstaden med alle dens muligheter</li>
             </ul>
           </CardContent>
         </Card>
@@ -351,12 +353,12 @@ const UniversityUiO = () => {
             </CardHeader>
             <CardContent>
               <Tabs defaultValue={Object.keys(groupedStats)[0]} className="w-full">
-                <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
+                <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 bg-gray-100">
                   {Object.keys(groupedStats).map((category) => (
                     <TabsTrigger 
                       key={category} 
                       value={category}
-                      className="text-xs"
+                      className="text-xs data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
                     >
                       {category.replace('og', '&')}
                     </TabsTrigger>
@@ -417,9 +419,9 @@ const UniversityUiO = () => {
                 </a>
               </Button>
               <Button variant="outline" className="w-full" asChild>
-                <a href="https://www.uio.no/studier/studentlivet/" target="_blank" rel="noopener noreferrer">
+                <a href="https://www.uio.no/student/" target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="mr-2 h-4 w-4" />
-                  Studentlivet ved UiO
+                  Studentliv på UiO
                 </a>
               </Button>
               <Button variant="outline" className="w-full" asChild>

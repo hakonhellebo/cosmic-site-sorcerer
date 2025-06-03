@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ExternalLink, Users, MapPin, BookOpen, Award, Briefcase, FlaskConical, Heart, GraduationCap, TrendingUp, BarChart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -105,10 +104,10 @@ const UniversityUiB = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-4xl font-bold mb-2">Universitetet i Bergen (UiB)</h1>
-              <p className="text-xl text-muted-foreground">Internasjonalt forskningsuniversitet i hjertet av Bergen</p>
+              <p className="text-xl text-muted-foreground">Vestlandets flaggskip innen forskning og utdanning</p>
             </div>
             <Badge variant="secondary" className="w-fit">
-              Byuniversitet
+              Vestlandet
             </Badge>
           </div>
         </div>
@@ -123,13 +122,14 @@ const UniversityUiB = () => {
           </CardHeader>
           <CardContent>
             <p className="text-lg">
-              Universitetet i Bergen (UiB) er et internasjonalt forskningsuniversitet, kjent for sitt åpne, urbane campus 
-              midt i hjertet av Bergen – Norges nest største by. UiB har lange tradisjoner, høy faglig kvalitet og et sterkt 
-              studentmiljø tett på både byliv, hav og fjell.
+              Universitetet i Bergen (UiB) er Vestlandets eldste og største universitet, grunnlagt i 1946. 
+              UiB er kjent for sin høye kvalitet innen forskning og utdanning, og tilbyr et bredt spekter 
+              av fagområder med særlig styrke innen naturvitenskap, medisin og samfunnsvitenskap.
             </p>
           </CardContent>
         </Card>
 
+        {/* Nøkkeltall */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardHeader>
@@ -139,7 +139,7 @@ const UniversityUiB = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">20 000+</p>
+              <p className="text-2xl font-bold">17 000+</p>
             </CardContent>
           </Card>
 
@@ -147,11 +147,11 @@ const UniversityUiB = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MapPin className="h-5 w-5" />
-                Hovedcampus
+                Campus
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-lg">Bergen sentrum, Marineholmen, Haukeland</p>
+              <p className="text-lg">Bergen sentrum og Årstadvollen</p>
             </CardContent>
           </Card>
 
@@ -163,34 +163,36 @@ const UniversityUiB = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">190+</p>
-              <p className="text-sm text-muted-foreground">Bachelor, master, profesjon, ph.d.</p>
+              <p className="text-lg">Ca. 180 utdanningstilbud</p>
             </CardContent>
           </Card>
         </div>
 
+        {/* Fagområder */}
         <Card className="mb-8">
           <CardHeader>
             <CardTitle>Fagområder</CardTitle>
-            <CardDescription>UiB tilbyr et bredt utvalg av studier innen:</CardDescription>
+            <CardDescription>UiB tilbyr utdanninger innen:</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ul className="space-y-2">
-                <li>• Humaniora (historie, språk, filosofi, kulturvitenskap m.m.)</li>
-                <li>• Samfunnsvitenskap (psykologi, sosiologi, geografi, informasjonsvitenskap)</li>
-                <li>• Jus og rettsvitenskap (et av Norges største jusfakultet)</li>
-                <li>• Matematikk og naturvitenskap (biologi, geofag, informatikk, kjemi, fysikk)</li>
+                <li>• Medisin og odontologi</li>
+                <li>• Naturvitenskap og teknologi</li>
+                <li>• Samfunnsvitenskap og jus</li>
+                <li>• Humaniora</li>
               </ul>
               <ul className="space-y-2">
-                <li>• Medisin, odontologi og helse (medisinstudiet, tannlege, ernæring, farmasi)</li>
-                <li>• Kunst, musikk og design (KMD)</li>
-                <li>• Global og utviklingsstudier</li>
+                <li>• Psykologi og utdanningsvitenskap</li>
+                <li>• Kunstfag</li>
+                <li>• Økonomi og administrasjon</li>
+                <li>• Geofag og petroleumsvitenskap</li>
               </ul>
             </div>
           </CardContent>
         </Card>
 
+        {/* Særlig kjent for */}
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -201,25 +203,26 @@ const UniversityUiB = () => {
           <CardContent>
             <div className="space-y-4">
               <div>
-                <h4 className="font-semibold mb-2">Sterke forskningsmiljøer</h4>
-                <p>Særlig innen marin- og klimaforskning, helsefag og samfunnsfag.</p>
+                <h4 className="font-semibold mb-2">Medisin og helsefag</h4>
+                <p>Sterke tradisjon innen medisinske fag og helseforskning.</p>
               </div>
               <div>
-                <h4 className="font-semibold mb-2">Byuniversitet</h4>
-                <p>Urban campus i Bergen sentrum gir nærhet til arbeidsliv, forskningsmiljø og kulturliv.</p>
+                <h4 className="font-semibold mb-2">Marin forskning</h4>
+                <p>Verdensledende innen havforskning og maritime studier.</p>
               </div>
               <div>
-                <h4 className="font-semibold mb-2">Internasjonal profil</h4>
-                <p>Mange internasjonale studenter og forskere, og sterke utvekslingsmuligheter.</p>
+                <h4 className="font-semibold mb-2">Geofag og klima</h4>
+                <p>Fremragende kompetanse innen geologi, klima og miljøforskning.</p>
               </div>
               <div>
-                <h4 className="font-semibold mb-2">Hav, klima og bærekraft</h4>
-                <p>UiB har ledende satsinger innen havforskning, klimavitenskap og global helse.</p>
+                <h4 className="font-semibold mb-2">Forskningskvalitet</h4>
+                <p>Høy forskningskvalitet og internasjonalt samarbeid.</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
+        {/* Opptakskrav og Karrieremuligheter */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Card>
             <CardHeader>
@@ -227,9 +230,9 @@ const UniversityUiB = () => {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
+                <li>• Høye karakterkrav for medisin og psykologi</li>
                 <li>• Generell studiekompetanse for de fleste bachelorprogram</li>
-                <li>• Enkelte profesjonsstudier (medisin, odontologi, jus, psykologi) har høye karakterkrav og særskilte opptakskrav</li>
-                <li>• Noen kreative eller praktiske fag krever opptaksprøver (musikk, design)</li>
+                <li>• Realfagskrav for tekniske og naturvitenskapelige fag</li>
               </ul>
             </CardContent>
           </Card>
@@ -243,14 +246,15 @@ const UniversityUiB = () => {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                <li>• Utdanning fra UiB gir gode jobbmuligheter nasjonalt og internasjonalt</li>
-                <li>• Tett samarbeid med næringslivet, offentlig sektor og forskningsmiljøer, spesielt i Vestland-regionen</li>
-                <li>• UiB tilbyr karriereveiledning, praksisplasser og støtte til studentgründere</li>
+                <li>• Gode jobbmuligheter innen helse, forskning og teknologi</li>
+                <li>• Sterke koblinger til vestlandsk næringsliv</li>
+                <li>• Internasjonale karrieremuligheter gjennom forskningsnettverk</li>
               </ul>
             </CardContent>
           </Card>
         </div>
 
+        {/* Forskning og Studentliv */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Card>
             <CardHeader>
@@ -261,9 +265,9 @@ const UniversityUiB = () => {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                <li>• UiB er blant Norges ledende universiteter på forskning innen hav, klima, helse og samfunn</li>
-                <li>• Flere Sentre for fremragende forskning (SFF) og samarbeid med Havforskningsinstituttet og Haukeland universitetssjukehus</li>
-                <li>• Sterkt engasjement for bærekraft og internasjonale forskningsprosjekter</li>
+                <li>• Verdensledende havforskning og klimastudier</li>
+                <li>• Medisinsk forskning i topp internasjonalt</li>
+                <li>• Sterke kobling mellom forskning og undervisning</li>
               </ul>
             </CardContent>
           </Card>
@@ -277,24 +281,24 @@ const UniversityUiB = () => {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                <li>• Studentbyen Bergen har et svært aktivt og inkluderende studentmiljø</li>
-                <li>• Over 100 studentforeninger innen fag, idrett, kultur, frivillighet og politikk</li>
-                <li>• Store studentarrangementer som UKEN-festivalen, studentradio, revyer og kulturhus (Kvarteret)</li>
-                <li>• Unik blanding av byliv, kafeer, konserter – og kort vei til natur, fjord og fjell</li>
+                <li>• Aktivt studentmiljø i en vakker by omgitt av fjorder og fjell</li>
+                <li>• Rikt kulturtilbud og festivaltradisjoner</li>
+                <li>• Mange muligheter for friluftsliv og naturopplevelser</li>
               </ul>
             </CardContent>
           </Card>
         </div>
 
+        {/* Noe for deg? */}
         <Card className="mb-8">
           <CardHeader>
             <CardTitle>Noe for deg?</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              <li>• Perfekt for deg som vil studere i en levende by med både urbane og naturopplevelser</li>
-              <li>• Godt valg for deg som er opptatt av klima, hav, samfunn og innovasjon</li>
-              <li>• Mange muligheter for utveksling, tverrfaglighet og praksis under studiene</li>
+              <li>• Perfekt for deg som vil kombinere høy faglig kvalitet med vakre omgivelser</li>
+              <li>• Godt valg hvis du er interessert i medisin, naturvitenskap eller havforskning</li>
+              <li>• Passer for deg som ønsker en balanse mellom studier og naturopplevelser</li>
             </ul>
           </CardContent>
         </Card>
@@ -349,12 +353,12 @@ const UniversityUiB = () => {
             </CardHeader>
             <CardContent>
               <Tabs defaultValue={Object.keys(groupedStats)[0]} className="w-full">
-                <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
+                <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 bg-gray-100">
                   {Object.keys(groupedStats).map((category) => (
                     <TabsTrigger 
                       key={category} 
                       value={category}
-                      className="text-xs"
+                      className="text-xs data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
                     >
                       {category.replace('og', '&')}
                     </TabsTrigger>
@@ -409,7 +413,7 @@ const UniversityUiB = () => {
                 </a>
               </Button>
               <Button variant="outline" className="w-full" asChild>
-                <a href="https://www.uib.no/utdanning" target="_blank" rel="noopener noreferrer">
+                <a href="https://www.uib.no/studier" target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="mr-2 h-4 w-4" />
                   Studier ved UiB
                 </a>
@@ -417,11 +421,11 @@ const UniversityUiB = () => {
               <Button variant="outline" className="w-full" asChild>
                 <a href="https://www.uib.no/student" target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="mr-2 h-4 w-4" />
-                  Studentlivet i Bergen
+                  Studentliv på UiB
                 </a>
               </Button>
               <Button variant="outline" className="w-full" asChild>
-                <a href="https://www.uib.no/utdanning/75541/opptak" target="_blank" rel="noopener noreferrer">
+                <a href="https://www.uib.no/student/opptak" target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="mr-2 h-4 w-4" />
                   Opptak og søknad
                 </a>
