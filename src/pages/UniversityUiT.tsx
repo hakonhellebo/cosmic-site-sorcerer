@@ -1,13 +1,92 @@
 
-import React from 'react';
-import { ArrowLeft, ExternalLink, Users, MapPin, BookOpen, Award, Briefcase, FlaskConical, Heart, GraduationCap } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, ExternalLink, Users, MapPin, BookOpen, Award, Briefcase, FlaskConical, Heart, GraduationCap, TrendingUp, BarChart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { supabase } from '@/lib/supabase';
 
 const UniversityUiT = () => {
   const navigate = useNavigate();
+  const [uitStats, setUitStats] = useState<any[]>([]);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchUiTStatistics();
+  }, []);
+
+  const fetchUiTStatistics = async () => {
+    try {
+      setStatsLoading(true);
+      const { data, error } = await supabase
+        .from('universitet_statistikk')
+        .select('*')
+        .eq('Skole', 'UiT Norges arktiske universitet')
+        .order('Kategori', { ascending: true });
+      
+      if (data && !error) {
+        setUitStats(data);
+        console.log(`Found ${data.length} UiT statistics entries`);
+      } else {
+        console.error('Error fetching UiT statistics:', error);
+      }
+    } catch (error) {
+      console.error('Error fetching UiT statistics:', error);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  const getLatestValue = (stat: any) => {
+    const years = ['2024', '2023', '2022', '2021', '2020', '2019'];
+    for (const year of years) {
+      if (stat[year] && stat[year] !== '-' && stat[year].trim() !== '') {
+        return { value: stat[year], year };
+      }
+    }
+    return { value: 'N/A', year: '' };
+  };
+
+  const formatStatValue = (value: string) => {
+    if (!value || value === '-' || value === 'N/A') return 'N/A';
+    
+    const num = parseFloat(value.replace(/,/g, ''));
+    if (!isNaN(num)) {
+      if (num >= 1000) {
+        return num.toLocaleString('no-NO');
+      }
+      return value;
+    }
+    return value;
+  };
+
+  const groupStatsByCategory = (stats: any[]) => {
+    const grouped: { [key: string]: any[] } = {};
+    stats.forEach(stat => {
+      if (!grouped[stat.Kategori]) {
+        grouped[stat.Kategori] = [];
+      }
+      grouped[stat.Kategori].push(stat);
+    });
+    return grouped;
+  };
+
+  const getKeyStats = (stats: any[]) => {
+    const keyIndicators = [
+      'Studenter totalt',
+      'Kandidater på ett- og toårige mastergrader',
+      'Prosent med karakterene A og B',
+      'Publiseringspoeng',
+      'Førstevalgsøkere totalt'
+    ];
+    
+    return stats.filter(stat => keyIndicators.includes(stat.Indikator));
+  };
+
+  const groupedStats = groupStatsByCategory(uitStats);
+  const keyStats = getKeyStats(uitStats);
 
   return (
     <div className="min-h-screen bg-background">
@@ -26,10 +105,10 @@ const UniversityUiT = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-4xl font-bold mb-2">UiT Norges arktiske universitet</h1>
-              <p className="text-xl text-muted-foreground">Verdens nordligste universitet</p>
+              <p className="text-xl text-muted-foreground">Norges nordligste universitet med arktisk fokus</p>
             </div>
             <Badge variant="secondary" className="w-fit">
-              Arktisk forskning & utdanning
+              Arktisk profil
             </Badge>
           </div>
         </div>
@@ -44,10 +123,9 @@ const UniversityUiT = () => {
           </CardHeader>
           <CardContent>
             <p className="text-lg">
-              UiT er verdens nordligste universitet og et av Norges største, med hovedcampus i Tromsø og 
-              studiesteder over hele Nord-Norge (Alta, Harstad, Narvik, Bodø, Mo i Rana, Kirkenes, Longyearbyen). 
-              UiT er kjent for forskning og utdanning tilpasset nordlige og arktiske forhold, men tilbyr også 
-              et bredt spekter av nasjonale og internasjonale studier i et unikt, mangfoldig miljø.
+              UiT Norges arktiske universitet er Norges nordligste universitet og en ledende institusjon innen 
+              arktisk forskning og utdanning. Med hovedcampus i Tromsø og avdelinger spredt over Nord-Norge, 
+              tilbyr UiT unik kompetanse innen klima, miljø, urfolk og nordområdeforskning.
             </p>
           </CardContent>
         </Card>
@@ -62,7 +140,7 @@ const UniversityUiT = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">17 000</p>
+              <p className="text-2xl font-bold">17 000+</p>
             </CardContent>
           </Card>
 
@@ -70,11 +148,11 @@ const UniversityUiT = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MapPin className="h-5 w-5" />
-                Campus
+                Campuser
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-lg">Hovedcampus i Tromsø, studiesteder i hele Nord-Norge</p>
+              <p className="text-lg">Tromsø, Alta, Harstad, Kirkenes, Narvik</p>
             </CardContent>
           </Card>
 
@@ -86,7 +164,7 @@ const UniversityUiT = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-lg">170+ bachelor, master, profesjon, årsstudier, PhD</p>
+              <p className="text-lg">Ca. 150 utdanningstilbud</p>
             </CardContent>
           </Card>
         </div>
@@ -95,21 +173,21 @@ const UniversityUiT = () => {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle>Fagområder</CardTitle>
-            <CardDescription>UiT tilbyr et bredt utvalg utdanninger, blant annet:</CardDescription>
+            <CardDescription>UiT tilbyr utdanninger innen:</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ul className="space-y-2">
-                <li>• Helsefag og medisin (lege, sykepleie, tannlege, farmasi, psykologi)</li>
-                <li>• Biologi, miljø, arktiske og marine studier</li>
-                <li>• Lærerutdanning og pedagogikk</li>
-                <li>• Samfunnsvitenskap, jus og statsvitenskap</li>
+                <li>• Arktisk forskning og klimavitenskap</li>
+                <li>• Medisin og helsefag</li>
+                <li>• Jus og samfunnsvitenskap</li>
+                <li>• Naturvitenskap og teknologi</li>
               </ul>
               <ul className="space-y-2">
-                <li>• Humaniora (språk, historie, kultur, kunst)</li>
-                <li>• Teknologi og ingeniørfag (IT, data, automasjon, energi)</li>
-                <li>• Fiskeri, havbruk og ressursforvaltning</li>
-                <li>• Reindrift, urfolksstudier og samiske fag</li>
+                <li>• Humaniora og språkvitenskap</li>
+                <li>• Fiskerifag og bioteknologi</li>
+                <li>• Lærerutdanning</li>
+                <li>• Kunstfag og kreative studier</li>
               </ul>
             </div>
           </CardContent>
@@ -126,24 +204,20 @@ const UniversityUiT = () => {
           <CardContent>
             <div className="space-y-4">
               <div>
-                <h4 className="font-semibold mb-2">Arktisk profil</h4>
-                <p>Forskning og utdanning knyttet til klima, miljø, ressursforvaltning og nordområdene.</p>
+                <h4 className="font-semibold mb-2">Arktisk og polar forskning</h4>
+                <p>Ledende kompetanse innen klimaforskning, miljø og arktiske forhold.</p>
               </div>
               <div>
-                <h4 className="font-semibold mb-2">Internasjonalt miljø</h4>
-                <p>Mange internasjonale studenter, forskere og utvekslingsmuligheter.</p>
+                <h4 className="font-semibold mb-2">Nordområdekunnskap</h4>
+                <p>Unik kunnskap om Arktis, urfolk og nordområdenes utfordringer.</p>
               </div>
               <div>
-                <h4 className="font-semibold mb-2">Sterke fagmiljøer</h4>
-                <p>Helsefag (særlig medisin, odontologi og farmasi), biovitenskap, marine fag og samfunnsfag.</p>
+                <h4 className="font-semibold mb-2">Mangfoldighet og inkludering</h4>
+                <p>Sterkt fokus på mangfold, urfolksperspektiv og flerkulturell forståelse.</p>
               </div>
               <div>
-                <h4 className="font-semibold mb-2">Studiemangfold</h4>
-                <p>Alt fra tradisjonelle universitetsfag til samiske og urfolksstudier, fiskeri, klima og polarforskning.</p>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2">Unik lokasjon</h4>
-                <p>Nordlys, arktisk natur, midnattssol – og nært samarbeid med næringsliv, offentlig sektor og internasjonale institusjoner.</p>
+                <h4 className="font-semibold mb-2">Naturopplevelser</h4>
+                <p>Unike muligheter for naturstudier og opplevelser i arktisk miljø.</p>
               </div>
             </div>
           </CardContent>
@@ -157,9 +231,9 @@ const UniversityUiT = () => {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                <li>• De fleste bachelorprogram krever generell studiekompetanse</li>
-                <li>• Profesjonsstudier (medisin, tannlege, psykologi, ingeniør) har spesifikke fagkrav og høye opptakspoeng</li>
-                <li>• Noen fag har opptaksprøver eller særskilte krav</li>
+                <li>• Generell studiekompetanse for de fleste bachelorprogram</li>
+                <li>• Medisin og enkelte profesjonsstudier har høye karakterkrav</li>
+                <li>• Noen fag har særskilte opptakskrav</li>
               </ul>
             </CardContent>
           </Card>
@@ -173,9 +247,9 @@ const UniversityUiT = () => {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                <li>• UiT gir gode jobbmuligheter, spesielt innen helse, forskning, offentlig sektor, biologi, fiskeri/havbruk og klima/miljø</li>
-                <li>• Praksis, feltarbeid og samarbeid med arbeidslivet står sentralt i mange studier</li>
-                <li>• Universitetet har egne karrieresentre og veiledning for studenter</li>
+                <li>• Gode muligheter innen forskning, offentlig sektor og næringsliv</li>
+                <li>• Spesialkompetanse etterspurt nasjonalt og internasjonalt</li>
+                <li>• Tette bånd til arktisk næringsliv og forskningsinstitusjoner</li>
               </ul>
             </CardContent>
           </Card>
@@ -192,9 +266,9 @@ const UniversityUiT = () => {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                <li>• UiT er internasjonalt ledende innen arktisk, klima, helse og marine fag</li>
-                <li>• Deltar i nasjonale og globale forskningsprosjekter, særlig knyttet til klima, urfolk, teknologi og ressursforvaltning</li>
-                <li>• Samarbeider tett med både næringsliv, forskningsinstitutter og internasjonale partnere</li>
+                <li>• Verdsledende arktisk forskning og klimastudier</li>
+                <li>• Tverrfaglig forskning på nordområder og bærekraft</li>
+                <li>• Internasjonalt samarbeid om arktiske spørsmål</li>
               </ul>
             </CardContent>
           </Card>
@@ -208,9 +282,10 @@ const UniversityUiT = () => {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                <li>• Aktivt studentmiljø, spesielt i Tromsø med studentforeninger, idrettslag, kultur, revy og festivaler</li>
-                <li>• Unikt sosialt miljø med naturen rett utenfor døra – nordlys, ski, hav og fjell</li>
-                <li>• Studenthus, kafeer, treningssentre og mange arrangementer</li>
+                <li>• Unikt studentmiljø med midnattssol og nordlys</li>
+                <li>• Rike muligheter for friluftsliv og naturopplevelser</li>
+                <li>• Levende kulturliv i Tromsø og på andre campuser</li>
+                <li>• Sterkt samhold og inkluderende miljø</li>
               </ul>
             </CardContent>
           </Card>
@@ -223,12 +298,108 @@ const UniversityUiT = () => {
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              <li>• Perfekt for deg som vil studere i spektakulær natur, i et internasjonalt og inkluderende miljø</li>
-              <li>• Gode muligheter for deg som ønsker å jobbe med helse, klima, urfolk, teknologi eller arktiske spørsmål</li>
-              <li>• Passer for deg som er nysgjerrig på nordområdene, polarforskning og ønsker praksisnære studier</li>
+              <li>• Perfekt for deg som er opptatt av klima, miljø og arktiske forhold</li>
+              <li>• Godt valg hvis du vil oppleve unike naturforhold og kulturer</li>
+              <li>• Passer for deg som ønsker å bidra til forskning på globale utfordringer</li>
             </ul>
           </CardContent>
         </Card>
+
+        {/* Key Statistics from Database */}
+        {!statsLoading && keyStats.length > 0 && (
+          <Card className="mb-12">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart className="h-5 w-5" />
+                Nøkkeltall for UiT Norges arktiske universitet
+              </CardTitle>
+              <CardDescription>
+                Nyeste tilgjengelige data fra universitetsstatistikk
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {keyStats.map((stat, index) => {
+                  const latest = getLatestValue(stat);
+                  return (
+                    <div key={index} className="border rounded-lg p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <h4 className="font-medium text-sm text-muted-foreground">{stat.Indikator}</h4>
+                        {latest.year && (
+                          <Badge variant="outline" className="text-xs">{latest.year}</Badge>
+                        )}
+                      </div>
+                      <p className="text-2xl font-bold text-primary">
+                        {formatStatValue(latest.value)}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">{stat.Kategori}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Detailed Statistics */}
+        {!statsLoading && Object.keys(groupedStats).length > 0 && (
+          <Card className="mb-12">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Detaljert statistikk
+              </CardTitle>
+              <CardDescription>
+                Komplett oversikt over UiT Norges arktiske universitet sine nøkkeltall fordelt på kategorier
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue={Object.keys(groupedStats)[0]} className="w-full">
+                <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
+                  {Object.keys(groupedStats).map((category) => (
+                    <TabsTrigger 
+                      key={category} 
+                      value={category}
+                      className="text-xs"
+                    >
+                      {category.replace('og', '&')}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+                
+                {Object.entries(groupedStats).map(([category, stats]) => (
+                  <TabsContent key={category} value={category} className="space-y-4">
+                    <div className="grid gap-4">
+                      {stats.map((stat, index) => {
+                        const latest = getLatestValue(stat);
+                        return (
+                          <div key={index} className="border rounded-lg p-4">
+                            <div className="flex justify-between items-start mb-3">
+                              <h4 className="font-medium">{stat.Indikator}</h4>
+                              {latest.year && (
+                                <Badge variant="outline">{latest.year}</Badge>
+                              )}
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-6 gap-2 text-sm">
+                              {['2019', '2020', '2021', '2022', '2023', '2024'].map(year => (
+                                <div key={year} className="text-center">
+                                  <div className="text-muted-foreground text-xs">{year}</div>
+                                  <div className={`font-medium ${year === latest.year ? 'text-primary' : ''}`}>
+                                    {formatStatValue(stat[year] || '-')}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </TabsContent>
+                ))}
+              </Tabs>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Les mer */}
         <Card>
@@ -238,7 +409,7 @@ const UniversityUiT = () => {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Button variant="outline" className="w-full" asChild>
-                <a href="https://www.uit.no/" target="_blank" rel="noopener noreferrer">
+                <a href="https://uit.no/" target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="mr-2 h-4 w-4" />
                   uit.no
                 </a>
@@ -250,13 +421,13 @@ const UniversityUiT = () => {
                 </a>
               </Button>
               <Button variant="outline" className="w-full" asChild>
-                <a href="https://uit.no/utdanning/studentlivet" target="_blank" rel="noopener noreferrer">
+                <a href="https://uit.no/studentliv" target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="mr-2 h-4 w-4" />
-                  Studentliv i Tromsø og Nord-Norge
+                  Studentliv på UiT
                 </a>
               </Button>
               <Button variant="outline" className="w-full" asChild>
-                <a href="https://uit.no/utdanning/opptak" target="_blank" rel="noopener noreferrer">
+                <a href="https://uit.no/opptak" target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="mr-2 h-4 w-4" />
                   Opptak og søknad
                 </a>

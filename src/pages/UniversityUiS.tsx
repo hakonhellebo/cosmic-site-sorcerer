@@ -1,13 +1,92 @@
 
-import React from 'react';
-import { ArrowLeft, ExternalLink, Users, MapPin, BookOpen, Award, Briefcase, FlaskConical, Heart, GraduationCap } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, ExternalLink, Users, MapPin, BookOpen, Award, Briefcase, FlaskConical, Heart, GraduationCap, TrendingUp, BarChart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { supabase } from '@/lib/supabase';
 
 const UniversityUiS = () => {
   const navigate = useNavigate();
+  const [uisStats, setUisStats] = useState<any[]>([]);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchUiSStatistics();
+  }, []);
+
+  const fetchUiSStatistics = async () => {
+    try {
+      setStatsLoading(true);
+      const { data, error } = await supabase
+        .from('universitet_statistikk')
+        .select('*')
+        .eq('Skole', 'Universitetet i Stavanger')
+        .order('Kategori', { ascending: true });
+      
+      if (data && !error) {
+        setUisStats(data);
+        console.log(`Found ${data.length} UiS statistics entries`);
+      } else {
+        console.error('Error fetching UiS statistics:', error);
+      }
+    } catch (error) {
+      console.error('Error fetching UiS statistics:', error);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  const getLatestValue = (stat: any) => {
+    const years = ['2024', '2023', '2022', '2021', '2020', '2019'];
+    for (const year of years) {
+      if (stat[year] && stat[year] !== '-' && stat[year].trim() !== '') {
+        return { value: stat[year], year };
+      }
+    }
+    return { value: 'N/A', year: '' };
+  };
+
+  const formatStatValue = (value: string) => {
+    if (!value || value === '-' || value === 'N/A') return 'N/A';
+    
+    const num = parseFloat(value.replace(/,/g, ''));
+    if (!isNaN(num)) {
+      if (num >= 1000) {
+        return num.toLocaleString('no-NO');
+      }
+      return value;
+    }
+    return value;
+  };
+
+  const groupStatsByCategory = (stats: any[]) => {
+    const grouped: { [key: string]: any[] } = {};
+    stats.forEach(stat => {
+      if (!grouped[stat.Kategori]) {
+        grouped[stat.Kategori] = [];
+      }
+      grouped[stat.Kategori].push(stat);
+    });
+    return grouped;
+  };
+
+  const getKeyStats = (stats: any[]) => {
+    const keyIndicators = [
+      'Studenter totalt',
+      'Kandidater på ett- og toårige mastergrader',
+      'Prosent med karakterene A og B',
+      'Publiseringspoeng',
+      'Førstevalgsøkere totalt'
+    ];
+    
+    return stats.filter(stat => keyIndicators.includes(stat.Indikator));
+  };
+
+  const groupedStats = groupStatsByCategory(uisStats);
+  const keyStats = getKeyStats(uisStats);
 
   return (
     <div className="min-h-screen bg-background">
@@ -26,10 +105,10 @@ const UniversityUiS = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-4xl font-bold mb-2">Universitetet i Stavanger (UiS)</h1>
-              <p className="text-xl text-muted-foreground">Moderne universitet i Norges energihovedstad</p>
+              <p className="text-xl text-muted-foreground">Innovativt universitet med fokus på teknologi og samfunn</p>
             </div>
             <Badge variant="secondary" className="w-fit">
-              Energi & Innovasjon
+              Energiuniversitet
             </Badge>
           </div>
         </div>
@@ -44,10 +123,9 @@ const UniversityUiS = () => {
           </CardHeader>
           <CardContent>
             <p className="text-lg">
-              Universitetet i Stavanger (UiS) ligger i Norges energihovedstad og region med høy innovasjonstakt. 
-              UiS er kjent for sitt moderne campus, nærhet til næringsliv og et dynamisk studiemiljø. 
-              Universitetet tilbyr et bredt spekter av studier med sterk vekt på teknologi, energi, helse og samfunn 
-              – og gir deg tett kontakt med både arbeidsliv og forskning.
+              Universitetet i Stavanger (UiS) er et innovativt universitet som kombinerer sterke fagmiljøer med nærhet til 
+              næringslivet. UiS er særlig kjent for sin satsing på energifag, teknologi og samfunnsvitenskap, og ligger 
+              strategisk plassert i Norges energihovedstad med tette koblinger til petroleum- og fornybar energi-sektoren.
             </p>
           </CardContent>
         </Card>
@@ -62,7 +140,7 @@ const UniversityUiS = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">12 500</p>
+              <p className="text-2xl font-bold">12 000+</p>
             </CardContent>
           </Card>
 
@@ -74,7 +152,7 @@ const UniversityUiS = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-lg">Ullandhaug, Stavanger (moderne universitetsområde)</p>
+              <p className="text-lg">Stavanger sentrum og Ullandhaug</p>
             </CardContent>
           </Card>
 
@@ -86,7 +164,7 @@ const UniversityUiS = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-lg">150+ bachelor, master, årsstudier, PhD, etter- og videreutdanning</p>
+              <p className="text-lg">Ca. 80 utdanningstilbud</p>
             </CardContent>
           </Card>
         </div>
@@ -100,16 +178,14 @@ const UniversityUiS = () => {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ul className="space-y-2">
-                <li>• Ingeniør- og teknologi (petroleum, maskin, data, energi, automasjon, bygg)</li>
-                <li>• Økonomi og administrasjon</li>
-                <li>• Helse- og sosialfag (sykepleie, paramedisin, sosialt arbeid, barnevern)</li>
-                <li>• Lærerutdanning og pedagogikk (barnehage, grunnskole, lektor)</li>
+                <li>• Teknologi og naturvitenskap (petroleum, energi, ingeniørfag)</li>
+                <li>• Samfunnsvitenskap og jus</li>
+                <li>• Helsefag og idrett</li>
               </ul>
               <ul className="space-y-2">
-                <li>• Kunst, kultur og musikk</li>
-                <li>• Samfunnsvitenskap og humaniora</li>
-                <li>• Matematikk og naturvitenskap</li>
-                <li>• Hotell- og reiselivsledelse (verdensledende miljø)</li>
+                <li>• Humaniora og utdanningsvitenskap</li>
+                <li>• Økonomi og administrasjon</li>
+                <li>• Kunst og design</li>
               </ul>
             </div>
           </CardContent>
@@ -126,24 +202,20 @@ const UniversityUiS = () => {
           <CardContent>
             <div className="space-y-4">
               <div>
-                <h4 className="font-semibold mb-2">Sterk næringslivskontakt</h4>
-                <p>Spesielt tett samarbeid med olje- og energisektoren, men også reiseliv, IT, helse og offentlig sektor.</p>
+                <h4 className="font-semibold mb-2">Energi og petroleum</h4>
+                <p>Ledende utdanninger innen petroleum- og energifag med tette bånd til industrien.</p>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-2">Næringslivstilknytning</h4>
+                <p>Sterke koblinger til regionens næringsliv, spesielt energisektoren.</p>
               </div>
               <div>
                 <h4 className="font-semibold mb-2">Innovasjon og entreprenørskap</h4>
-                <p>UiS satser tungt på nyskaping, gründermiljø og studentbedrifter.</p>
+                <p>Fokus på innovasjon, gründervirksomhet og kommersialisering av forskning.</p>
               </div>
               <div>
-                <h4 className="font-semibold mb-2">Fremtidsrettede fag</h4>
-                <p>Satsing på bærekraft, digitalisering, teknologi og klima.</p>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2">Internasjonal profil</h4>
-                <p>Mange utvekslingsmuligheter, internasjonale masterprogrammer og studenter fra hele verden.</p>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2">Studentbyen Stavanger</h4>
-                <p>Kombinerer byliv, kyst, fjord og natur med kort vei til alt.</p>
+                <h4 className="font-semibold mb-2">Praktisk tilnærming</h4>
+                <p>Utdanninger med stor vekt på praksis og anvendelse.</p>
               </div>
             </div>
           </CardContent>
@@ -157,9 +229,9 @@ const UniversityUiS = () => {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                <li>• De fleste bachelorprogram krever generell studiekompetanse</li>
-                <li>• Enkelte teknologi- og realfagsstudier krever fordypning i matematikk/realfag</li>
-                <li>• Varierende poenggrenser, spesielt for helse, ingeniør, hotell/reiseliv</li>
+                <li>• Generell studiekompetanse for de fleste bachelorprogram</li>
+                <li>• Tekniske fag krever ofte matematikk og realfag</li>
+                <li>• Enkelte profesjonsstudier har særskilte krav</li>
               </ul>
             </CardContent>
           </Card>
@@ -173,9 +245,9 @@ const UniversityUiS = () => {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                <li>• UiS gir deg direkte inngang til energisektoren, teknologibransjen, reiseliv, utdanning og offentlig sektor</li>
-                <li>• Svært gode praksismuligheter og ofte jobbtilbud før studiene er ferdig</li>
-                <li>• Karriereveiledning, næringslivsdager og internshipmuligheter tilbys gjennom hele studieløpet</li>
+                <li>• Gode jobbmuligheter i energisektoren og teknologibedrifter</li>
+                <li>• Tett samarbeid med regionalt næringsliv gir praksis- og jobbmuligheter</li>
+                <li>• Sterkt nettverk i petroleum- og energibransjen</li>
               </ul>
             </CardContent>
           </Card>
@@ -192,9 +264,9 @@ const UniversityUiS = () => {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                <li>• UiS har sterke forskningsmiljøer innen energi, teknologi, velferd, pedagogikk og samfunn</li>
-                <li>• Deltar i nasjonale og internasjonale forskningsprosjekter og har flere sentre for fremragende forskning</li>
-                <li>• Samarbeider tett med NORCE, IRIS og en rekke innovasjonsklynger i regionen</li>
+                <li>• Ledende forskning innen energi, klima og teknologi</li>
+                <li>• Tett samarbeid med industrien om forskningsprosjekter</li>
+                <li>• Fokus på bærekraftig energiomstilling</li>
               </ul>
             </CardContent>
           </Card>
@@ -208,9 +280,9 @@ const UniversityUiS = () => {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                <li>• Over 70 studentorganisasjoner og foreninger – fra idrett og kultur til faglige og sosiale nettverk</li>
-                <li>• Studentenes Hus og Tappetårnet er sentrale møteplasser</li>
-                <li>• Byen byr på konserter, festivaler, restauranter, strender og fantastiske turområder (Preikestolen, Jæren)</li>
+                <li>• Aktivt studentmiljø med mange foreninger og arrangementer</li>
+                <li>• Nærhet til naturopplevelser som fjell, strand og øyer</li>
+                <li>• Byliv i Stavanger med kafeer, utesteder og kulturarrangementer</li>
               </ul>
             </CardContent>
           </Card>
@@ -223,11 +295,108 @@ const UniversityUiS = () => {
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              <li>• Passer for deg som vil kombinere en fremtidsrettet utdanning med nærhet til næringsliv, teknologi og natur</li>
-              <li>• Godt valg om du ønsker et internasjonalt miljø, entreprenørskapsmuligheter eller å jobbe innen energi, helse eller reiseliv</li>
+              <li>• Perfekt for deg som vil jobbe med energi, teknologi eller innovasjon</li>
+              <li>• Godt valg hvis du ønsker praksisnære studier med tette koblinger til arbeidslivet</li>
+              <li>• Passer for deg som vil studere i en dynamisk by med gode karrieremuligheter</li>
             </ul>
           </CardContent>
         </Card>
+
+        {/* Key Statistics from Database */}
+        {!statsLoading && keyStats.length > 0 && (
+          <Card className="mb-12">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart className="h-5 w-5" />
+                Nøkkeltall for Universitetet i Stavanger
+              </CardTitle>
+              <CardDescription>
+                Nyeste tilgjengelige data fra universitetsstatistikk
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {keyStats.map((stat, index) => {
+                  const latest = getLatestValue(stat);
+                  return (
+                    <div key={index} className="border rounded-lg p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <h4 className="font-medium text-sm text-muted-foreground">{stat.Indikator}</h4>
+                        {latest.year && (
+                          <Badge variant="outline" className="text-xs">{latest.year}</Badge>
+                        )}
+                      </div>
+                      <p className="text-2xl font-bold text-primary">
+                        {formatStatValue(latest.value)}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">{stat.Kategori}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Detailed Statistics */}
+        {!statsLoading && Object.keys(groupedStats).length > 0 && (
+          <Card className="mb-12">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Detaljert statistikk
+              </CardTitle>
+              <CardDescription>
+                Komplett oversikt over Universitetet i Stavanger sine nøkkeltall fordelt på kategorier
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue={Object.keys(groupedStats)[0]} className="w-full">
+                <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
+                  {Object.keys(groupedStats).map((category) => (
+                    <TabsTrigger 
+                      key={category} 
+                      value={category}
+                      className="text-xs"
+                    >
+                      {category.replace('og', '&')}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+                
+                {Object.entries(groupedStats).map(([category, stats]) => (
+                  <TabsContent key={category} value={category} className="space-y-4">
+                    <div className="grid gap-4">
+                      {stats.map((stat, index) => {
+                        const latest = getLatestValue(stat);
+                        return (
+                          <div key={index} className="border rounded-lg p-4">
+                            <div className="flex justify-between items-start mb-3">
+                              <h4 className="font-medium">{stat.Indikator}</h4>
+                              {latest.year && (
+                                <Badge variant="outline">{latest.year}</Badge>
+                              )}
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-6 gap-2 text-sm">
+                              {['2019', '2020', '2021', '2022', '2023', '2024'].map(year => (
+                                <div key={year} className="text-center">
+                                  <div className="text-muted-foreground text-xs">{year}</div>
+                                  <div className={`font-medium ${year === latest.year ? 'text-primary' : ''}`}>
+                                    {formatStatValue(stat[year] || '-')}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </TabsContent>
+                ))}
+              </Tabs>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Les mer */}
         <Card>
@@ -243,15 +412,15 @@ const UniversityUiS = () => {
                 </a>
               </Button>
               <Button variant="outline" className="w-full" asChild>
-                <a href="https://www.uis.no/studier" target="_blank" rel="noopener noreferrer">
+                <a href="https://www.uis.no/studietilbud" target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="mr-2 h-4 w-4" />
                   Studier ved UiS
                 </a>
               </Button>
               <Button variant="outline" className="w-full" asChild>
-                <a href="https://www.uis.no/student-i-stavanger" target="_blank" rel="noopener noreferrer">
+                <a href="https://www.uis.no/studentliv" target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="mr-2 h-4 w-4" />
-                  Studentlivet i Stavanger
+                  Studentliv på UiS
                 </a>
               </Button>
               <Button variant="outline" className="w-full" asChild>
