@@ -303,6 +303,42 @@ export type Database = {
         }
         Relationships: []
       }
+      universitet_statistikk: {
+        Row: {
+          "2019": string | null
+          "2020": string | null
+          "2021": string | null
+          "2022": string | null
+          "2023": string | null
+          "2024": string | null
+          Indikator: string | null
+          Kategori: string | null
+          Skole: string | null
+        }
+        Insert: {
+          "2019"?: string | null
+          "2020"?: string | null
+          "2021"?: string | null
+          "2022"?: string | null
+          "2023"?: string | null
+          "2024"?: string | null
+          Indikator?: string | null
+          Kategori?: string | null
+          Skole?: string | null
+        }
+        Update: {
+          "2019"?: string | null
+          "2020"?: string | null
+          "2021"?: string | null
+          "2022"?: string | null
+          "2023"?: string | null
+          "2024"?: string | null
+          Indikator?: string | null
+          Kategori?: string | null
+          Skole?: string | null
+        }
+        Relationships: []
+      }
       Universitetsdata: {
         Row: {
           Årstall: string | null
