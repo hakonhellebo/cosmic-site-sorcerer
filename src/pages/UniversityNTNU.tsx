@@ -159,42 +159,6 @@ const UniversityNTNU = () => {
           </div>
         </div>
 
-        {/* Key Statistics from Database */}
-        {!statsLoading && keyStats.length > 0 && (
-          <Card className="mb-12">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart className="h-5 w-5" />
-                Nøkkeltall for NTNU
-              </CardTitle>
-              <CardDescription>
-                Nyeste tilgjengelige data fra universitetsstatistikk
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {keyStats.map((stat, index) => {
-                  const latest = getLatestValue(stat);
-                  return (
-                    <div key={index} className="border rounded-lg p-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <h4 className="font-medium text-sm text-muted-foreground">{stat.Indikator}</h4>
-                        {latest.year && (
-                          <Badge variant="outline" className="text-xs">{latest.year}</Badge>
-                        )}
-                      </div>
-                      <p className="text-2xl font-bold text-primary">
-                        {formatStatValue(latest.value)}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">{stat.Kategori}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
         {/* Quick Facts */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
           <Card>
@@ -245,6 +209,154 @@ const UniversityNTNU = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* About Section */}
+        <Card className="mb-12">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building className="h-5 w-5" />
+              Om NTNU
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Historie og tradisjon</h3>
+                <p className="text-muted-foreground mb-4">
+                  NTNU ble etablert i 1996 gjennom en fusjon av Norges tekniske høgskole (NTH), 
+                  Universitetet i Trondheim (UNIT) og andre institusjoner. Universitetet har 
+                  røtter tilbake til 1760-tallet og er kjent for sin sterke teknologiske tradisjon.
+                </p>
+                
+                <h3 className="text-lg font-semibold mb-3">Forskning og innovasjon</h3>
+                <p className="text-muted-foreground">
+                  NTNU er ledende innen teknologisk forskning og innovasjon i Norge. 
+                  Universitetet samarbeider tett med næringslivet og bidrar til teknologisk 
+                  utvikling og samfunnsnytte gjennom forskning og utdanning.
+                </p>
+              </div>
+              
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Campus og lokalisering</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <MapPin className="h-4 w-4 text-blue-600" />
+                    <div>
+                      <p className="font-medium">Trondheim (Hovedcampus)</p>
+                      <p className="text-sm text-muted-foreground">Gløshaugen og Dragvoll</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <MapPin className="h-4 w-4 text-green-600" />
+                    <div>
+                      <p className="font-medium">Gjøvik</p>
+                      <p className="text-sm text-muted-foreground">Teknologi og samfunnsvitenskap</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <MapPin className="h-4 w-4 text-purple-600" />
+                    <div>
+                      <p className="font-medium">Ålesund</p>
+                      <p className="text-sm text-muted-foreground">Marin teknologi og ingeniørfag</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Study Programs */}
+        <Card className="mb-12">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <GraduationCap className="h-5 w-5" />
+              Populære studieprogram ved NTNU
+            </CardTitle>
+            <CardDescription>
+              {loading ? 'Henter studieprogram...' : `Viser ${ntnuPrograms.length} studieprogram (fra Student_data)`}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <span className="ml-2">Henter studieprogram fra Student_data...</span>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {ntnuPrograms.map((program, index) => (
+                  <div
+                    key={index}
+                    className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => handleProgramClick(program)}
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <Badge variant="secondary" className="text-xs">
+                        {program.level || 'Bachelor'}
+                      </Badge>
+                      <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <h3 className="font-semibold text-sm mb-2 line-clamp-2">
+                      {program.name}
+                    </h3>
+                    {program.department && (
+                      <p className="text-xs text-muted-foreground mb-2">
+                        {program.department}
+                      </p>
+                    )}
+                    <div className="flex justify-between items-center text-xs text-muted-foreground">
+                      <span>Kode: {program.code}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {!loading && ntnuPrograms.length === 0 && (
+              <div className="text-center py-12">
+                <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">Ingen NTNU studieprogram funnet i Student_data</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Key Statistics from Database */}
+        {!statsLoading && keyStats.length > 0 && (
+          <Card className="mb-12">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart className="h-5 w-5" />
+                Nøkkeltall for NTNU
+              </CardTitle>
+              <CardDescription>
+                Nyeste tilgjengelige data fra universitetsstatistikk
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {keyStats.map((stat, index) => {
+                  const latest = getLatestValue(stat);
+                  return (
+                    <div key={index} className="border rounded-lg p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <h4 className="font-medium text-sm text-muted-foreground">{stat.Indikator}</h4>
+                        {latest.year && (
+                          <Badge variant="outline" className="text-xs">{latest.year}</Badge>
+                        )}
+                      </div>
+                      <p className="text-2xl font-bold text-primary">
+                        {formatStatValue(latest.value)}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">{stat.Kategori}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Detailed Statistics */}
         {!statsLoading && Object.keys(groupedStats).length > 0 && (
@@ -305,118 +417,6 @@ const UniversityNTNU = () => {
             </CardContent>
           </Card>
         )}
-
-        {/* About Section */}
-        <Card className="mb-12">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building className="h-5 w-5" />
-              Om NTNU
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div>
-                <h3 className="text-lg font-semibold mb-3">Historie og tradisjon</h3>
-                <p className="text-muted-foreground mb-4">
-                  NTNU ble etablert i 1996 gjennom en fusjon av Norges tekniske høgskole (NTH), 
-                  Universitetet i Trondheim (UNIT) og andre institusjoner. Universitetet har 
-                  røtter tilbake til 1760-tallet og er kjent for sin sterke teknologiske tradisjon.
-                </p>
-                
-                <h3 className="text-lg font-semibold mb-3">Forskning og innovasjon</h3>
-                <p className="text-muted-foreground">
-                  NTNU er ledende innen teknologisk forskning og innovasjon i Norge. 
-                  Universitetet samarbeider tett med næringslivet og bidrar til teknologisk 
-                  utvikling og samfunnsnytte gjennom forskning og utdanning.
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-semibold mb-3">Campus og lokalisering</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <MapPin className="h-4 w-4 text-blue-600" />
-                    <div>
-                      <p className="font-medium">Trondheim (Hovedcampus)</p>
-                      <p className="text-sm text-muted-foreground">Gløshaugen og Dragvoll</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <MapPin className="h-4 w-4 text-green-600" />
-                    <div>
-                      <p className="font-medium">Gjøvik</p>
-                      <p className="text-sm text-muted-foreground">Teknologi og samfunnsvitenskap</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <MapPin className="h-4 w-4 text-purple-600" />
-                    <div>
-                      <p className="font-medium">Ålesund</p>
-                      <p className="text-sm text-muted-foreground">Marin teknologi og ingeniørfag</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Study Programs */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <GraduationCap className="h-5 w-5" />
-              Populære studieprogram ved NTNU
-            </CardTitle>
-            <CardDescription>
-              {loading ? 'Henter studieprogram...' : `Viser ${ntnuPrograms.length} studieprogram (fra Student_data)`}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                <span className="ml-2">Henter studieprogram fra Student_data...</span>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {ntnuPrograms.map((program, index) => (
-                  <div
-                    key={index}
-                    className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
-                    onClick={() => handleProgramClick(program)}
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <Badge variant="secondary" className="text-xs">
-                        {program.level || 'Bachelor'}
-                      </Badge>
-                      <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                    <h3 className="font-semibold text-sm mb-2 line-clamp-2">
-                      {program.name}
-                    </h3>
-                    {program.department && (
-                      <p className="text-xs text-muted-foreground mb-2">
-                        {program.department}
-                      </p>
-                    )}
-                    <div className="flex justify-between items-center text-xs text-muted-foreground">
-                      <span>Kode: {program.code}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-            
-            {!loading && ntnuPrograms.length === 0 && (
-              <div className="text-center py-12">
-                <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">Ingen NTNU studieprogram funnet i Student_data</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
 
         {/* Contact and Links */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
