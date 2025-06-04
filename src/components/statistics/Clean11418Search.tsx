@@ -380,7 +380,7 @@ const Clean11418Search = () => {
               </Table>
             </div>
           </CardContent>
-        </CardContent>
+        </Card>
       )}
     </div>
   );
