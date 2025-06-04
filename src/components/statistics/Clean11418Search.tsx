@@ -32,7 +32,6 @@ const Clean11418Search = () => {
   const [selectedYrker, setSelectedYrker] = useState<string[]>([]);
   const [kjonn, setKjonn] = useState('');
   const [sektor, setSektor] = useState('');
-  const [avtaltVanlig, setAvtaltVanlig] = useState('');
   const [results, setResults] = useState<Clean11418Result[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,11 +50,6 @@ const Clean11418Search = () => {
     { value: 'Privat sektor og offentlige eide foretak', label: 'Privat sektor og offentlige eide foretak' },
     { value: 'Statsforvaltningen', label: 'Statsforvaltningen' },
     { value: 'Kommune og fylkeskommune', label: 'Kommune og fylkeskommune' }
-  ];
-
-  const avtaltVanligOptions = [
-    { value: 'Avtalt', label: 'Avtalt' },
-    { value: 'Vanlig', label: 'Vanlig' }
   ];
 
   // Load occupations from database
@@ -118,14 +112,15 @@ const Clean11418Search = () => {
     setResults([]);
 
     try {
-      console.log('Starting search with filters:', { selectedYrker, kjonn, sektor, avtaltVanlig });
+      console.log('Starting search with filters:', { selectedYrker, kjonn, sektor, avtaltVanlig: 'Heltidsansatte' });
       
       let query = supabase
         .from('Clean_11418')
         .select('*')
         .eq('Tid', 2024)
         .eq('MaaleMetode', 'Gjennomsnitt')
-        .eq('ContentsCode', 'Bonus (kr)');
+        .eq('ContentsCode', 'Bonus (kr)')
+        .eq('AvtaltVanlig', 'Heltidsansatte');
 
       if (selectedYrker.length > 0) {
         query = query.in('Yrke', selectedYrker);
@@ -137,10 +132,6 @@ const Clean11418Search = () => {
 
       if (sektor) {
         query = query.eq('Sektor', sektor);
-      }
-
-      if (avtaltVanlig) {
-        query = query.eq('AvtaltVanlig', avtaltVanlig);
       }
 
       const { data, error } = await query.order('value', { ascending: false });
@@ -166,7 +157,7 @@ const Clean11418Search = () => {
     }
   };
 
-  const hasFilters = selectedYrker.length > 0 || kjonn || sektor || avtaltVanlig;
+  const hasFilters = selectedYrker.length > 0 || kjonn || sektor;
 
   // Color palette for different occupations
   const colors = [
@@ -186,10 +177,10 @@ const Clean11418Search = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5" />
-            Clean_11418 Datasett - Bonuslønn 2024
+            Clean_11418 Datasett - Bonuslønn 2024 (Heltidsansatte)
           </CardTitle>
           <CardDescription>
-            Søk og sammenlign bonuslønn mellom forskjellige yrker. Data filtrert for 2024, Gjennomsnitt, og Bonus (kr).
+            Søk og sammenlign bonuslønn mellom forskjellige yrker for heltidsansatte. Data filtrert for 2024, Gjennomsnitt, og Bonus (kr).
           </CardDescription>
           {loadingYrker && (
             <div className="flex items-center gap-2 text-sm text-blue-600">
@@ -292,22 +283,6 @@ const Clean11418Search = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Avtalt/Vanlig</label>
-              <Select value={avtaltVanlig} onValueChange={setAvtaltVanlig}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Velg type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {avtaltVanligOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2 md:col-span-2">
               <label className="text-sm font-medium">Sektor</label>
               <Select value={sektor} onValueChange={setSektor}>
                 <SelectTrigger>
@@ -345,7 +320,6 @@ const Clean11418Search = () => {
                   setSelectedYrker([]);
                   setKjonn('');
                   setSektor('');
-                  setAvtaltVanlig('');
                   setResults([]);
                   setError(null);
                 }}
@@ -377,7 +351,7 @@ const Clean11418Search = () => {
               Søkeresultater ({results.length} resultater)
             </CardTitle>
             <CardDescription>
-              Bonuslønn for 2024 - sortert etter høyeste verdi
+              Bonuslønn for heltidsansatte i 2024 - sortert etter høyeste verdi
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -389,7 +363,6 @@ const Clean11418Search = () => {
                     <TableHead>Bonuslønn (kr)</TableHead>
                     <TableHead>Kjønn</TableHead>
                     <TableHead>Sektor</TableHead>
-                    <TableHead>Avtalt/Vanlig</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -401,14 +374,13 @@ const Clean11418Search = () => {
                       </TableCell>
                       <TableCell>{result.Kjonn}</TableCell>
                       <TableCell className="text-sm">{result.Sektor}</TableCell>
-                      <TableCell>{result.AvtaltVanlig}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </div>
           </CardContent>
-        </Card>
+        </CardContent>
       )}
     </div>
   );
