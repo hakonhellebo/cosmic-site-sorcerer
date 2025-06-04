@@ -10,6 +10,7 @@ import UniversityStatistics from '@/components/statistics/UniversityStatistics';
 import CompanyStatistics from '@/components/statistics/CompanyStatistics';
 import SalarySearch from '@/components/statistics/SalarySearch';
 import SalaryTrendChart from '@/components/statistics/SalaryTrendChart';
+import Clean11418Search from '@/components/statistics/Clean11418Search';
 import { supabaseAnonKey, supabase } from '@/lib/supabase';
 
 const Statistics = () => {
@@ -242,53 +243,60 @@ const Statistics = () => {
           </TabsContent>
 
           <TabsContent value="test">
-            <Card>
-              <CardHeader>
-                <CardTitle>Test-fane - Forhåndsinnlastet data</CardTitle>
-                <CardDescription>
-                  Viser status for all forhåndsinnlastet data
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="font-medium mb-2">Data Status:</h4>
-                    <div className="space-y-2 text-sm">
-                      <p className={`${allData.allStudentData.length > 0 ? 'text-green-600' : 'text-yellow-600'}`}>
-                        ✅ Universitetsdata: {allData.allStudentData.length} poster
-                      </p>
-                      <p className={`${allData.companies.length > 0 ? 'text-green-600' : 'text-yellow-600'}`}>
-                        ✅ Bedriftsdata: {allData.companies.length} poster
-                      </p>
-                      <p className={`${allData.yrkeOptions.length > 0 ? 'text-green-600' : 'text-yellow-600'}`}>
-                        ✅ Lønnsdata: {allData.yrkeOptions.length} yrker
-                      </p>
-                      <p className="text-gray-600">
-                        API-key: ...{supabaseAnonKey.slice(-10)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {allData.universities.length > 0 && (
-                    <div className="border-t pt-6">
-                      <h4 className="text-lg font-medium mb-4">
-                        Universiteter ({allData.universities.length})
-                      </h4>
-                      <div className="grid gap-2 max-h-48 overflow-y-auto">
-                        {allData.universities.slice(0, 10).map((uni, index) => (
-                          <div key={index} className="text-sm p-2 bg-white border rounded">
-                            {uni}
-                          </div>
-                        ))}
-                        {allData.universities.length > 10 && (
-                          <p className="text-xs text-gray-500">... og {allData.universities.length - 10} flere</p>
-                        )}
+            <div className="space-y-6">
+              <Clean11418Search />
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Test-fane - Clean_11418 datasett</CardTitle>
+                  <CardDescription>
+                    Søk og utforsk bonuslønn data fra Clean_11418 datasettet
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <h4 className="font-medium mb-2">Data Status:</h4>
+                      <div className="space-y-2 text-sm">
+                        <p className={`${allData.allStudentData.length > 0 ? 'text-green-600' : 'text-yellow-600'}`}>
+                          ✅ Universitetsdata: {allData.allStudentData.length} poster
+                        </p>
+                        <p className={`${allData.companies.length > 0 ? 'text-green-600' : 'text-yellow-600'}`}>
+                          ✅ Bedriftsdata: {allData.companies.length} poster
+                        </p>
+                        <p className={`${allData.yrkeOptions.length > 0 ? 'text-green-600' : 'text-yellow-600'}`}>
+                          ✅ Lønnsdata: {allData.yrkeOptions.length} yrker
+                        </p>
+                        <p className="text-blue-600">
+                          ✅ Clean_11418: Bonuslønn datasett tilgjengelig
+                        </p>
+                        <p className="text-gray-600">
+                          API-key: ...{supabaseAnonKey.slice(-10)}
+                        </p>
                       </div>
                     </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+
+                    {allData.universities.length > 0 && (
+                      <div className="border-t pt-6">
+                        <h4 className="text-lg font-medium mb-4">
+                          Universiteter ({allData.universities.length})
+                        </h4>
+                        <div className="grid gap-2 max-h-48 overflow-y-auto">
+                          {allData.universities.slice(0, 10).map((uni, index) => (
+                            <div key={index} className="text-sm p-2 bg-white border rounded">
+                              {uni}
+                            </div>
+                          ))}
+                          {allData.universities.length > 10 && (
+                            <p className="text-xs text-gray-500">... og {allData.universities.length - 10} flere</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
