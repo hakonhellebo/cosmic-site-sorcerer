@@ -32,6 +32,7 @@ const Clean11418Search = () => {
   const [selectedYrker, setSelectedYrker] = useState<string[]>([]);
   const [kjonn, setKjonn] = useState('');
   const [sektor, setSektor] = useState('');
+  const [contentsCode, setContentsCode] = useState('');
   const [results, setResults] = useState<Clean11418Result[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +53,13 @@ const Clean11418Search = () => {
     { value: 'Kommune og fylkeskommune', label: 'Kommune og fylkeskommune' }
   ];
 
+  const contentsCodeOptions = [
+    { value: 'Månedslønn (kr)', label: 'Månedslønn' },
+    { value: 'Bonus (kr)', label: 'Bonus' },
+    { value: 'Overtidstillegg (kr)', label: 'Overtid' },
+    { value: 'Alderstillegg (kr)', label: 'Alder' }
+  ];
+
   // Load occupations from database
   const loadYrkeOptions = async () => {
     try {
@@ -63,7 +71,7 @@ const Clean11418Search = () => {
         .select('Yrke')
         .eq('Tid', 2024)
         .eq('MaaleMetode', 'Gjennomsnitt')
-        .eq('ContentsCode', 'Bonus (kr)')
+        .eq('AvtaltVanlig', 'Heltidsansatte')
         .not('Yrke', 'is', null);
       
       if (error) {
@@ -112,15 +120,18 @@ const Clean11418Search = () => {
     setResults([]);
 
     try {
-      console.log('Starting search with filters:', { selectedYrker, kjonn, sektor, avtaltVanlig: 'Heltidsansatte' });
+      console.log('Starting search with filters:', { selectedYrker, kjonn, sektor, contentsCode, avtaltVanlig: 'Heltidsansatte' });
       
       let query = supabase
         .from('Clean_11418')
         .select('*')
         .eq('Tid', 2024)
         .eq('MaaleMetode', 'Gjennomsnitt')
-        .eq('ContentsCode', 'Bonus (kr)')
         .eq('AvtaltVanlig', 'Heltidsansatte');
+
+      if (contentsCode) {
+        query = query.eq('ContentsCode', contentsCode);
+      }
 
       if (selectedYrker.length > 0) {
         query = query.in('Yrke', selectedYrker);
@@ -157,7 +168,7 @@ const Clean11418Search = () => {
     }
   };
 
-  const hasFilters = selectedYrker.length > 0 || kjonn || sektor;
+  const hasFilters = selectedYrker.length > 0 || kjonn || sektor || contentsCode;
 
   // Color palette for different occupations
   const colors = [
@@ -171,16 +182,21 @@ const Clean11418Search = () => {
     'hsl(340, 82%, 52%)', // Pink
   ];
 
+  const getContentsCodeLabel = (code: string) => {
+    const option = contentsCodeOptions.find(opt => opt.value === code);
+    return option ? option.label : code;
+  };
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5" />
-            Clean_11418 Datasett - Bonuslønn 2024 (Heltidsansatte)
+            Clean_11418 Datasett - Lønnsinformasjon 2024 (Heltidsansatte)
           </CardTitle>
           <CardDescription>
-            Søk og sammenlign bonuslønn mellom forskjellige yrker for heltidsansatte. Data filtrert for 2024, Gjennomsnitt, og Bonus (kr).
+            Søk og sammenlign lønnsinformasjon mellom forskjellige yrker for heltidsansatte. Data filtrert for 2024, Gjennomsnitt, og Heltidsansatte.
           </CardDescription>
           {loadingYrker && (
             <div className="flex items-center gap-2 text-sm text-blue-600">
@@ -190,8 +206,8 @@ const Clean11418Search = () => {
           )}
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2 md:col-span-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2 md:col-span-3">
               <label className="text-sm font-medium">Yrker (velg opptil 8 for sammenligning)</label>
               <div className="space-y-2">
                 <Popover open={yrkeDropdownOpen} onOpenChange={setYrkeDropdownOpen}>
@@ -267,6 +283,22 @@ const Clean11418Search = () => {
             </div>
 
             <div className="space-y-2">
+              <label className="text-sm font-medium">Lønnstype</label>
+              <Select value={contentsCode} onValueChange={setContentsCode}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Velg lønnstype" />
+                </SelectTrigger>
+                <SelectContent>
+                  {contentsCodeOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
               <label className="text-sm font-medium">Kjønn</label>
               <Select value={kjonn} onValueChange={setKjonn}>
                 <SelectTrigger>
@@ -320,6 +352,7 @@ const Clean11418Search = () => {
                   setSelectedYrker([]);
                   setKjonn('');
                   setSektor('');
+                  setContentsCode('');
                   setResults([]);
                   setError(null);
                 }}
@@ -351,7 +384,7 @@ const Clean11418Search = () => {
               Søkeresultater ({results.length} resultater)
             </CardTitle>
             <CardDescription>
-              Bonuslønn for heltidsansatte i 2024 - sortert etter høyeste verdi
+              Lønnsinformasjon for heltidsansatte i 2024 - sortert etter høyeste verdi
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -360,7 +393,8 @@ const Clean11418Search = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Yrke</TableHead>
-                    <TableHead>Bonuslønn (kr)</TableHead>
+                    <TableHead>Beløp (kr)</TableHead>
+                    <TableHead>Type</TableHead>
                     <TableHead>Kjønn</TableHead>
                     <TableHead>Sektor</TableHead>
                   </TableRow>
@@ -372,6 +406,7 @@ const Clean11418Search = () => {
                       <TableCell className="font-mono">
                         {result.value ? `${result.value.toLocaleString('nb-NO')} kr` : 'N/A'}
                       </TableCell>
+                      <TableCell>{getContentsCodeLabel(result.ContentsCode)}</TableCell>
                       <TableCell>{result.Kjonn}</TableCell>
                       <TableCell className="text-sm">{result.Sektor}</TableCell>
                     </TableRow>
