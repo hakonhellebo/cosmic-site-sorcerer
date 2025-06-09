@@ -13,73 +13,93 @@ import SalaryTrendChart from '@/components/statistics/SalaryTrendChart';
 import Clean11418Search from '@/components/statistics/Clean11418Search';
 import { supabaseAnonKey, supabase } from '@/lib/supabase';
 
-const Statistics = () => {
-  const [loading, setLoading] = useState(true);
-  const [allData, setAllData] = useState({
-    universities: [],
-    companies: [],
-    allStudentData: [],
-    yrkeOptions: []
-  });
+// Create a global state for statistics data
+let globalStatisticsData: {
+  universities: string[];
+  companies: any[];
+  allStudentData: any[];
+  yrkeOptions: {value: string, label: string}[];
+} | null = null;
 
-  // Load ALL data when component mounts
-  useEffect(() => {
-    const loadAllStatisticsData = async () => {
-      setLoading(true);
-      console.log("Loading ALL statistics data on page load using NEW tables...");
+let isLoadingGlobalData = false;
+let loadingPromise: Promise<void> | null = null;
+
+// Function to load all statistics data globally
+const loadGlobalStatisticsData = async () => {
+  if (globalStatisticsData || isLoadingGlobalData) {
+    return loadingPromise;
+  }
+
+  isLoadingGlobalData = true;
+  
+  loadingPromise = (async () => {
+    console.log("Loading ALL statistics data globally using NEW tables...");
+    
+    try {
+      // Load university data from Student_data_ny (NEW TABLE)
+      console.log("Fetching ALL data from Student_data_ny...");
+      const { count } = await supabase
+        .from('Student_data_ny')
+        .select('*', { count: 'exact', head: true });
       
-      try {
-        // Load university data from Student_data_ny (NEW TABLE)
-        console.log("Fetching ALL data from Student_data_ny...");
-        const { count } = await supabase
+      console.log(`Total records in Student_data_ny: ${count}`);
+      
+      let allStudentData: any[] = [];
+      let from = 0;
+      const batchSize = 1000;
+      let hasMore = true;
+      let batchNum = 1;
+      
+      while (hasMore && allStudentData.length < (count || 0)) {
+        console.log(`Fetching batch ${batchNum}: records ${from} to ${from + batchSize - 1}`);
+        
+        const { data: batchData, error } = await supabase
           .from('Student_data_ny')
-          .select('*', { count: 'exact', head: true });
+          .select('*')
+          .range(from, from + batchSize - 1)
+          .order('Lærestednavn', { ascending: true });
         
-        console.log(`Total records in Student_data_ny: ${count}`);
-        
-        let allStudentData: any[] = [];
-        let from = 0;
-        const batchSize = 1000;
-        let hasMore = true;
-        let batchNum = 1;
-        
-        while (hasMore && allStudentData.length < (count || 0)) {
-          console.log(`Fetching batch ${batchNum}: records ${from} to ${from + batchSize - 1}`);
-          
-          const { data: batchData, error } = await supabase
-            .from('Student_data_ny')
-            .select('*')
-            .range(from, from + batchSize - 1)
-            .order('Lærestednavn', { ascending: true });
-          
-          if (error) {
-            console.error("Error fetching batch:", error);
-            break;
-          }
-          
-          if (batchData && batchData.length > 0) {
-            allStudentData = [...allStudentData, ...batchData];
-            console.log(`Batch ${batchNum}: Added ${batchData.length} records. Total so far: ${allStudentData.length}`);
-            
-            if (batchData.length < batchSize) {
-              console.log("Reached end of data - batch returned fewer records than requested");
-              hasMore = false;
-            } else {
-              from += batchSize;
-              batchNum++;
-            }
-          } else {
-            hasMore = false;
-          }
+        if (error) {
+          console.error("Error fetching batch:", error);
+          break;
         }
         
-        console.log(`Final data count: ${allStudentData.length}`);
-        console.log(`Expected count: ${count}`);
-        console.log("Sample data:", allStudentData.slice(0, 3));
-        
-        // Extract universities list
-        const uniqueUniversities = [...new Set(allStudentData.map(item => item.Lærestednavn))].filter(Boolean);
-        const orderedUniversities = [
+        if (batchData && batchData.length > 0) {
+          allStudentData = [...allStudentData, ...batchData];
+          console.log(`Batch ${batchNum}: Added ${batchData.length} records. Total so far: ${allStudentData.length}`);
+          
+          if (batchData.length < batchSize) {
+            console.log("Reached end of data - batch returned fewer records than requested");
+            hasMore = false;
+          } else {
+            from += batchSize;
+            batchNum++;
+          }
+        } else {
+          hasMore = false;
+        }
+      }
+      
+      console.log(`Final data count: ${allStudentData.length}`);
+      console.log(`Expected count: ${count}`);
+      console.log("Sample data:", allStudentData.slice(0, 3));
+      
+      // Extract universities list
+      const uniqueUniversities = [...new Set(allStudentData.map(item => item.Lærestednavn))].filter(Boolean);
+      const orderedUniversities = [
+        "Norges teknisk-naturvitenskapelige universitet",
+        "Universitetet i Oslo", 
+        "Universitetet i Bergen",
+        "Norges Handelshøyskole",
+        "OsloMet - storbyuniversitetet",
+        "UiT Norges arktiske universitet",
+        "Universitetet i Innlandet",
+        "Høgskulen på Vestlandet",
+        "Universitetet i Sørøst-Norge",
+        "Universitetet i Stavanger",
+        "Universitetet i Agder",
+        "Norges miljø- og biovitenskapelige universitet",
+        ...uniqueUniversities.filter(uni => ![
           "Norges teknisk-naturvitenskapelige universitet",
           "Universitetet i Oslo", 
           "Universitetet i Bergen",
@@ -91,77 +111,89 @@ const Statistics = () => {
           "Universitetet i Sørøst-Norge",
           "Universitetet i Stavanger",
           "Universitetet i Agder",
-          "Norges miljø- og biovitenskapelige universitet",
-          ...uniqueUniversities.filter(uni => ![
-            "Norges teknisk-naturvitenskapelige universitet",
-            "Universitetet i Oslo", 
-            "Universitetet i Bergen",
-            "Norges Handelshøyskole",
-            "OsloMet - storbyuniversitetet",
-            "UiT Norges arktiske universitet",
-            "Universitetet i Innlandet",
-            "Høgskulen på Vestlandet",
-            "Universitetet i Sørøst-Norge",
-            "Universitetet i Stavanger",
-            "Universitetet i Agder",
-            "Norges miljø- og biovitenskapelige universitet"
-          ].includes(uni))
-        ];
-        
-        console.log("Found universities (in custom order):", orderedUniversities);
+          "Norges miljø- og biovitenskapelige universitet"
+        ].includes(uni))
+      ];
+      
+      console.log("Found universities (in custom order):", orderedUniversities);
 
-        // Load company data from Bedrifter_ny (NEW TABLE)
-        console.log("Fetching companies data from Bedrifter_ny...");
-        const { data: companiesData, error: companiesError } = await supabase
-          .from('Bedrifter_ny')
-          .select('*')
-          .order('Selskap', { ascending: true });
-        
-        if (companiesError) {
-          console.error("Error fetching companies:", companiesError);
-        } else {
-          console.log(`Fetched ${companiesData?.length || 0} companies from Bedrifter_ny`);
-        }
-
-        // Load salary/career data
-        console.log("Fetching yrke options for salary trends...");
-        const { data: yrkeData, error: yrkeError } = await supabase
-          .from('Clean_11418')
-          .select('Yrke')
-          .not('Yrke', 'is', null)
-          .order('Yrke', { ascending: true });
-        
-        let yrkeOptions: {value: string, label: string}[] = [];
-        if (yrkeData && !yrkeError) {
-          const uniqueYrker = [...new Set(yrkeData.map(item => item.Yrke))];
-          yrkeOptions = uniqueYrker.map(yrke => ({
-            value: yrke,
-            label: yrke
-          }));
-          console.log(`Found ${yrkeOptions.length} unique job titles for salary trends`);
-        } else {
-          console.error("Error fetching yrke options:", yrkeError);
-        }
-
-        // Set all data at once
-        setAllData({
-          universities: orderedUniversities,
-          companies: companiesData || [],
-          allStudentData: allStudentData,
-          yrkeOptions: yrkeOptions
-        });
-
-        console.log("All statistics data loaded successfully using NEW tables!");
-        
-      } catch (error) {
-        console.error("Error loading statistics data:", error);
-      } finally {
-        setLoading(false);
+      // Load company data from Bedrifter_ny (NEW TABLE)
+      console.log("Fetching companies data from Bedrifter_ny...");
+      const { data: companiesData, error: companiesError } = await supabase
+        .from('Bedrifter_ny')
+        .select('*')
+        .order('Selskap', { ascending: true });
+      
+      if (companiesError) {
+        console.error("Error fetching companies:", companiesError);
+      } else {
+        console.log(`Fetched ${companiesData?.length || 0} companies from Bedrifter_ny`);
       }
+
+      // Load salary/career data
+      console.log("Fetching yrke options for salary trends...");
+      const { data: yrkeData, error: yrkeError } = await supabase
+        .from('Clean_11418')
+        .select('Yrke')
+        .not('Yrke', 'is', null)
+        .order('Yrke', { ascending: true });
+      
+      let yrkeOptions: {value: string, label: string}[] = [];
+      if (yrkeData && !yrkeError) {
+        const uniqueYrker = [...new Set(yrkeData.map(item => item.Yrke))];
+        yrkeOptions = uniqueYrker.map(yrke => ({
+          value: yrke,
+          label: yrke
+        }));
+        console.log(`Found ${yrkeOptions.length} unique job titles for salary trends`);
+      } else {
+        console.error("Error fetching yrke options:", yrkeError);
+      }
+
+      // Set global data
+      globalStatisticsData = {
+        universities: orderedUniversities,
+        companies: companiesData || [],
+        allStudentData: allStudentData,
+        yrkeOptions: yrkeOptions
+      };
+
+      console.log("Global statistics data loaded successfully using NEW tables!");
+      
+    } catch (error) {
+      console.error("Error loading global statistics data:", error);
+    } finally {
+      isLoadingGlobalData = false;
+    }
+  })();
+
+  return loadingPromise;
+};
+
+const Statistics = () => {
+  const [allData, setAllData] = useState({
+    universities: [],
+    companies: [],
+    allStudentData: [],
+    yrkeOptions: []
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const initializeData = async () => {
+      // Start loading global data if not already loaded
+      await loadGlobalStatisticsData();
+      
+      // Use the global data
+      if (globalStatisticsData) {
+        setAllData(globalStatisticsData);
+      }
+      
+      setLoading(false);
     };
 
-    loadAllStatisticsData();
-  }, []); // Only run once when component mounts
+    initializeData();
+  }, []);
 
   return (
     <Layout>
@@ -304,5 +336,8 @@ const Statistics = () => {
     </Layout>
   );
 };
+
+// Export function to preload data from other components
+export const preloadStatisticsData = loadGlobalStatisticsData;
 
 export default Statistics;

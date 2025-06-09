@@ -20,38 +20,48 @@ import UniversityHiVolda from "./pages/UniversityHiVolda"
 import UniversityUSN from "./pages/UniversityUSN"
 import CompanyProfilePage from "./pages/CompanyProfilePage"
 import EducationDetailsPage from "./pages/EducationDetailsPage"
+import { preloadStatisticsData } from "./pages/Statistics"
+import { useEffect } from "react"
 
 const queryClient = new QueryClient()
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {navItems.map(({ to, page }) => (
-            <Route key={to} path={to} element={page} />
-          ))}
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/university/ntnu" element={<UniversityNTNU />} />
-          <Route path="/university/uio" element={<UniversityUiO />} />
-          <Route path="/university/uib" element={<UniversityUiB />} />
-          <Route path="/university/nhh" element={<UniversityNHH />} />
-          <Route path="/university/oslomet" element={<UniversityOsloMet />} />
-          <Route path="/university/uis" element={<UniversityUiS />} />
-          <Route path="/university/uit" element={<UniversityUiT />} />
-          <Route path="/university/nmbu" element={<UniversityNMBU />} />
-          <Route path="/university/uia" element={<UniversityUiA />} />
-          <Route path="/university/hvl" element={<UniversityHVL />} />
-          <Route path="/university/hivolda" element={<UniversityHiVolda />} />
-          <Route path="/university/usn" element={<UniversityUSN />} />
-          <Route path="/bedrift/:companySlug" element={<CompanyProfilePage />} />
-          <Route path="/utdanning/:universityId/:studiekode" element={<EducationDetailsPage />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-)
+const App = () => {
+  // Preload statistics data when app starts
+  useEffect(() => {
+    console.log("App started - preloading statistics data...");
+    preloadStatisticsData();
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            {navItems.map(({ to, page }) => (
+              <Route key={to} path={to} element={page} />
+            ))}
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/university/ntnu" element={<UniversityNTNU />} />
+            <Route path="/university/uio" element={<UniversityUiO />} />
+            <Route path="/university/uib" element={<UniversityUiB />} />
+            <Route path="/university/nhh" element={<UniversityNHH />} />
+            <Route path="/university/oslomet" element={<UniversityOsloMet />} />
+            <Route path="/university/uis" element={<UniversityUiS />} />
+            <Route path="/university/uit" element={<UniversityUiT />} />
+            <Route path="/university/nmbu" element={<UniversityNMBU />} />
+            <Route path="/university/uia" element={<UniversityUiA />} />
+            <Route path="/university/hvl" element={<UniversityHVL />} />
+            <Route path="/university/hivolda" element={<UniversityHiVolda />} />
+            <Route path="/university/usn" element={<UniversityUSN />} />
+            <Route path="/bedrift/:companySlug" element={<CompanyProfilePage />} />
+            <Route path="/utdanning/:universityId/:studiekode" element={<EducationDetailsPage />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App
