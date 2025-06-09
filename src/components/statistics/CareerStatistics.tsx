@@ -1,13 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Search, Filter, Briefcase, Building, Users, ArrowLeft } from "lucide-react";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Briefcase } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import CareerDetailPage from './CareerDetailPage';
+import CareerSearchFilters from './career/CareerSearchFilters';
+import CareersGrid from './career/CareersGrid';
 import { useLocation } from 'react-router-dom';
 
 interface Career {
@@ -189,142 +187,27 @@ const CareerStatistics: React.FC<CareerStatisticsProps> = ({ preloadedData }) =>
       </Card>
 
       {/* Search and Filter Controls */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Søk etter yrker..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            
-            <Select value={selectedSector} onValueChange={setSelectedSector}>
-              <SelectTrigger>
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Velg hovedsektor" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Alle hovedsektorer</SelectItem>
-                {sectors.map((sector) => (
-                  <SelectItem key={sector} value={sector}>
-                    {sector}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Sub-sector dropdown - only show if main sector is selected and has sub-sectors */}
-            {selectedSector !== 'all' && subSectors.length > 0 && (
-              <Select value={selectedSubSector} onValueChange={setSelectedSubSector}>
-                <SelectTrigger>
-                  <Building className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Velg undersektor" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Alle undersektorer</SelectItem>
-                  {subSectors.map((subSector) => (
-                    <SelectItem key={subSector} value={subSector}>
-                      {subSector}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </div>
-          
-          <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-            <span>Viser {filteredCareers.length} av {careers.length} yrker</span>
-            {(searchTerm || selectedSector !== 'all' || selectedSubSector !== 'all') && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={resetFilters}
-                className="h-6 px-2"
-              >
-                Nullstill filtre
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      <CareerSearchFilters
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        selectedSector={selectedSector}
+        setSelectedSector={setSelectedSector}
+        selectedSubSector={selectedSubSector}
+        setSelectedSubSector={setSelectedSubSector}
+        sectors={sectors}
+        subSectors={subSectors}
+        filteredCareersCount={filteredCareers.length}
+        totalCareersCount={careers.length}
+        resetFilters={resetFilters}
+      />
 
       {/* Careers Grid */}
-      {loading ? (
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Laster yrker...</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCareers.map((career, index) => (
-            <Card 
-              key={career.Yrkesnavn || index} 
-              className="cursor-pointer hover:shadow-lg transition-shadow border-l-4 border-l-primary/20 hover:border-l-primary"
-              onClick={() => handleCareerClick(career)}
-            >
-              <CardHeader>
-                <CardTitle className="text-lg line-clamp-2">
-                  {career.Yrkesnavn}
-                </CardTitle>
-                <div className="flex flex-wrap gap-1">
-                  {career.Sektor && (
-                    <Badge variant="secondary" className="text-xs">
-                      <Building className="h-3 w-3 mr-1" />
-                      {career.Sektor}
-                    </Badge>
-                  )}
-                  {career['Spesifikk sektor'] && (
-                    <Badge variant="outline" className="text-xs">
-                      {career['Spesifikk sektor']}
-                    </Badge>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground line-clamp-3">
-                  {career['Kort beskrivelse']}
-                </p>
-                
-                <div className="mt-4 pt-4 border-t">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleCareerClick(career);
-                    }}
-                  >
-                    Se detaljer
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {!loading && filteredCareers.length === 0 && (
-        <Card>
-          <CardContent className="text-center py-8">
-            <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Ingen yrker funnet</h3>
-            <p className="text-muted-foreground mb-4">
-              Prøv å justere søkekriteriene dine
-            </p>
-            <Button
-              variant="outline"
-              onClick={resetFilters}
-            >
-              Nullstill filtre
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+      <CareersGrid
+        filteredCareers={filteredCareers}
+        loading={loading}
+        onCareerClick={handleCareerClick}
+        resetFilters={resetFilters}
+      />
     </div>
   );
 };
