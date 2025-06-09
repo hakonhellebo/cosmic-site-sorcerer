@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, TrendingUp, Users, Search, Loader2, ArrowRight, Filter } from "lucide-react";
@@ -15,6 +14,7 @@ const CareerStatistics = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSector, setSelectedSector] = useState<string>('all');
+  const [selectedSpecificSector, setSelectedSpecificSector] = useState<string>('all');
   const [selectedCareer, setSelectedCareer] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,14 +53,17 @@ const CareerStatistics = () => {
   const filteredCareers = careerData.filter(career => {
     const matchesSearch = career.Yrkesnavn?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       career['Kort beskrivelse']?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      career.Sektor?.toLowerCase().includes(searchTerm.toLowerCase());
+      career.Sektor?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      career['Spesifikk sektor']?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesSector = selectedSector === 'all' || career.Sektor === selectedSector;
+    const matchesSpecificSector = selectedSpecificSector === 'all' || career['Spesifikk sektor'] === selectedSpecificSector;
     
-    return matchesSearch && matchesSector;
+    return matchesSearch && matchesSector && matchesSpecificSector;
   });
 
   const uniqueSectors = [...new Set(careerData.map(c => c.Sektor).filter(Boolean))].sort();
+  const uniqueSpecificSectors = [...new Set(careerData.map(c => c['Spesifikk sektor']).filter(Boolean))].sort();
 
   const handleCareerSelect = (careerName: string) => {
     setSelectedCareer(careerName);
@@ -116,8 +119,8 @@ const CareerStatistics = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-4 mb-6">
-            <div className="relative flex-1">
+          <div className="flex items-center gap-4 mb-6 flex-wrap">
+            <div className="relative flex-1 min-w-64">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 placeholder="Søk etter yrke, beskrivelse eller sektor..."
@@ -142,12 +145,27 @@ const CareerStatistics = () => {
                 </SelectContent>
               </Select>
             </div>
+            <div className="flex items-center gap-2">
+              <Select value={selectedSpecificSector} onValueChange={setSelectedSpecificSector}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Spesifikk sektor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alle spesifikke sektorer</SelectItem>
+                  {uniqueSpecificSectors.map((sector) => (
+                    <SelectItem key={sector} value={sector}>
+                      {sector}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <Button onClick={fetchCareerData} variant="outline">
               Oppdater data
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <Card>
               <CardContent className="p-4 text-center">
                 <div className="text-2xl font-bold text-primary">{careerData.length}</div>
@@ -161,6 +179,15 @@ const CareerStatistics = () => {
                   {uniqueSectors.length}
                 </div>
                 <div className="text-sm text-muted-foreground">Ulike sektorer</div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-orange-600">
+                  {uniqueSpecificSectors.length}
+                </div>
+                <div className="text-sm text-muted-foreground">Spesifikke sektorer</div>
               </CardContent>
             </Card>
             
@@ -181,8 +208,8 @@ const CareerStatistics = () => {
           <CardHeader>
             <CardTitle>Yrker</CardTitle>
             <CardDescription>
-              {searchTerm || selectedSector !== 'all' 
-                ? `Viser filtrerte resultater${searchTerm ? ` for "${searchTerm}"` : ''}${selectedSector !== 'all' ? ` i sektor "${selectedSector}"` : ''}`
+              {searchTerm || selectedSector !== 'all' || selectedSpecificSector !== 'all'
+                ? `Viser filtrerte resultater${searchTerm ? ` for "${searchTerm}"` : ''}${selectedSector !== 'all' ? ` i sektor "${selectedSector}"` : ''}${selectedSpecificSector !== 'all' ? ` i spesifikk sektor "${selectedSpecificSector}"` : ''}`
                 : 'Alle tilgjengelige yrker'
               }
             </CardDescription>
