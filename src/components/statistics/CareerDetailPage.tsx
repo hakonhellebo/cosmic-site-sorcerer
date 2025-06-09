@@ -279,6 +279,44 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
         </CardContent>
       </Card>
 
+      {/* Detailed Description */}
+      {career['Detaljert beskrivelse'] && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5" />
+              Detaljert beskrivelse
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="prose max-w-none">
+              <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                {career['Detaljert beskrivelse']}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Key Competencies */}
+      {career['Nøkkelkompetanser'] && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Nøkkelkompetanser
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="prose max-w-none">
+              <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                {career['Nøkkelkompetanser']}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Salary Trend Chart with Filters */}
       <Card>
         <CardHeader>
@@ -443,44 +481,6 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
           )}
         </CardContent>
       </Card>
-
-      {/* Detailed Description */}
-      {career['Detaljert beskrivelse'] && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5" />
-              Detaljert beskrivelse
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="prose max-w-none">
-              <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
-                {career['Detaljert beskrivelse']}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Key Competencies */}
-      {career['Nøkkelkompetanser'] && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Nøkkelkompetanser
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="prose max-w-none">
-              <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
-                {career['Nøkkelkompetanser']}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Related Careers */}
       {relatedCareers.length > 0 && (
