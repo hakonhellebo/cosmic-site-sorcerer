@@ -233,6 +233,18 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
   const dataKeys = getDataKeys();
   const colors = getChartColors();
 
+  // Parse key competencies into an array for bullet point display
+  const getKeyCompetencies = () => {
+    if (!career['Nøkkelkompetanser']) return [];
+    
+    return career['Nøkkelkompetanser']
+      .split(/[;,]/)
+      .map((item: string) => item.trim())
+      .filter((item: string) => item.length > 0);
+  };
+
+  const keyCompetencies = getKeyCompetencies();
+
   if (!career) {
     return (
       <div className="text-center p-8">
@@ -310,7 +322,7 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
         )}
 
         {/* Key Competencies */}
-        {career['Nøkkelkompetanser'] && (
+        {keyCompetencies.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -319,10 +331,13 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="prose max-w-none">
-                <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
-                  {career['Nøkkelkompetanser']}
-                </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {keyCompetencies.map((competency, index) => (
+                  <div key={index} className="flex items-start gap-2">
+                    <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+                    <span className="text-muted-foreground leading-relaxed">{competency}</span>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
