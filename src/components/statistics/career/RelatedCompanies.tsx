@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,7 @@ interface RelatedCompaniesProps {
 }
 
 const RelatedCompanies: React.FC<RelatedCompaniesProps> = ({ sector, companies }) => {
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(0);
   const [filteredCompanies, setFilteredCompanies] = useState<Company[]>([]);
   const companiesPerPage = 6;
@@ -54,6 +56,13 @@ const RelatedCompanies: React.FC<RelatedCompaniesProps> = ({ sector, companies }
     setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages);
   };
 
+  const handleCompanyClick = (company: Company) => {
+    const companySlug = company.Selskap.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    navigate(`/bedrift/${companySlug}`, { 
+      state: { company } 
+    });
+  };
+
   if (filteredCompanies.length === 0) {
     return (
       <Card>
@@ -69,6 +78,12 @@ const RelatedCompanies: React.FC<RelatedCompaniesProps> = ({ sector, companies }
       </Card>
     );
   }
+
+  const totalPages = Math.ceil(filteredCompanies.length / companiesPerPage);
+  const currentCompanies = filteredCompanies.slice(
+    currentPage * companiesPerPage,
+    (currentPage + 1) * companiesPerPage
+  );
 
   return (
     <Card>
@@ -109,7 +124,11 @@ const RelatedCompanies: React.FC<RelatedCompaniesProps> = ({ sector, companies }
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {currentCompanies.map((company, index) => (
-            <Card key={`${company.Selskap}-${index}`} className="border-l-4 border-l-primary/20 hover:border-l-primary transition-colors">
+            <Card 
+              key={`${company.Selskap}-${index}`} 
+              className="border-l-4 border-l-primary/20 hover:border-l-primary transition-colors cursor-pointer hover:shadow-md"
+              onClick={() => handleCompanyClick(company)}
+            >
               <CardContent className="p-4">
                 <div className="space-y-3">
                   <div>
@@ -147,7 +166,10 @@ const RelatedCompanies: React.FC<RelatedCompaniesProps> = ({ sector, companies }
                         variant="outline"
                         size="sm"
                         className="text-xs flex-1"
-                        onClick={() => window.open(company.Karriereportal, '_blank')}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(company.Karriereportal, '_blank');
+                        }}
                       >
                         <ExternalLink className="h-3 w-3 mr-1" />
                         Karriere
@@ -159,7 +181,10 @@ const RelatedCompanies: React.FC<RelatedCompaniesProps> = ({ sector, companies }
                         variant="outline"
                         size="sm"
                         className="text-xs flex-1"
-                        onClick={() => window.open(company.Linker, '_blank')}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(company.Linker, '_blank');
+                        }}
                       >
                         <ExternalLink className="h-3 w-3 mr-1" />
                         Nettside

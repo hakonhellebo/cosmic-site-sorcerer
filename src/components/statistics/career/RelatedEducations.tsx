@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +38,7 @@ interface RelatedEducationsProps {
 }
 
 const RelatedEducations: React.FC<RelatedEducationsProps> = ({ sector, educations }) => {
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(0);
   const [processedEducations, setProcessedEducations] = useState<ProcessedEducation[]>([]);
   const educationsPerPage = 6;
@@ -117,6 +119,27 @@ const RelatedEducations: React.FC<RelatedEducationsProps> = ({ sector, education
     return { level: 'Lav', color: 'green' };
   };
 
+  const handleEducationClick = (education: ProcessedEducation) => {
+    const educationSlug = `${education.university}-${education.programCode}`.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    navigate(`/utdanning/${educationSlug}`, { 
+      state: { 
+        program: {
+          Lærestednavn: education.university,
+          Studiekode: education.programCode,
+          Studienavn: education.programName,
+          'Utdanningsområde- og type': education.educationType,
+          Studiested: education.location,
+          Sektor: education.sector,
+          undersektor: education.undersektor,
+          avgGrade: education.avgGrade,
+          applicants: education.applicants,
+          spots: education.spots,
+          competitiveness: education.competitiveness
+        }
+      }
+    });
+  };
+
   if (processedEducations.length === 0) {
     return (
       <Card>
@@ -132,6 +155,12 @@ const RelatedEducations: React.FC<RelatedEducationsProps> = ({ sector, education
       </Card>
     );
   }
+
+  const totalPages = Math.ceil(processedEducations.length / educationsPerPage);
+  const currentEducations = processedEducations.slice(
+    currentPage * educationsPerPage,
+    (currentPage + 1) * educationsPerPage
+  );
 
   return (
     <Card>
@@ -175,7 +204,11 @@ const RelatedEducations: React.FC<RelatedEducationsProps> = ({ sector, education
             const competitiveness = getCompetitivenessLevel(education.competitiveness);
             
             return (
-              <Card key={`${education.programCode}-${index}`} className="border-l-4 border-l-blue-500/20 hover:border-l-blue-500 transition-colors">
+              <Card 
+                key={`${education.programCode}-${index}`} 
+                className="border-l-4 border-l-blue-500/20 hover:border-l-blue-500 transition-colors cursor-pointer hover:shadow-md"
+                onClick={() => handleEducationClick(education)}
+              >
                 <CardContent className="p-4">
                   <div className="space-y-3">
                     <div>
