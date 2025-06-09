@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, TrendingUp, Users, Search, Loader2, ArrowRight, Filter } from "lucide-react";
@@ -21,6 +22,11 @@ const CareerStatistics = () => {
   useEffect(() => {
     fetchCareerData();
   }, []);
+
+  // Reset specific sector when main sector changes
+  useEffect(() => {
+    setSelectedSpecificSector('all');
+  }, [selectedSector]);
 
   const fetchCareerData = async () => {
     try {
@@ -63,7 +69,20 @@ const CareerStatistics = () => {
   });
 
   const uniqueSectors = [...new Set(careerData.map(c => c.Sektor).filter(Boolean))].sort();
-  const uniqueSpecificSectors = [...new Set(careerData.map(c => c['Spesifikk sektor']).filter(Boolean))].sort();
+  
+  // Filter specific sectors based on selected main sector
+  const getFilteredSpecificSectors = () => {
+    if (selectedSector === 'all') {
+      return [...new Set(careerData.map(c => c['Spesifikk sektor']).filter(Boolean))].sort();
+    }
+    return [...new Set(careerData
+      .filter(c => c.Sektor === selectedSector)
+      .map(c => c['Spesifikk sektor'])
+      .filter(Boolean)
+    )].sort();
+  };
+
+  const uniqueSpecificSectors = getFilteredSpecificSectors();
 
   const handleCareerSelect = (careerName: string) => {
     setSelectedCareer(careerName);
@@ -228,7 +247,11 @@ const CareerStatistics = () => {
                 </TableHeader>
                 <TableBody>
                   {filteredCareers.slice(0, 50).map((career, index) => (
-                    <TableRow key={index} className="cursor-pointer hover:bg-muted/50">
+                    <TableRow 
+                      key={index} 
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => handleCareerSelect(career.Yrkesnavn)}
+                    >
                       <TableCell className="font-medium">
                         {career.Yrkesnavn}
                       </TableCell>
@@ -248,7 +271,10 @@ const CareerStatistics = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleCareerSelect(career.Yrkesnavn)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCareerSelect(career.Yrkesnavn);
+                          }}
                           className="flex items-center gap-1"
                         >
                           Se detaljer
