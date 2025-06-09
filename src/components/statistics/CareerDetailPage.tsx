@@ -137,7 +137,7 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
           return null;
         }
 
-        // Group by job and calculate data
+        // Group by job and calculate data (convert to annual salary by multiplying by 12)
         const yearData: SalaryTrendData = { year };
         
         // If we're showing specific jobs separately
@@ -146,14 +146,14 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
             const jobRecords = salaryRecords.filter(record => record.Yrke === job);
             if (jobRecords.length > 0) {
               const avgSalary = jobRecords.reduce((sum, record) => sum + (record.value || 0), 0) / jobRecords.length;
-              yearData[job] = Math.round(avgSalary);
+              yearData[job] = Math.round(avgSalary * 12); // Convert to annual salary
             }
           });
         } else {
           // Calculate overall average
           const totalSalary = salaryRecords.reduce((sum, record) => sum + (record.value || 0), 0);
           const avgSalary = totalSalary / salaryRecords.length;
-          yearData['Gjennomsnitt'] = Math.round(avgSalary);
+          yearData['Gjennomsnitt'] = Math.round(avgSalary * 12); // Convert to annual salary
         }
 
         console.log(`Year ${year}:`, yearData);
@@ -182,7 +182,7 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
 
   const chartConfig = {
     salary: {
-      label: "Median månedslønn",
+      label: "Årslønn",
       color: "#3b82f6",
     },
   };
@@ -358,7 +358,7 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
-            Lønnsutvikling (Median månedslønn)
+            Lønnsutvikling (Årslønn)
           </CardTitle>
           <CardDescription>
             Sammenlign lønnsutvikling mellom relaterte yrker og kjønn (2018-2024)
@@ -499,7 +499,7 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
                       </div>
                       <div className="space-y-1">
                         <div>
-                          <span className="text-muted-foreground">Siste:</span>
+                          <span className="text-muted-foreground">Siste årslønn:</span>
                           <p className="font-semibold">{lastValue.toLocaleString('nb-NO')} kr</p>
                         </div>
                         <div>
