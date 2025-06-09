@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -33,6 +34,24 @@ const CompanyProfilePage = () => {
   const location = useLocation();
   const [company, setCompany] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  // Get source career from navigation state
+  const sourceCareer = location.state?.sourceCareer;
+  
+  console.log("Company page - source career:", sourceCareer);
+
+  const handleBackNavigation = () => {
+    if (sourceCareer) {
+      // Navigate back to the specific career page
+      const careerSlug = sourceCareer.Yrkesnavn.toLowerCase().replace(/[^a-z0-9]/g, '-');
+      navigate(`/karriere/${careerSlug}`, { 
+        state: { career: sourceCareer }
+      });
+    } else {
+      // Default back to statistics page
+      navigate('/statistikk');
+    }
+  };
 
   useEffect(() => {
     const fetchCompanyData = async () => {
@@ -98,9 +117,9 @@ const CompanyProfilePage = () => {
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-3xl font-bold mb-4">Bedrift ikke funnet</h1>
             <p className="text-muted-foreground mb-6">Beklager, vi kunne ikke finne informasjon om denne bedriften.</p>
-            <Button onClick={() => navigate('/statistikk')}>
+            <Button onClick={handleBackNavigation}>
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Tilbake til statistikk
+              {sourceCareer ? `Tilbake til ${sourceCareer.Yrkesnavn}` : 'Tilbake til statistikk'}
             </Button>
           </div>
         </div>
@@ -114,11 +133,11 @@ const CompanyProfilePage = () => {
         <div className="max-w-4xl mx-auto">
           <Button 
             variant="ghost" 
-            onClick={() => navigate('/statistikk')}
+            onClick={handleBackNavigation}
             className="mb-6"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Tilbake til statistikk
+            {sourceCareer ? `Tilbake til ${sourceCareer.Yrkesnavn}` : 'Tilbake til statistikk'}
           </Button>
           
           <div className="space-y-8">
