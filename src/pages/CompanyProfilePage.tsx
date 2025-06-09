@@ -77,26 +77,6 @@ const CompanyProfilePage = () => {
     <Layout>
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
-          <div className="flex gap-2 mb-4">
-            {sourceCareer ? (
-              <Button 
-                variant="ghost" 
-                onClick={handleBackToCareer}
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Tilbake til {sourceCareer.Yrkesnavn}
-              </Button>
-            ) : (
-              <Button 
-                variant="ghost" 
-                onClick={() => navigate('/statistikk')}
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Tilbake til statistikk
-              </Button>
-            )}
-          </div>
-          
           <div className="flex items-start gap-4">
             <div className="flex-1">
               <h1 className="text-3xl font-bold mb-2">{company.Selskap}</h1>
@@ -105,6 +85,26 @@ const CompanyProfilePage = () => {
                   {company.Hovedbransje}
                 </Badge>
               )}
+              
+              <div className="flex gap-2 mt-4">
+                {sourceCareer ? (
+                  <Button 
+                    variant="ghost" 
+                    onClick={handleBackToCareer}
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Tilbake til {sourceCareer.Yrkesnavn}
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => navigate('/statistikk')}
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Tilbake til statistikk
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </div>
