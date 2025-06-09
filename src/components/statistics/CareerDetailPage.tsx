@@ -65,12 +65,12 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
 
       console.log("SSB mapping found:", ssbMapping);
 
-      // Get all SSB job titles for this career
+      // Get all SSB job titles for this career and filter out "na" values
       const allSsbJobs = [
         ssbMapping['SSB-yrke_1'],
         ssbMapping['SSB-yrke_2'],
         ssbMapping['SSB-yrke_3']
-      ].filter(Boolean);
+      ].filter(job => job && job.toLowerCase() !== 'na');
 
       if (allSsbJobs.length === 0) {
         setSalaryError("Ingen SSB-yrker funnet for dette yrket");
