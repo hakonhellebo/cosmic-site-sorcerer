@@ -1,10 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Building, MapPin, Users, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { Building } from "lucide-react";
+import CompanyCard from './CompanyCard';
+import CompanyPagination from './CompanyPagination';
+import { filterCompaniesBySector } from './utils/companyFilter';
 
 interface Company {
   Selskap: string;
@@ -30,21 +31,13 @@ interface RelatedCompaniesProps {
 }
 
 const RelatedCompanies: React.FC<RelatedCompaniesProps> = ({ sector, companies, sourceCareer }) => {
-  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(0);
   const [filteredCompanies, setFilteredCompanies] = useState<Company[]>([]);
   const companiesPerPage = 6;
 
   useEffect(() => {
-    // Filter companies by matching sector or sub_sektor
-    const relevant = companies.filter(company => 
-      company.Sektor?.toLowerCase() === sector?.toLowerCase() ||
-      company.sub_sektor?.toLowerCase() === sector?.toLowerCase()
-    );
-    
-    // Shuffle and limit to show variety
-    const shuffled = relevant.sort(() => 0.5 - Math.random());
-    setFilteredCompanies(shuffled.slice(0, 24)); // Limit to 24 for performance
+    const filtered = filterCompaniesBySector(companies, sector);
+    setFilteredCompanies(filtered);
   }, [sector, companies]);
 
   const totalPages = Math.ceil(filteredCompanies.length / companiesPerPage);
@@ -59,16 +52,6 @@ const RelatedCompanies: React.FC<RelatedCompaniesProps> = ({ sector, companies, 
 
   const prevPage = () => {
     setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages);
-  };
-
-  const handleCompanyClick = (company: Company) => {
-    const companySlug = company.Selskap.toLowerCase().replace(/[^a-z0-9]/g, '-');
-    navigate(`/bedrift/${companySlug}`, { 
-      state: { 
-        company,
-        sourceCareer: sourceCareer
-      } 
-    });
   };
 
   if (filteredCompanies.length === 0) {
@@ -98,104 +81,22 @@ const RelatedCompanies: React.FC<RelatedCompaniesProps> = ({ sector, companies, 
           </Badge>
         </CardTitle>
         
-        {totalPages > 1 && (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={prevPage}
-              disabled={totalPages <= 1}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <span className="text-sm text-muted-foreground">
-              {currentPage + 1} av {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={nextPage}
-              disabled={totalPages <= 1}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
+        <CompanyPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onNextPage={nextPage}
+          onPrevPage={prevPage}
+        />
       </CardHeader>
       
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {currentCompanies.map((company, index) => (
-            <Card 
-              key={`${company.Selskap}-${index}`} 
-              className="border-l-4 border-l-primary/20 hover:border-l-primary transition-colors cursor-pointer hover:shadow-md"
-              onClick={() => handleCompanyClick(company)}
-            >
-              <CardContent className="p-4">
-                <div className="space-y-3">
-                  <div>
-                    <h4 className="font-semibold text-lg line-clamp-1">{company.Selskap}</h4>
-                    <Badge variant="outline" className="mt-1 text-xs">
-                      {company.sub_sektor || company.Sektor}
-                    </Badge>
-                  </div>
-                  
-                  {company.Beskrivelse && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {company.Beskrivelse}
-                    </p>
-                  )}
-                  
-                  <div className="space-y-2">
-                    {company.Lokasjon && (
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <MapPin className="h-3 w-3" />
-                        <span>{company.Lokasjon}</span>
-                      </div>
-                    )}
-                    
-                    {company.Ansatte && (
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Users className="h-3 w-3" />
-                        <span>{company.Ansatte} ansatte</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="flex gap-2 pt-2">
-                    {company.Karriereportal && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-xs flex-1"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.open(company.Karriereportal, '_blank');
-                        }}
-                      >
-                        <ExternalLink className="h-3 w-3 mr-1" />
-                        Karriere
-                      </Button>
-                    )}
-                    
-                    {company.Linker && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-xs flex-1"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.open(company.Linker, '_blank');
-                        }}
-                      >
-                        <ExternalLink className="h-3 w-3 mr-1" />
-                        Nettside
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <CompanyCard 
+              key={`${company.Selskap}-${index}`}
+              company={company}
+              sourceCareer={sourceCareer}
+            />
           ))}
         </div>
         
