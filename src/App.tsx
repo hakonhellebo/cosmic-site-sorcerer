@@ -20,6 +20,7 @@ import UniversityHiVolda from "./pages/UniversityHiVolda"
 import UniversityUSN from "./pages/UniversityUSN"
 import CompanyProfilePage from "./pages/CompanyProfilePage"
 import EducationDetailsPage from "./pages/EducationDetailsPage"
+import CareerDetailPageWrapper from "./pages/CareerDetailPage"
 import { preloadStatisticsData } from "./pages/Statistics"
 import { useEffect } from "react"
 
@@ -57,6 +58,7 @@ const App = () => {
             <Route path="/university/usn" element={<UniversityUSN />} />
             <Route path="/bedrift/:companySlug" element={<CompanyProfilePage />} />
             <Route path="/utdanning/:universityId/:studiekode" element={<EducationDetailsPage />} />
+            <Route path="/karriere/:careerSlug" element={<CareerDetailPageWrapper />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

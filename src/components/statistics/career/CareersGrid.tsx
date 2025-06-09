@@ -61,10 +61,8 @@ const CareersGrid: React.FC<CareersGridProps> = ({
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {filteredCareers.map((career, index) => (
         <CareerCard
-          key={career.Yrkesnavn || index}
+          key={`${career.Yrkesnavn}-${index}`}
           career={career}
-          index={index}
-          onCareerClick={onCareerClick}
         />
       ))}
     </div>
