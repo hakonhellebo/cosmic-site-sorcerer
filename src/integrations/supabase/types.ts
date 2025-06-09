@@ -84,6 +84,45 @@ export type Database = {
         }
         Relationships: []
       }
+      Bedrifter_ny: {
+        Row: {
+          Ansatte: string | null
+          Beskrivelse: string | null
+          "Driftsinntekter (MNOK)": string | null
+          Geografi: string | null
+          Karriereportal: string | null
+          Linker: string | null
+          Lokasjon: string | null
+          Sektor: string | null
+          Selskap: string | null
+          sub_sektor: string | null
+        }
+        Insert: {
+          Ansatte?: string | null
+          Beskrivelse?: string | null
+          "Driftsinntekter (MNOK)"?: string | null
+          Geografi?: string | null
+          Karriereportal?: string | null
+          Linker?: string | null
+          Lokasjon?: string | null
+          Sektor?: string | null
+          Selskap?: string | null
+          sub_sektor?: string | null
+        }
+        Update: {
+          Ansatte?: string | null
+          Beskrivelse?: string | null
+          "Driftsinntekter (MNOK)"?: string | null
+          Geografi?: string | null
+          Karriereportal?: string | null
+          Linker?: string | null
+          Lokasjon?: string | null
+          Sektor?: string | null
+          Selskap?: string | null
+          sub_sektor?: string | null
+        }
+        Relationships: []
+      }
       Clean_11418: {
         Row: {
           AvtaltVanlig: string | null
@@ -276,6 +315,27 @@ export type Database = {
         }
         Relationships: []
       }
+      ssb_til_yrker: {
+        Row: {
+          "Connections-yrke": string | null
+          "SSB-yrke_1": string | null
+          "SSB-yrke_2": string | null
+          "SSB-yrke_3": string | null
+        }
+        Insert: {
+          "Connections-yrke"?: string | null
+          "SSB-yrke_1"?: string | null
+          "SSB-yrke_2"?: string | null
+          "SSB-yrke_3"?: string | null
+        }
+        Update: {
+          "Connections-yrke"?: string | null
+          "SSB-yrke_1"?: string | null
+          "SSB-yrke_2"?: string | null
+          "SSB-yrke_3"?: string | null
+        }
+        Relationships: []
+      }
       Student_data: {
         Row: {
           Lærestednavn: string | null
@@ -302,6 +362,42 @@ export type Database = {
           Studiekode?: string | null
           Studienavn?: string | null
           Studiested?: string | null
+          "Utdanningsområde- og type"?: string | null
+        }
+        Relationships: []
+      }
+      Student_data_ny: {
+        Row: {
+          Lærestednavn: string | null
+          "Measure Names": string | null
+          "Measure Values": string | null
+          Sektor: string | null
+          Studiekode: string | null
+          Studienavn: string | null
+          Studiested: string | null
+          undersektor: string | null
+          "Utdanningsområde- og type": string | null
+        }
+        Insert: {
+          Lærestednavn?: string | null
+          "Measure Names"?: string | null
+          "Measure Values"?: string | null
+          Sektor?: string | null
+          Studiekode?: string | null
+          Studienavn?: string | null
+          Studiested?: string | null
+          undersektor?: string | null
+          "Utdanningsområde- og type"?: string | null
+        }
+        Update: {
+          Lærestednavn?: string | null
+          "Measure Names"?: string | null
+          "Measure Values"?: string | null
+          Sektor?: string | null
+          Studiekode?: string | null
+          Studienavn?: string | null
+          Studiested?: string | null
+          undersektor?: string | null
           "Utdanningsområde- og type"?: string | null
         }
         Relationships: []
@@ -453,90 +549,6 @@ export type Database = {
         }
         Relationships: []
       }
-      "Utdanning til yrke": {
-        Row: {
-          antall_personer: number | null
-          groupValue: string | null
-          styrk08_navn: string | null
-        }
-        Insert: {
-          antall_personer?: number | null
-          groupValue?: string | null
-          styrk08_navn?: string | null
-        }
-        Update: {
-          antall_personer?: number | null
-          groupValue?: string | null
-          styrk08_navn?: string | null
-        }
-        Relationships: []
-      }
-      Utdanningsnivå: {
-        Row: {
-          andel_13: string | null
-          andel_710: string | null
-          andel_personer: number | null
-          antall_13: string | null
-          antall_40: string | null
-          antall_710: string | null
-          antall_kvinner: number | null
-          antall_menn: number | null
-          antall_offentlig: number | null
-          antall_personer: number | null
-          antall_privat: number | null
-          id: string | null
-          kildedato: string | null
-          nus: number | null
-          nus_kortnavn: string | null
-          nus_kortnavn_id: string | null
-          nus_navn: string | null
-          uno_ids: string | null
-          uno_ids_titler: string | null
-        }
-        Insert: {
-          andel_13?: string | null
-          andel_710?: string | null
-          andel_personer?: number | null
-          antall_13?: string | null
-          antall_40?: string | null
-          antall_710?: string | null
-          antall_kvinner?: number | null
-          antall_menn?: number | null
-          antall_offentlig?: number | null
-          antall_personer?: number | null
-          antall_privat?: number | null
-          id?: string | null
-          kildedato?: string | null
-          nus?: number | null
-          nus_kortnavn?: string | null
-          nus_kortnavn_id?: string | null
-          nus_navn?: string | null
-          uno_ids?: string | null
-          uno_ids_titler?: string | null
-        }
-        Update: {
-          andel_13?: string | null
-          andel_710?: string | null
-          andel_personer?: number | null
-          antall_13?: string | null
-          antall_40?: string | null
-          antall_710?: string | null
-          antall_kvinner?: number | null
-          antall_menn?: number | null
-          antall_offentlig?: number | null
-          antall_personer?: number | null
-          antall_privat?: number | null
-          id?: string | null
-          kildedato?: string | null
-          nus?: number | null
-          nus_kortnavn?: string | null
-          nus_kortnavn_id?: string | null
-          nus_navn?: string | null
-          uno_ids?: string | null
-          uno_ids_titler?: string | null
-        }
-        Relationships: []
-      }
       worker_responses: {
         Row: {
           created_at: string | null
@@ -561,63 +573,6 @@ export type Database = {
           name?: string | null
           responses?: Json | null
           user_id?: string
-        }
-        Relationships: []
-      }
-      Yrke_statistikk: {
-        Row: {
-          andel_13: number | null
-          andel_710: number | null
-          andel_personer: number | null
-          antall_13: number | null
-          antall_40: number | null
-          antall_710: number | null
-          antall_kvinner: number | null
-          antall_menn: number | null
-          antall_personer: number | null
-          id: string | null
-          kildedato: string | null
-          styrk08: string | null
-          styrk08_kortnavn: string | null
-          styrk08_navn: string
-          uno_ids: string | null
-          uno_ids_titler: string | null
-        }
-        Insert: {
-          andel_13?: number | null
-          andel_710?: number | null
-          andel_personer?: number | null
-          antall_13?: number | null
-          antall_40?: number | null
-          antall_710?: number | null
-          antall_kvinner?: number | null
-          antall_menn?: number | null
-          antall_personer?: number | null
-          id?: string | null
-          kildedato?: string | null
-          styrk08?: string | null
-          styrk08_kortnavn?: string | null
-          styrk08_navn: string
-          uno_ids?: string | null
-          uno_ids_titler?: string | null
-        }
-        Update: {
-          andel_13?: number | null
-          andel_710?: number | null
-          andel_personer?: number | null
-          antall_13?: number | null
-          antall_40?: number | null
-          antall_710?: number | null
-          antall_kvinner?: number | null
-          antall_menn?: number | null
-          antall_personer?: number | null
-          id?: string | null
-          kildedato?: string | null
-          styrk08?: string | null
-          styrk08_kortnavn?: string | null
-          styrk08_navn?: string
-          uno_ids?: string | null
-          uno_ids_titler?: string | null
         }
         Relationships: []
       }
