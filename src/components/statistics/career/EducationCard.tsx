@@ -45,8 +45,17 @@ const EducationCard: React.FC<EducationCardProps> = ({ education, sourceCompany,
   };
 
   const handleEducationClick = (education: ProcessedEducation) => {
-    const educationSlug = `${education.university}-${education.programCode}`.toLowerCase().replace(/[^a-z0-9]/g, '-');
-    navigate(`/utdanning/${educationSlug}`, { 
+    // Encode university name and study code for URL
+    const universityEncoded = encodeURIComponent(education.university);
+    const studiekodeEncoded = encodeURIComponent(education.programCode);
+    
+    console.log("Navigating to education:", {
+      university: education.university,
+      programCode: education.programCode,
+      encodedUrl: `/utdanning/${universityEncoded}/${studiekodeEncoded}`
+    });
+    
+    navigate(`/utdanning/${universityEncoded}/${studiekodeEncoded}`, { 
       state: { 
         program: {
           Lærestednavn: education.university,
