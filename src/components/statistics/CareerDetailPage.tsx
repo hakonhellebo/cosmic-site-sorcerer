@@ -1,11 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Briefcase, Building, Users, Target, ArrowRight, TrendingUp, Loader2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Briefcase, Building, Users, Target, ArrowRight, TrendingUp, Loader2, Filter } from "lucide-react";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelList } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelList, LineChart, Line } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 
 interface CareerDetailPageProps {
@@ -17,7 +17,7 @@ interface CareerDetailPageProps {
 
 interface SalaryTrendData {
   year: number;
-  salary: number;
+  [key: string]: number; // For dynamic job names
 }
 
 const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
@@ -29,12 +29,16 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
   const [salaryData, setSalaryData] = useState<SalaryTrendData[]>([]);
   const [loadingSalary, setLoadingSalary] = useState(false);
   const [salaryError, setSalaryError] = useState<string | null>(null);
+  const [availableJobs, setAvailableJobs] = useState<string[]>([]);
+  const [selectedJobs, setSelectedJobs] = useState<string[]>([]);
+  const [selectedGender, setSelectedGender] = useState<string>('all');
+  const [availableGenders, setAvailableGenders] = useState<string[]>([]);
 
   useEffect(() => {
     if (career?.Yrkesnavn) {
       fetchSalaryTrend();
     }
-  }, [career]);
+  }, [career, selectedJobs, selectedGender]);
 
   const fetchSalaryTrend = async () => {
     if (!career?.Yrkesnavn) return;
@@ -61,30 +65,58 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
 
       console.log("SSB mapping found:", ssbMapping);
 
-      // Get all SSB job titles for this career (SSB-yrke_1, SSB-yrke_2, SSB-yrke_3)
-      const ssbJobs = [
+      // Get all SSB job titles for this career
+      const allSsbJobs = [
         ssbMapping['SSB-yrke_1'],
         ssbMapping['SSB-yrke_2'],
         ssbMapping['SSB-yrke_3']
       ].filter(Boolean);
 
-      if (ssbJobs.length === 0) {
+      if (allSsbJobs.length === 0) {
         setSalaryError("Ingen SSB-yrker funnet for dette yrket");
         return;
       }
 
-      console.log("SSB jobs to fetch:", ssbJobs);
+      // Set available jobs if not already set
+      if (availableJobs.length === 0) {
+        setAvailableJobs(allSsbJobs);
+        setSelectedJobs(allSsbJobs); // Select all by default
+      }
 
-      // Fetch salary data for years 2018-2024 for all mapped SSB jobs
+      // Get available genders if not already set
+      if (availableGenders.length === 0) {
+        const { data: genderData } = await supabase
+          .from('Clean_11418')
+          .select('Kjonn')
+          .in('Yrke', allSsbJobs)
+          .not('Kjonn', 'is', null);
+        
+        const uniqueGenders = [...new Set(genderData?.map(item => item.Kjonn).filter(Boolean))];
+        setAvailableGenders(uniqueGenders);
+      }
+
+      // Use selected jobs or all if none selected
+      const jobsToFetch = selectedJobs.length > 0 ? selectedJobs : allSsbJobs;
+
+      console.log("Jobs to fetch:", jobsToFetch);
+
+      // Fetch salary data for years 2018-2024
       const years = [2018, 2019, 2020, 2021, 2022, 2023, 2024];
       const salaryPromises = years.map(async (year) => {
-        const { data: salaryRecords, error: salaryError } = await supabase
+        let query = supabase
           .from('Clean_11418')
-          .select('value, Yrke')
-          .in('Yrke', ssbJobs)
+          .select('value, Yrke, Kjonn')
+          .in('Yrke', jobsToFetch)
           .eq('Tid', year)
           .eq('MaaleMetode', 'Median')
           .not('value', 'is', null);
+
+        // Add gender filter if selected
+        if (selectedGender !== 'all') {
+          query = query.eq('Kjonn', selectedGender);
+        }
+
+        const { data: salaryRecords, error: salaryError } = await query;
 
         if (salaryError) {
           console.error(`Error fetching salary for year ${year}:`, salaryError);
@@ -96,16 +128,27 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
           return null;
         }
 
-        // Calculate average salary across all mapped SSB jobs for this year
-        const totalSalary = salaryRecords.reduce((sum, record) => sum + (record.value || 0), 0);
-        const avgSalary = totalSalary / salaryRecords.length;
+        // Group by job and calculate data
+        const yearData: SalaryTrendData = { year };
+        
+        // If we're showing specific jobs separately
+        if (jobsToFetch.length > 1 && selectedJobs.length > 0) {
+          jobsToFetch.forEach(job => {
+            const jobRecords = salaryRecords.filter(record => record.Yrke === job);
+            if (jobRecords.length > 0) {
+              const avgSalary = jobRecords.reduce((sum, record) => sum + (record.value || 0), 0) / jobRecords.length;
+              yearData[job] = Math.round(avgSalary);
+            }
+          });
+        } else {
+          // Calculate overall average
+          const totalSalary = salaryRecords.reduce((sum, record) => sum + (record.value || 0), 0);
+          const avgSalary = totalSalary / salaryRecords.length;
+          yearData['Gjennomsnitt'] = Math.round(avgSalary);
+        }
 
-        console.log(`Year ${year}: Found ${salaryRecords.length} records, average salary: ${avgSalary}`);
-
-        return {
-          year,
-          salary: Math.round(avgSalary)
-        };
+        console.log(`Year ${year}:`, yearData);
+        return yearData;
       });
 
       const results = await Promise.all(salaryPromises);
@@ -114,7 +157,7 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
       console.log("Valid salary results:", validResults);
 
       if (validResults.length === 0) {
-        setSalaryError("Ingen lønnsdata funnet for de tilknyttede SSB-yrkene");
+        setSalaryError("Ingen lønnsdata funnet for de valgte kriteriene");
       } else {
         validResults.sort((a, b) => a.year - b.year);
         setSalaryData(validResults);
@@ -130,38 +173,21 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
 
   const chartConfig = {
     salary: {
-      label: "Median lønn",
+      label: "Median månedslønn",
       color: "#3b82f6",
     },
   };
 
-  const renderCustomLabel = (props: any) => {
-    const { x, y, width, value } = props;
-    return (
-      <text 
-        x={x + width / 2} 
-        y={y - 5} 
-        fill="#374151" 
-        textAnchor="middle" 
-        dy={-6} 
-        fontSize="12"
-        fontWeight="500"
-      >
-        {value ? `${(value / 1000).toFixed(0)}k` : ''}
-      </text>
-    );
+  const getDataKeys = () => {
+    if (salaryData.length === 0) return [];
+    const keys = Object.keys(salaryData[0]).filter(key => key !== 'year');
+    return keys;
   };
 
-  if (!career) {
-    return (
-      <div className="text-center p-8">
-        <p className="text-muted-foreground">Yrke ikke funnet</p>
-        <Button onClick={onBack} className="mt-4">
-          Tilbake til oversikt
-        </Button>
-      </div>
-    );
-  }
+  const getChartColors = () => {
+    const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'];
+    return colors;
+  };
 
   // Parse related careers from the string
   const getRelatedCareers = () => {
@@ -194,6 +220,20 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
       onNavigateToCareer(exactMatch.Yrkesnavn);
     }
   };
+
+  const dataKeys = getDataKeys();
+  const colors = getChartColors();
+
+  if (!career) {
+    return (
+      <div className="text-center p-8">
+        <p className="text-muted-foreground">Yrke ikke funnet</p>
+        <Button onClick={onBack} className="mt-4">
+          Tilbake til oversikt
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -237,18 +277,74 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
         </CardContent>
       </Card>
 
-      {/* Salary Trend Chart */}
+      {/* Salary Trend Chart with Filters */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
-            Lønnsutvikling (Median)
+            Lønnsutvikling (Median månedslønn)
           </CardTitle>
           <CardDescription>
-            Lønnsutvikling fra 2018 til 2024 basert på SSB-data
+            Sammenlign lønnsutvikling mellom relaterte yrker og kjønn (2018-2024)
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Filter Controls */}
+          {availableJobs.length > 1 && (
+            <div className="mb-6 space-y-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Filter className="h-4 w-4" />
+                <span className="font-medium">Filtrer data:</span>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Job Selection */}
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Velg yrker å sammenligne:</label>
+                  <div className="space-y-2">
+                    {availableJobs.map((job) => (
+                      <label key={job} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={selectedJobs.includes(job)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedJobs([...selectedJobs, job]);
+                            } else {
+                              setSelectedJobs(selectedJobs.filter(j => j !== job));
+                            }
+                          }}
+                          className="rounded"
+                        />
+                        <span className="text-sm">{job}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Gender Selection */}
+                {availableGenders.length > 0 && (
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Kjønn:</label>
+                    <Select value={selectedGender} onValueChange={setSelectedGender}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Velg kjønn" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Alle</SelectItem>
+                        {availableGenders.map((gender) => (
+                          <SelectItem key={gender} value={gender}>
+                            {gender}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {loadingSalary && (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin mr-2" />
@@ -265,77 +361,81 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
           {salaryData.length > 0 && (
             <>
               <ChartContainer config={chartConfig}>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart
+                <ResponsiveContainer width="100%" height={400}>
+                  <LineChart
                     data={salaryData}
                     margin={{
                       top: 30,
-                      right: 20,
+                      right: 30,
                       left: 60,
                       bottom: 15,
                     }}
-                    maxBarSize={50}
-                    barCategoryGap="15%"
                   >
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis 
                       dataKey="year" 
                       tick={{ fontSize: 11 }}
                       tickMargin={8}
-                      axisLine={true}
-                      tickLine={true}
                     />
                     <YAxis 
                       tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
-                      width={50}
+                      width={60}
                       tick={{ fontSize: 11 }}
                     />
                     <ChartTooltip 
                       content={<ChartTooltipContent />}
-                      formatter={(value: number) => [`${value.toLocaleString('nb-NO')} kr`, 'Median månedslønn']}
+                      formatter={(value: number, name: string) => [
+                        `${value.toLocaleString('nb-NO')} kr`, 
+                        name
+                      ]}
                       labelFormatter={(year) => `År ${year}`}
                     />
-                    <Bar 
-                      dataKey="salary" 
-                      fill="var(--color-salary)"
-                      radius={[3, 3, 0, 0]}
-                    >
-                      <LabelList content={renderCustomLabel} />
-                    </Bar>
-                  </BarChart>
+                    {dataKeys.map((key, index) => (
+                      <Line
+                        key={key}
+                        type="monotone"
+                        dataKey={key}
+                        stroke={colors[index % colors.length]}
+                        strokeWidth={2}
+                        dot={{ r: 4 }}
+                        name={key}
+                      />
+                    ))}
+                  </LineChart>
                 </ResponsiveContainer>
               </ChartContainer>
               
-              <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                {salaryData.length > 1 && (
-                  <>
-                    <div>
-                      <span className="text-muted-foreground">Start median ({salaryData[0].year}):</span>
-                      <p className="font-semibold">{salaryData[0].salary.toLocaleString('nb-NO')} kr</p>
-                      <span className="text-xs text-muted-foreground">Årslønn: {(salaryData[0].salary * 12).toLocaleString('nb-NO')} kr</span>
+              {/* Summary Statistics */}
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                {dataKeys.map((key, index) => {
+                  const jobData = salaryData.map(d => d[key]).filter(Boolean);
+                  if (jobData.length < 2) return null;
+                  
+                  const firstValue = jobData[0];
+                  const lastValue = jobData[jobData.length - 1];
+                  const increase = lastValue - firstValue;
+                  const percentIncrease = (increase / firstValue) * 100;
+
+                  return (
+                    <div key={key} className="p-3 border rounded-lg" style={{ borderColor: colors[index % colors.length] + '30' }}>
+                      <div className="font-medium text-xs mb-1" style={{ color: colors[index % colors.length] }}>
+                        {key}
+                      </div>
+                      <div className="space-y-1">
+                        <div>
+                          <span className="text-muted-foreground">Siste:</span>
+                          <p className="font-semibold">{lastValue.toLocaleString('nb-NO')} kr</p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Økning:</span>
+                          <p className="font-semibold text-green-600">
+                            +{increase.toLocaleString('nb-NO')} kr ({percentIncrease.toFixed(1)}%)
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-muted-foreground">Siste median ({salaryData[salaryData.length - 1].year}):</span>
-                      <p className="font-semibold">{salaryData[salaryData.length - 1].salary.toLocaleString('nb-NO')} kr</p>
-                      <span className="text-xs text-muted-foreground">Årslønn: {(salaryData[salaryData.length - 1].salary * 12).toLocaleString('nb-NO')} kr</span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Total økning (måned):</span>
-                      <p className="font-semibold text-green-600">
-                        +{(salaryData[salaryData.length - 1].salary - salaryData[0].salary).toLocaleString('nb-NO')} kr
-                      </p>
-                      <span className="text-xs text-muted-foreground">
-                        Årlig: +{((salaryData[salaryData.length - 1].salary - salaryData[0].salary) * 12).toLocaleString('nb-NO')} kr
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Økning %:</span>
-                      <p className="font-semibold text-green-600">
-                        +{(((salaryData[salaryData.length - 1].salary - salaryData[0].salary) / salaryData[0].salary) * 100).toFixed(1)}%
-                      </p>
-                    </div>
-                  </>
-                )}
+                  );
+                })}
               </div>
             </>
           )}
