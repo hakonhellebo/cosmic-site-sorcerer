@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,7 +33,9 @@ const CareerStatistics: React.FC<CareerStatisticsProps> = ({ preloadedData }) =>
   const [filteredCareers, setFilteredCareers] = useState<Career[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSector, setSelectedSector] = useState("all");
+  const [selectedSubSector, setSelectedSubSector] = useState("all");
   const [sectors, setSectors] = useState<string[]>([]);
+  const [subSectors, setSubSectors] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCareer, setSelectedCareer] = useState<Career | null>(null);
 
@@ -52,7 +55,12 @@ const CareerStatistics: React.FC<CareerStatisticsProps> = ({ preloadedData }) =>
 
   useEffect(() => {
     filterCareers();
-  }, [careers, searchTerm, selectedSector]);
+  }, [careers, searchTerm, selectedSector, selectedSubSector]);
+
+  // Update sub-sectors when main sector changes
+  useEffect(() => {
+    updateSubSectors();
+  }, [selectedSector, careers]);
 
   const fetchCareers = async () => {
     setLoading(true);
@@ -86,6 +94,26 @@ const CareerStatistics: React.FC<CareerStatisticsProps> = ({ preloadedData }) =>
     setLoading(false);
   };
 
+  const updateSubSectors = () => {
+    if (selectedSector === 'all') {
+      setSubSectors([]);
+      setSelectedSubSector('all');
+      return;
+    }
+
+    // Get unique sub-sectors for the selected main sector
+    const uniqueSubSectors = [...new Set(
+      careers
+        .filter(career => career.Sektor === selectedSector)
+        .map(career => career['Spesifikk sektor'])
+        .filter(Boolean)
+        .sort()
+    )];
+
+    setSubSectors(uniqueSubSectors);
+    setSelectedSubSector('all'); // Reset sub-sector selection when main sector changes
+  };
+
   const filterCareers = () => {
     let filtered = careers;
     
@@ -99,9 +127,14 @@ const CareerStatistics: React.FC<CareerStatisticsProps> = ({ preloadedData }) =>
       );
     }
     
-    // Apply sector filter
+    // Apply main sector filter
     if (selectedSector !== 'all') {
       filtered = filtered.filter(career => career.Sektor === selectedSector);
+    }
+
+    // Apply sub-sector filter
+    if (selectedSubSector !== 'all') {
+      filtered = filtered.filter(career => career['Spesifikk sektor'] === selectedSubSector);
     }
     
     setFilteredCareers(filtered);
@@ -120,6 +153,12 @@ const CareerStatistics: React.FC<CareerStatisticsProps> = ({ preloadedData }) =>
     if (career) {
       setSelectedCareer(career);
     }
+  };
+
+  const resetFilters = () => {
+    setSearchTerm("");
+    setSelectedSector("all");
+    setSelectedSubSector("all");
   };
 
   if (selectedCareer) {
@@ -152,7 +191,7 @@ const CareerStatistics: React.FC<CareerStatisticsProps> = ({ preloadedData }) =>
       {/* Search and Filter Controls */}
       <Card>
         <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
@@ -166,10 +205,10 @@ const CareerStatistics: React.FC<CareerStatisticsProps> = ({ preloadedData }) =>
             <Select value={selectedSector} onValueChange={setSelectedSector}>
               <SelectTrigger>
                 <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Velg sektor" />
+                <SelectValue placeholder="Velg hovedsektor" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Alle sektorer</SelectItem>
+                <SelectItem value="all">Alle hovedsektorer</SelectItem>
                 {sectors.map((sector) => (
                   <SelectItem key={sector} value={sector}>
                     {sector}
@@ -177,18 +216,33 @@ const CareerStatistics: React.FC<CareerStatisticsProps> = ({ preloadedData }) =>
                 ))}
               </SelectContent>
             </Select>
+
+            {/* Sub-sector dropdown - only show if main sector is selected and has sub-sectors */}
+            {selectedSector !== 'all' && subSectors.length > 0 && (
+              <Select value={selectedSubSector} onValueChange={setSelectedSubSector}>
+                <SelectTrigger>
+                  <Building className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Velg undersektor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alle undersektorer</SelectItem>
+                  {subSectors.map((subSector) => (
+                    <SelectItem key={subSector} value={subSector}>
+                      {subSector}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
           
           <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
             <span>Viser {filteredCareers.length} av {careers.length} yrker</span>
-            {(searchTerm || selectedSector !== 'all') && (
+            {(searchTerm || selectedSector !== 'all' || selectedSubSector !== 'all') && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedSector("all");
-                }}
+                onClick={resetFilters}
                 className="h-6 px-2"
               >
                 Nullstill filtre
@@ -264,10 +318,7 @@ const CareerStatistics: React.FC<CareerStatisticsProps> = ({ preloadedData }) =>
             </p>
             <Button
               variant="outline"
-              onClick={() => {
-                setSearchTerm("");
-                setSelectedSector("all");
-              }}
+              onClick={resetFilters}
             >
               Nullstill filtre
             </Button>
