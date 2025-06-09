@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -75,20 +74,9 @@ const CompanyProfilePage = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 mt-20">
         <div className="mb-6">
-          <div className="flex items-start gap-4">
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold mb-2">{company.Selskap}</h1>
-              {company.Hovedbransje && (
-                <Badge variant="secondary" className="mb-4">
-                  {company.Hovedbransje}
-                </Badge>
-              )}
-            </div>
-          </div>
-          
-          <div className="flex gap-2 mt-4">
+          <div className="flex gap-2 mb-6">
             {sourceCareer ? (
               <Button 
                 variant="ghost" 
@@ -106,6 +94,17 @@ const CompanyProfilePage = () => {
                 Tilbake til statistikk
               </Button>
             )}
+          </div>
+          
+          <div className="flex items-start gap-4">
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold mb-2">{company.Selskap}</h1>
+              {company.Hovedbransje && (
+                <Badge variant="secondary" className="mb-4">
+                  {company.Hovedbransje}
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
 
