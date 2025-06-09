@@ -1,17 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase, TrendingUp, Users, Search, Loader2 } from "lucide-react";
+import { Briefcase, TrendingUp, Users, Search, Loader2, ArrowRight } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import CareerDetailsCard from './CareerDetailsCard';
+import CareerDetailPage from './CareerDetailPage';
 
 const CareerStatistics = () => {
   const [careerData, setCareerData] = useState<any[]>([]);
-  const [detailedCareerData, setDetailedCareerData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCareer, setSelectedCareer] = useState<string | null>(null);
@@ -26,13 +25,12 @@ const CareerStatistics = () => {
       setLoading(true);
       setError(null);
       
-      console.log("Fetching career data from Yrke_statistikk...");
+      console.log("Fetching career data from Yrker_database...");
       
-      // Fetch data from Yrke_statistikk table
       const { data: careerStats, error: careerError } = await supabase
-        .from('Yrke_statistikk')
+        .from('Yrker_database')
         .select('*')
-        .order('antall_personer', { ascending: false });
+        .order('Yrkesnavn', { ascending: true });
       
       if (careerError) {
         console.error("Error fetching career data:", careerError);
@@ -40,21 +38,7 @@ const CareerStatistics = () => {
       }
       
       console.log("Career data fetched:", careerStats?.length, "rows");
-      console.log("First few rows:", careerStats?.slice(0, 3));
       setCareerData(careerStats || []);
-      
-      // Also fetch detailed data from Clean_11418
-      const { data: detailedStats, error: detailedError } = await supabase
-        .from('Clean_11418')
-        .select('*')
-        .limit(1000);
-      
-      if (detailedError) {
-        console.warn("Could not fetch detailed career data:", detailedError);
-      } else {
-        console.log("Detailed career data fetched:", detailedStats?.length, "rows");
-        setDetailedCareerData(detailedStats || []);
-      }
       
     } catch (error) {
       console.error("Error in fetchCareerData:", error);
@@ -65,20 +49,17 @@ const CareerStatistics = () => {
   };
 
   const filteredCareers = careerData.filter(career =>
-    career.styrk08_navn?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    career.styrk08_kortnavn?.toLowerCase().includes(searchTerm.toLowerCase())
+    career.Yrkesnavn?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    career['Kort beskrivelse']?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    career.Sektor?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const topCareers = filteredCareers.slice(0, 10);
 
   const handleCareerSelect = (careerName: string) => {
     setSelectedCareer(careerName);
   };
 
-  const getCareerDetails = (careerName: string) => {
-    const basicStats = careerData.find(c => c.styrk08_navn === careerName);
-    const detailed = detailedCareerData.filter(d => d.Yrke === careerName);
-    return { basicStats, detailed };
+  const getCareerByName = (careerName: string) => {
+    return careerData.find(c => c.Yrkesnavn === careerName);
   };
 
   if (loading) {
@@ -103,25 +84,14 @@ const CareerStatistics = () => {
   }
 
   if (selectedCareer) {
-    const { basicStats, detailed } = getCareerDetails(selectedCareer);
+    const careerDetails = getCareerByName(selectedCareer);
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="outline" 
-            onClick={() => setSelectedCareer(null)}
-          >
-            ← Tilbake til oversikt
-          </Button>
-          <h2 className="text-2xl font-bold">{selectedCareer}</h2>
-        </div>
-        
-        <CareerDetailsCard 
-          careerName={selectedCareer}
-          basicStats={basicStats}
-          detailedStats={detailed}
-        />
-      </div>
+      <CareerDetailPage 
+        career={careerDetails}
+        onBack={() => setSelectedCareer(null)}
+        onNavigateToCareer={handleCareerSelect}
+        allCareers={careerData}
+      />
     );
   }
 
@@ -134,7 +104,7 @@ const CareerStatistics = () => {
             Yrkesstatistikk
           </CardTitle>
           <CardDescription>
-            Statistikk over yrker basert på data fra Yrke_statistikk tabellen
+            Utforsk yrker og deres beskrivelser fra Yrker_database
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -142,7 +112,7 @@ const CareerStatistics = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder="Søk etter yrke..."
+                placeholder="Søk etter yrke, beskrivelse eller sektor..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -164,37 +134,30 @@ const CareerStatistics = () => {
             <Card>
               <CardContent className="p-4 text-center">
                 <div className="text-2xl font-bold text-green-600">
-                  {careerData.reduce((sum, career) => sum + (career.antall_personer || 0), 0).toLocaleString()}
+                  {[...new Set(careerData.map(c => c.Sektor).filter(Boolean))].length}
                 </div>
-                <div className="text-sm text-muted-foreground">Totalt antall personer</div>
+                <div className="text-sm text-muted-foreground">Ulike sektorer</div>
               </CardContent>
             </Card>
             
             <Card>
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-blue-600">{detailedCareerData.length}</div>
-                <div className="text-sm text-muted-foreground">Detaljerte datapunkter</div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {filteredCareers.length}
+                </div>
+                <div className="text-sm text-muted-foreground">Filtrerte resultater</div>
               </CardContent>
             </Card>
           </div>
-
-          {/* Debug information */}
-          {careerData.length === 0 && (
-            <div className="bg-yellow-50 p-4 rounded-lg mb-4">
-              <h4 className="font-semibold">Debug informasjon:</h4>
-              <p>Ingen data funnet i Yrke_statistikk tabellen.</p>
-              <p>Sjekk konsollen for mer informasjon.</p>
-            </div>
-          )}
         </CardContent>
       </Card>
 
       {careerData.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Topp 10 yrker etter antall personer</CardTitle>
+            <CardTitle>Yrker</CardTitle>
             <CardDescription>
-              {searchTerm ? `Viser søkeresultater for "${searchTerm}"` : 'De mest populære yrkene basert på antall personer'}
+              {searchTerm ? `Viser søkeresultater for "${searchTerm}"` : 'Alle tilgjengelige yrker'}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -202,44 +165,40 @@ const CareerStatistics = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Yrke</TableHead>
-                    <TableHead>STYRK08 Kode</TableHead>
-                    <TableHead className="text-right">Antall personer</TableHead>
-                    <TableHead className="text-right">Antall menn</TableHead>
-                    <TableHead className="text-right">Antall kvinner</TableHead>
+                    <TableHead>Yrkesnavn</TableHead>
+                    <TableHead>Kort beskrivelse</TableHead>
+                    <TableHead>Sektor</TableHead>
+                    <TableHead>Spesifikk sektor</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {topCareers.map((career, index) => (
-                    <TableRow key={career.id || index} className="cursor-pointer hover:bg-muted/50">
+                  {filteredCareers.slice(0, 50).map((career, index) => (
+                    <TableRow key={index} className="cursor-pointer hover:bg-muted/50">
                       <TableCell className="font-medium">
-                        {career.styrk08_navn}
-                        {career.styrk08_kortnavn && (
-                          <div className="text-sm text-muted-foreground">
-                            {career.styrk08_kortnavn}
-                          </div>
-                        )}
+                        {career.Yrkesnavn}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground max-w-md">
+                        {career['Kort beskrivelse']?.substring(0, 100)}
+                        {career['Kort beskrivelse']?.length > 100 && '...'}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{career.styrk08}</Badge>
+                        {career.Sektor && (
+                          <Badge variant="outline">{career.Sektor}</Badge>
+                        )}
                       </TableCell>
-                      <TableCell className="text-right font-medium">
-                        {career.antall_personer?.toLocaleString() || 'N/A'}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {career.antall_menn?.toLocaleString() || 'N/A'}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {career.antall_kvinner?.toLocaleString() || 'N/A'}
+                      <TableCell className="text-sm">
+                        {career['Spesifikk sektor']}
                       </TableCell>
                       <TableCell>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleCareerSelect(career.styrk08_navn)}
+                          onClick={() => handleCareerSelect(career.Yrkesnavn)}
+                          className="flex items-center gap-1"
                         >
-                          Detaljer
+                          Se detaljer
+                          <ArrowRight className="h-3 w-3" />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -247,6 +206,11 @@ const CareerStatistics = () => {
                 </TableBody>
               </Table>
             </div>
+            {filteredCareers.length > 50 && (
+              <div className="mt-4 text-center text-sm text-muted-foreground">
+                Viser de første 50 resultatene. Bruk søk for å filtrere.
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

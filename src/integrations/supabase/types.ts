@@ -88,6 +88,7 @@ export type Database = {
         Row: {
           AvtaltVanlig: string | null
           ContentsCode: string | null
+          id: string
           Kjonn: string | null
           MaaleMetode: string
           Sektor: string | null
@@ -98,6 +99,7 @@ export type Database = {
         Insert: {
           AvtaltVanlig?: string | null
           ContentsCode?: string | null
+          id?: string
           Kjonn?: string | null
           MaaleMetode: string
           Sektor?: string | null
@@ -108,6 +110,7 @@ export type Database = {
         Update: {
           AvtaltVanlig?: string | null
           ContentsCode?: string | null
+          id?: string
           Kjonn?: string | null
           MaaleMetode?: string
           Sektor?: string | null
@@ -336,63 +339,6 @@ export type Database = {
           Indikator?: string | null
           Kategori?: string | null
           Skole?: string | null
-        }
-        Relationships: []
-      }
-      Universitetsdata: {
-        Row: {
-          Årstall: string | null
-          Avdelingskode: string | null
-          Avdelingskode_SSB: string | null
-          Avdelingsnavn: string | null
-          Institusjonskode: string | null
-          Institusjonsnavn: string | null
-          Kvalifikasjonskode: string | null
-          Kvalifikasjonsnavn: string | null
-          Nivåkode: string | null
-          Nivånavn: string | null
-          Semester: string | null
-          Semesternavn: string | null
-          "SSBs NUS-kode": string | null
-          Studiumkode: string | null
-          Studnavn: string | null
-          "Vitnemålsgivende/ikke-vitnemålsgivende": string | null
-        }
-        Insert: {
-          Årstall?: string | null
-          Avdelingskode?: string | null
-          Avdelingskode_SSB?: string | null
-          Avdelingsnavn?: string | null
-          Institusjonskode?: string | null
-          Institusjonsnavn?: string | null
-          Kvalifikasjonskode?: string | null
-          Kvalifikasjonsnavn?: string | null
-          Nivåkode?: string | null
-          Nivånavn?: string | null
-          Semester?: string | null
-          Semesternavn?: string | null
-          "SSBs NUS-kode"?: string | null
-          Studiumkode?: string | null
-          Studnavn?: string | null
-          "Vitnemålsgivende/ikke-vitnemålsgivende"?: string | null
-        }
-        Update: {
-          Årstall?: string | null
-          Avdelingskode?: string | null
-          Avdelingskode_SSB?: string | null
-          Avdelingsnavn?: string | null
-          Institusjonskode?: string | null
-          Institusjonsnavn?: string | null
-          Kvalifikasjonskode?: string | null
-          Kvalifikasjonsnavn?: string | null
-          Nivåkode?: string | null
-          Nivånavn?: string | null
-          Semester?: string | null
-          Semesternavn?: string | null
-          "SSBs NUS-kode"?: string | null
-          Studiumkode?: string | null
-          Studnavn?: string | null
-          "Vitnemålsgivende/ikke-vitnemålsgivende"?: string | null
         }
         Relationships: []
       }
@@ -672,6 +618,36 @@ export type Database = {
           styrk08_navn?: string
           uno_ids?: string | null
           uno_ids_titler?: string | null
+        }
+        Relationships: []
+      }
+      Yrker_database: {
+        Row: {
+          "Detaljert beskrivelse": string | null
+          "Kort beskrivelse": string | null
+          Nøkkelkompetanser: string | null
+          "Relaterte yrker": string | null
+          Sektor: string | null
+          "Spesifikk sektor": string | null
+          Yrkesnavn: string | null
+        }
+        Insert: {
+          "Detaljert beskrivelse"?: string | null
+          "Kort beskrivelse"?: string | null
+          Nøkkelkompetanser?: string | null
+          "Relaterte yrker"?: string | null
+          Sektor?: string | null
+          "Spesifikk sektor"?: string | null
+          Yrkesnavn?: string | null
+        }
+        Update: {
+          "Detaljert beskrivelse"?: string | null
+          "Kort beskrivelse"?: string | null
+          Nøkkelkompetanser?: string | null
+          "Relaterte yrker"?: string | null
+          Sektor?: string | null
+          "Spesifikk sektor"?: string | null
+          Yrkesnavn?: string | null
         }
         Relationships: []
       }
