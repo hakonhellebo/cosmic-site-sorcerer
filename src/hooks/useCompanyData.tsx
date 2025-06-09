@@ -1,9 +1,11 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Company {
   Selskap: string;
-  Hovedbransje: string;
+  Sektor: string; // Changed from Hovedbransje to Sektor
+  sub_sektor: string;
   Beskrivelse: string;
   Lokasjon: string;
   Ansatte: string;
@@ -85,10 +87,10 @@ export const useCompanyData = () => {
         console.log(`Fetched ${data?.length || 0} companies from Bedrifter_ny`);
         setCompanies(data || []);
         
-        // Extract unique industries
+        // Extract unique industries using the new Sektor field
         const uniqueIndustries = [...new Set(
           (data || [])
-            .map(company => company.Hovedbransje)
+            .map(company => company.Sektor)
             .filter(Boolean)
             .sort()
         )];
@@ -116,14 +118,14 @@ export const useCompanyData = () => {
     if (searchTerm) {
       filtered = filtered.filter(company => 
         company.Selskap?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        company.Hovedbransje?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        company.Sektor?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         company.Beskrivelse?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
     
-    // Apply industry filter
+    // Apply industry filter using the new Sektor field
     if (selectedIndustry !== 'all') {
-      filtered = filtered.filter(company => company.Hovedbransje === selectedIndustry);
+      filtered = filtered.filter(company => company.Sektor === selectedIndustry);
     }
     
     // Apply sorting

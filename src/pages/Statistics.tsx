@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -206,10 +205,6 @@ const Statistics = () => {
           <TabsContent value="careers">
             <div className="space-y-6">
               <CareerStatistics />
-              
-              {allData.yrkeOptions.length > 0 && (
-                <SalaryTrendChart yrkeOptions={allData.yrkeOptions} />
-              )}
             </div>
           </TabsContent>
 
