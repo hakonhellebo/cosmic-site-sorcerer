@@ -1,28 +1,20 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, Users, DollarSign, Building } from 'lucide-react';
-
 interface CareerDetailsProps {
   careerName: string;
   basicStats: Record<string, any> | null;
   detailedStats: Record<string, any>[];
 }
-
-const CareerDetailsCard: React.FC<CareerDetailsProps> = ({ 
-  careerName, 
-  basicStats, 
-  detailedStats 
+const CareerDetailsCard: React.FC<CareerDetailsProps> = ({
+  careerName,
+  basicStats,
+  detailedStats
 }) => {
   // Calculate average salary from detailed stats
-  const salaryData = detailedStats.filter(item => 
-    item.value && typeof item.value === 'number'
-  );
-  
-  const averageSalary = salaryData.length > 0 
-    ? Math.round(salaryData.reduce((sum, item) => sum + item.value, 0) / salaryData.length)
-    : null;
+  const salaryData = detailedStats.filter(item => item.value && typeof item.value === 'number');
+  const averageSalary = salaryData.length > 0 ? Math.round(salaryData.reduce((sum, item) => sum + item.value, 0) / salaryData.length) : null;
 
   // Group by sector
   const sectorData = detailedStats.reduce((acc, item) => {
@@ -39,37 +31,28 @@ const CareerDetailsCard: React.FC<CareerDetailsProps> = ({
     }
     return acc;
   }, {} as Record<string, number>);
-
-  return (
-    <Card className="w-full">
+  return <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Building className="h-5 w-5" />
           {careerName}
         </CardTitle>
-        <CardDescription>
-          Statistikk og arbeidsmarkedsdata
-        </CardDescription>
+        <CardDescription>Statistikk og arbeidsmarkedsdata</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Basic Statistics */}
-        {basicStats && (
-          <div>
+        {basicStats && <div>
             <h4 className="font-semibold mb-2">Grunnleggende statistikk</h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {Object.entries(basicStats).map(([key, value]) => (
-                <div key={key} className="text-center">
+              {Object.entries(basicStats).map(([key, value]) => <div key={key} className="text-center">
                   <div className="text-sm text-muted-foreground">{key}</div>
                   <div className="font-semibold">{String(value)}</div>
-                </div>
-              ))}
+                </div>)}
             </div>
-          </div>
-        )}
+          </div>}
 
         {/* Salary Information */}
-        {averageSalary && (
-          <div className="flex items-center gap-4 p-4 bg-green-50 rounded-lg">
+        {averageSalary && <div className="flex items-center gap-4 p-4 bg-green-50 rounded-lg">
             <DollarSign className="h-8 w-8 text-green-600" />
             <div>
               <div className="font-semibold">Gjennomsnittlig lønn</div>
@@ -77,42 +60,33 @@ const CareerDetailsCard: React.FC<CareerDetailsProps> = ({
                 {averageSalary.toLocaleString()} kr
               </div>
             </div>
-          </div>
-        )}
+          </div>}
 
         {/* Sector Distribution */}
-        {Object.keys(sectorData).length > 0 && (
-          <div>
+        {Object.keys(sectorData).length > 0 && <div>
             <h4 className="font-semibold mb-2 flex items-center gap-2">
               <Building className="h-4 w-4" />
               Sektorfordeling
             </h4>
             <div className="flex flex-wrap gap-2">
-              {Object.entries(sectorData).map(([sector, count]) => (
-                <Badge key={sector} variant="secondary">
+              {Object.entries(sectorData).map(([sector, count]) => <Badge key={sector} variant="secondary">
                   {String(sector)} ({count})
-                </Badge>
-              ))}
+                </Badge>)}
             </div>
-          </div>
-        )}
+          </div>}
 
         {/* Gender Distribution */}
-        {Object.keys(genderData).length > 0 && (
-          <div>
+        {Object.keys(genderData).length > 0 && <div>
             <h4 className="font-semibold mb-2 flex items-center gap-2">
               <Users className="h-4 w-4" />
               Kjønnsfordeling
             </h4>
             <div className="flex flex-wrap gap-2">
-              {Object.entries(genderData).map(([gender, count]) => (
-                <Badge key={gender} variant="outline">
+              {Object.entries(genderData).map(([gender, count]) => <Badge key={gender} variant="outline">
                   {gender === 'M' ? 'Menn' : gender === 'K' ? 'Kvinner' : String(gender)} ({count})
-                </Badge>
-              ))}
+                </Badge>)}
             </div>
-          </div>
-        )}
+          </div>}
 
         {/* Data Details */}
         <div>
@@ -124,8 +98,6 @@ const CareerDetailsCard: React.FC<CareerDetailsProps> = ({
           </div>
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
-
 export default CareerDetailsCard;
