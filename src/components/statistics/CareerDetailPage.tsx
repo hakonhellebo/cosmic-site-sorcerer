@@ -89,6 +89,7 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
           .from('Clean_11418')
           .select('Kjonn')
           .in('Yrke', allSsbJobs)
+          .eq('ContentsCode', 'Månedslønn (kr)')
           .not('Kjonn', 'is', null);
         
         const uniqueGenders = [...new Set(genderData?.map(item => item.Kjonn).filter(Boolean))];
@@ -109,6 +110,7 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
           .in('Yrke', jobsToFetch)
           .eq('Tid', year)
           .eq('MaaleMetode', 'Median')
+          .eq('ContentsCode', 'Månedslønn (kr)') // Add this filter to only get monthly salary data
           .not('value', 'is', null);
 
         // Add gender filter if selected
