@@ -248,7 +248,7 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
   const careerSector = career['Spesifikk sektor'] || career.Sektor;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 mt-20">
       <div className="space-y-8">
         {/* Back Button - Positioned at the top */}
         <div className="flex justify-start">
