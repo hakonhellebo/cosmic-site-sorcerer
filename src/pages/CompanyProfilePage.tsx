@@ -1,11 +1,13 @@
-
 import React, { useState, useEffect } from 'react';
-import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Building, MapPin, Users, DollarSign, Globe, Briefcase, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink, Building, Users, DollarSign, MapPin } from "lucide-react";
+import { supabase } from '@/lib/supabase';
+import RelatedCareers from '@/components/statistics/career/RelatedCareers';
+import RelatedEducationsForCompany from '@/components/statistics/career/RelatedEducationsForCompany';
 
 interface Company {
   Selskap: string;
@@ -27,46 +29,77 @@ interface SourceCareer {
 
 const CompanyProfilePage = () => {
   const { companySlug } = useParams();
-  const location = useLocation();
   const navigate = useNavigate();
-  const [company, setCompany] = useState<Company | null>(null);
-  const [sourceCareer, setSourceCareer] = useState<SourceCareer | null>(null);
+  const location = useLocation();
+  const [company, setCompany] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get company data from navigation state
-    if (location.state?.company) {
-      setCompany(location.state.company);
-    }
-    if (location.state?.sourceCareer) {
-      setSourceCareer(location.state.sourceCareer);
-    }
-  }, [location.state]);
+    const fetchCompanyData = async () => {
+      setLoading(true);
+      
+      // Check if company data was passed via location state
+      if (location.state?.company) {
+        setCompany(location.state.company);
+        setLoading(false);
+        return;
+      }
 
-  const handleBackToCareer = () => {
-    if (sourceCareer) {
-      // Navigate back to statistics page with the specific career selected
-      navigate('/statistikk', { 
-        state: { 
-          selectedCareer: sourceCareer.Yrkesnavn,
-          // Pass the entire career object so it can be shown directly
-          careerToShow: sourceCareer
-        } 
-      });
-    } else {
-      navigate('/statistikk');
-    }
-  };
+      // Otherwise, try to fetch from database using slug
+      if (companySlug) {
+        console.log("Fetching company data for slug:", companySlug);
+        
+        try {
+          // Decode the company name from URL
+          const decodedCompanyName = decodeURIComponent(companySlug).replace(/-/g, ' ');
+          
+          // Try to fetch from Bedrifter_ny table first
+          const { data, error } = await supabase
+            .from('Bedrifter_ny')
+            .select('*')
+            .ilike('Selskap', `%${decodedCompanyName}%`);
+          
+          if (error) {
+            console.error("Error fetching company data:", error);
+          } else if (data && data.length > 0) {
+            console.log("Found company:", data[0]);
+            setCompany(data[0]);
+          } else {
+            console.log("No company found with slug:", companySlug);
+          }
+        } catch (err) {
+          console.error("Error:", err);
+        }
+      }
+      
+      setLoading(false);
+    };
 
+    fetchCompanyData();
+  }, [companySlug, location.state]);
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container mx-auto py-20 px-4">
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p>Henter bedriftsinformasjon...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+  
   if (!company) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <Building className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold mb-2">Bedrift ikke funnet</h1>
-            <p className="text-gray-600 mb-4">Vi kunne ikke finne informasjon om denne bedriften.</p>
+        <div className="container mx-auto py-20 px-4">
+          <div className="max-w-3xl mx-auto text-center">
+            <h1 className="text-3xl font-bold mb-4">Bedrift ikke funnet</h1>
+            <p className="text-muted-foreground mb-6">Beklager, vi kunne ikke finne informasjon om denne bedriften.</p>
             <Button onClick={() => navigate('/statistikk')}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="mr-2 h-4 w-4" />
               Tilbake til statistikk
             </Button>
           </div>
@@ -77,172 +110,133 @@ const CompanyProfilePage = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8 mt-20">
-        <div className="mb-6">
-          <div className="flex gap-2 mb-6">
-            {sourceCareer ? (
-              <Button 
-                variant="ghost" 
-                onClick={handleBackToCareer}
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Tilbake til {sourceCareer.Yrkesnavn}
-              </Button>
-            ) : (
-              <Button 
-                variant="ghost" 
-                onClick={() => navigate('/statistikk')}
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Tilbake til statistikk
-              </Button>
-            )}
-          </div>
+      <div className="container mx-auto px-4 py-8 pt-24">
+        <div className="max-w-4xl mx-auto">
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate('/statistikk')}
+            className="mb-6"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Tilbake til statistikk
+          </Button>
           
-          <div className="flex items-start gap-4">
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold mb-2">{company.Selskap}</h1>
-              {company.Hovedbransje && (
-                <Badge variant="secondary" className="mb-4">
-                  {company.Hovedbransje}
-                </Badge>
+          <div className="space-y-8">
+            {/* Header */}
+            <div className="text-center">
+              <h1 className="text-4xl font-bold mb-4">{company.Selskap}</h1>
+              <div className="flex gap-2 justify-center mb-4">
+                <Badge variant="outline" className="text-sm">{company.Sektor || company.Hovedbransje}</Badge>
+                {company.sub_sektor && (
+                  <Badge variant="secondary" className="text-sm">{company.sub_sektor}</Badge>
+                )}
+              </div>
+              {company.Beskrivelse && (
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                  {company.Beskrivelse}
+                </p>
               )}
             </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main company info */}
-          <div className="lg:col-span-2 space-y-6">
-            {company.Beskrivelse && (
+            
+            {/* Key Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card>
-                <CardHeader>
-                  <CardTitle>Om bedriften</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700 leading-relaxed">{company.Beskrivelse}</p>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* External links */}
-            {(company.Linker || company.Karriereportal) && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <ExternalLink className="h-5 w-5" />
-                    Lenker
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Ansatte
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  {company.Linker && (
-                    <div>
-                      <h4 className="font-medium mb-2">Hjemmeside</h4>
-                      <a 
-                        href={company.Linker.startsWith('http') ? company.Linker : `https://${company.Linker}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                      >
-                        <Globe className="h-4 w-4" />
-                        {company.Linker}
-                      </a>
-                    </div>
-                  )}
-                  {company.Karriereportal && (
-                    <div>
-                      <h4 className="font-medium mb-2">Karriereportal</h4>
-                      <a 
-                        href={company.Karriereportal.startsWith('http') ? company.Karriereportal : `https://${company.Karriereportal}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                      >
-                        <Briefcase className="h-4 w-4" />
-                        {company.Karriereportal}
-                      </a>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {company.Ansatte || 'Ikke oppgitt'}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <DollarSign className="h-5 w-5" />
+                    Omsetning
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {company['Driftsinntekter (MNOK)'] ? `${company['Driftsinntekter (MNOK)']} MNOK` : 'Ikke oppgitt'}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <MapPin className="h-5 w-5" />
+                    Lokasjon
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {company.Lokasjon || 'Ikke oppgitt'}
+                  </div>
+                  {company.Geografi && (
+                    <div className="text-sm text-muted-foreground mt-1">
+                      {company.Geografi}
                     </div>
                   )}
                 </CardContent>
               </Card>
-            )}
-          </div>
-
-          {/* Company stats sidebar */}
-          <div className="space-y-6">
+            </div>
+            
+            {/* Links */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building className="h-5 w-5" />
-                  Bedriftsinformasjon
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {company.Lokasjon && (
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-5 w-5 text-gray-500 mt-0.5" />
-                    <div>
-                      <p className="font-medium">Lokasjon</p>
-                      <p className="text-gray-600">{company.Lokasjon}</p>
-                    </div>
-                  </div>
-                )}
-
-                {company.Geografi && company.Geografi !== company.Lokasjon && (
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-5 w-5 text-gray-500 mt-0.5" />
-                    <div>
-                      <p className="font-medium">Geografi</p>
-                      <p className="text-gray-600">{company.Geografi}</p>
-                    </div>
-                  </div>
-                )}
-
-                {company.Ansatte && (
-                  <div className="flex items-start gap-3">
-                    <Users className="h-5 w-5 text-gray-500 mt-0.5" />
-                    <div>
-                      <p className="font-medium">Antall ansatte</p>
-                      <p className="text-gray-600">{company.Ansatte}</p>
-                    </div>
-                  </div>
-                )}
-
-                {company['Driftsinntekter (MNOK)'] && (
-                  <div className="flex items-start gap-3">
-                    <DollarSign className="h-5 w-5 text-gray-500 mt-0.5" />
-                    <div>
-                      <p className="font-medium">Driftsinntekter</p>
-                      <p className="text-gray-600">{company['Driftsinntekter (MNOK)']} MNOK</p>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Future: Career opportunities */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Briefcase className="h-5 w-5" />
-                  Karrieremuligheter
-                </CardTitle>
-                <CardDescription>
-                  Informasjon om stillinger og utdanningskrav
-                </CardDescription>
+                <CardTitle>Lenker</CardTitle>
+                <CardDescription>Utforsk bedriftens nettsider og karrieremuligheter</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-500 text-sm">
-                  Denne funksjonen kommer snart. Her vil du kunne se:
-                </p>
-                <ul className="text-gray-500 text-sm mt-2 space-y-1">
-                  <li>• Tidligere stillingsannonser</li>
-                  <li>• Populære utdanninger</li>
-                  <li>• Karriereutviklingsmuligheter</li>
-                </ul>
+                <div className="flex gap-4">
+                  {company.Linker && (
+                    <Button variant="outline" asChild>
+                      <a href={company.Linker} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        Nettside
+                      </a>
+                    </Button>
+                  )}
+                  {company.Karriereportal && (
+                    <Button asChild>
+                      <a href={company.Karriereportal} target="_blank" rel="noopener noreferrer">
+                        <Users className="mr-2 h-4 w-4" />
+                        Karriereportal
+                      </a>
+                    </Button>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>
+        </div>
+        
+        {/* Related Content */}
+        <div className="max-w-6xl mx-auto mt-12 space-y-8">
+          {/* Related Careers Section */}
+          {(company.Sektor || company.sub_sektor) && (
+            <RelatedCareers
+              sector={company.Sektor || company.Hovedbransje}
+              subSector={company.sub_sektor}
+              sourceCompany={company}
+            />
+          )}
+
+          {/* Related Educations Section */}
+          {(company.Sektor || company.sub_sektor) && (
+            <RelatedEducationsForCompany
+              sector={company.Sektor || company.Hovedbransje}
+              subSector={company.sub_sektor}
+              sourceCompany={company}
+            />
+          )}
         </div>
       </div>
     </Layout>
