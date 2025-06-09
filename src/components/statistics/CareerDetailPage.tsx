@@ -248,315 +248,317 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
   const careerSector = career['Spesifikk sektor'] || career.Sektor;
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button 
-          variant="outline" 
-          onClick={onBack}
-          className="flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Tilbake til oversikt
-        </Button>
-      </div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="space-y-8">
+        {/* Header with Back Button */}
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="outline" 
+            onClick={onBack}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Tilbake til oversikt
+          </Button>
+        </div>
 
-      {/* Career Title Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-2xl">
-            <Briefcase className="h-6 w-6" />
-            {career.Yrkesnavn}
-          </CardTitle>
-          <CardDescription className="text-lg">
-            {career['Kort beskrivelse']}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            {career.Sektor && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                <Building className="h-3 w-3" />
-                {career.Sektor}
-              </Badge>
-            )}
-            {career['Spesifikk sektor'] && (
-              <Badge variant="outline">
-                {career['Spesifikk sektor']}
-              </Badge>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Detailed Description */}
-      {career['Detaljert beskrivelse'] && (
+        {/* Career Title Card */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5" />
-              Detaljert beskrivelse
+            <CardTitle className="flex items-center gap-2 text-2xl">
+              <Briefcase className="h-6 w-6" />
+              {career.Yrkesnavn}
             </CardTitle>
+            <CardDescription className="text-lg">
+              {career['Kort beskrivelse']}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="prose max-w-none">
-              <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
-                {career['Detaljert beskrivelse']}
-              </p>
+            <div className="flex flex-wrap gap-2">
+              {career.Sektor && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <Building className="h-3 w-3" />
+                  {career.Sektor}
+                </Badge>
+              )}
+              {career['Spesifikk sektor'] && (
+                <Badge variant="outline">
+                  {career['Spesifikk sektor']}
+                </Badge>
+              )}
             </div>
           </CardContent>
         </Card>
-      )}
 
-      {/* Key Competencies */}
-      {career['Nøkkelkompetanser'] && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Nøkkelkompetanser
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="prose max-w-none">
-              <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
-                {career['Nøkkelkompetanser']}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Related Companies Section */}
-      {career.Sektor && preloadedData?.companies && (
-        <RelatedCompanies
-          sector={career.Sektor}
-          companies={preloadedData.companies}
-          sourceCareer={career}
-        />
-      )}
-
-      {/* Related Educations Section */}
-      {career.Sektor && preloadedData?.allStudentData && (
-        <RelatedEducations
-          sector={career.Sektor}
-          educations={preloadedData.allStudentData}
-          sourceCareer={career}
-        />
-      )}
-
-      {/* Salary Trend Chart with Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            Lønnsutvikling (Årslønn)
-          </CardTitle>
-          <CardDescription>
-            Sammenlign lønnsutvikling mellom relaterte yrker og kjønn (2018-2024)
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {/* Filter Controls */}
-          {availableJobs.length > 1 && (
-            <div className="mb-6 space-y-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Filter className="h-4 w-4" />
-                <span className="font-medium">Filtrer data:</span>
+        {/* Detailed Description */}
+        {career['Detaljert beskrivelse'] && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5" />
+                Detaljert beskrivelse
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="prose max-w-none">
+                <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                  {career['Detaljert beskrivelse']}
+                </p>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Job Selection */}
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Velg yrker å sammenligne:</label>
-                  <div className="space-y-2">
-                    {availableJobs.map((job) => (
-                      <label key={job} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={selectedJobs.includes(job)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedJobs([...selectedJobs, job]);
-                            } else {
-                              setSelectedJobs(selectedJobs.filter(j => j !== job));
-                            }
-                          }}
-                          className="rounded"
-                        />
-                        <span className="text-sm">{job}</span>
-                      </label>
-                    ))}
-                  </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Key Competencies */}
+        {career['Nøkkelkompetanser'] && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Nøkkelkompetanser
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="prose max-w-none">
+                <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                  {career['Nøkkelkompetanser']}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Related Companies Section */}
+        {career.Sektor && preloadedData?.companies && (
+          <RelatedCompanies
+            sector={career.Sektor}
+            companies={preloadedData.companies}
+            sourceCareer={career}
+          />
+        )}
+
+        {/* Related Educations Section */}
+        {career.Sektor && preloadedData?.allStudentData && (
+          <RelatedEducations
+            sector={career.Sektor}
+            educations={preloadedData.allStudentData}
+            sourceCareer={career}
+          />
+        )}
+
+        {/* Salary Trend Chart with Filters */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Lønnsutvikling (Årslønn)
+            </CardTitle>
+            <CardDescription>
+              Sammenlign lønnsutvikling mellom relaterte yrker og kjønn (2018-2024)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {/* Filter Controls */}
+            {availableJobs.length > 1 && (
+              <div className="mb-6 space-y-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Filter className="h-4 w-4" />
+                  <span className="font-medium">Filtrer data:</span>
                 </div>
-
-                {/* Gender Selection */}
-                {availableGenders.length > 0 && (
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Job Selection */}
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Kjønn:</label>
-                    <Select value={selectedGender} onValueChange={setSelectedGender}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Velg kjønn" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Alle</SelectItem>
-                        {availableGenders.map((gender) => (
-                          <SelectItem key={gender} value={gender}>
-                            {gender}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <label className="text-sm font-medium mb-2 block">Velg yrker å sammenligne:</label>
+                    <div className="space-y-2">
+                      {availableJobs.map((job) => (
+                        <label key={job} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={selectedJobs.includes(job)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedJobs([...selectedJobs, job]);
+                              } else {
+                                setSelectedJobs(selectedJobs.filter(j => j !== job));
+                              }
+                            }}
+                            className="rounded"
+                          />
+                          <span className="text-sm">{job}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
-                )}
+
+                  {/* Gender Selection */}
+                  {availableGenders.length > 0 && (
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Kjønn:</label>
+                      <Select value={selectedGender} onValueChange={setSelectedGender}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Velg kjønn" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Alle</SelectItem>
+                          {availableGenders.map((gender) => (
+                            <SelectItem key={gender} value={gender}>
+                              {gender}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {loadingSalary && (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin mr-2" />
-              <span>Henter lønnsdata...</span>
-            </div>
-          )}
+            {loadingSalary && (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                <span>Henter lønnsdata...</span>
+              </div>
+            )}
 
-          {salaryError && (
-            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-yellow-700 text-sm">{salaryError}</p>
-            </div>
-          )}
+            {salaryError && (
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-yellow-700 text-sm">{salaryError}</p>
+              </div>
+            )}
 
-          {salaryData.length > 0 && (
-            <>
-              <ChartContainer config={chartConfig}>
-                <ResponsiveContainer width="100%" height={400}>
-                  <LineChart
-                    data={salaryData}
-                    margin={{
-                      top: 30,
-                      right: 30,
-                      left: 60,
-                      bottom: 15,
-                    }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="year" 
-                      tick={{ fontSize: 11 }}
-                      tickMargin={8}
-                    />
-                    <YAxis 
-                      tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
-                      width={60}
-                      tick={{ fontSize: 11 }}
-                    />
-                    <ChartTooltip 
-                      content={<ChartTooltipContent />}
-                      formatter={(value: number, name: string) => [
-                        `${value.toLocaleString('nb-NO')} kr`, 
-                        name
-                      ]}
-                      labelFormatter={(year) => `År ${year}`}
-                    />
-                    {dataKeys.map((key, index) => (
-                      <Line
-                        key={key}
-                        type="monotone"
-                        dataKey={key}
-                        stroke={colors[index % colors.length]}
-                        strokeWidth={2}
-                        dot={{ r: 4 }}
-                        name={key}
+            {salaryData.length > 0 && (
+              <>
+                <ChartContainer config={chartConfig}>
+                  <ResponsiveContainer width="100%" height={400}>
+                    <LineChart
+                      data={salaryData}
+                      margin={{
+                        top: 30,
+                        right: 30,
+                        left: 60,
+                        bottom: 15,
+                      }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="year" 
+                        tick={{ fontSize: 11 }}
+                        tickMargin={8}
                       />
-                    ))}
-                  </LineChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-              
-              {/* Summary Statistics */}
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-                {dataKeys.map((key, index) => {
-                  const jobData = salaryData.map(d => d[key]).filter(Boolean);
-                  if (jobData.length < 2) return null;
-                  
-                  const firstValue = jobData[0];
-                  const lastValue = jobData[jobData.length - 1];
-                  const increase = lastValue - firstValue;
-                  const percentIncrease = (increase / firstValue) * 100;
+                      <YAxis 
+                        tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                        width={60}
+                        tick={{ fontSize: 11 }}
+                      />
+                      <ChartTooltip 
+                        content={<ChartTooltipContent />}
+                        formatter={(value: number, name: string) => [
+                          `${value.toLocaleString('nb-NO')} kr`, 
+                          name
+                        ]}
+                        labelFormatter={(year) => `År ${year}`}
+                      />
+                      {dataKeys.map((key, index) => (
+                        <Line
+                          key={key}
+                          type="monotone"
+                          dataKey={key}
+                          stroke={colors[index % colors.length]}
+                          strokeWidth={2}
+                          dot={{ r: 4 }}
+                          name={key}
+                        />
+                      ))}
+                    </LineChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+                
+                {/* Summary Statistics */}
+                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                  {dataKeys.map((key, index) => {
+                    const jobData = salaryData.map(d => d[key]).filter(Boolean);
+                    if (jobData.length < 2) return null;
+                    
+                    const firstValue = jobData[0];
+                    const lastValue = jobData[jobData.length - 1];
+                    const increase = lastValue - firstValue;
+                    const percentIncrease = (increase / firstValue) * 100;
 
+                    return (
+                      <div key={key} className="p-3 border rounded-lg" style={{ borderColor: colors[index % colors.length] + '30' }}>
+                        <div className="font-medium text-xs mb-1" style={{ color: colors[index % colors.length] }}>
+                          {key}
+                        </div>
+                        <div className="space-y-1">
+                          <div>
+                            <span className="text-muted-foreground">Siste årslønn:</span>
+                            <p className="font-semibold">{lastValue.toLocaleString('nb-NO')} kr</p>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Økning:</span>
+                            <p className="font-semibold text-green-600">
+                              +{increase.toLocaleString('nb-NO')} kr ({percentIncrease.toFixed(1)}%)
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Related Careers */}
+        {relatedCareers.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Briefcase className="h-5 w-5" />
+                Relaterte yrker
+              </CardTitle>
+              <CardDescription>
+                Yrker som er relatert til {career.Yrkesnavn}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {relatedCareers.map((relatedCareer, index) => {
+                  const inDatabase = isCareerInDatabase(relatedCareer);
+                  
                   return (
-                    <div key={key} className="p-3 border rounded-lg" style={{ borderColor: colors[index % colors.length] + '30' }}>
-                      <div className="font-medium text-xs mb-1" style={{ color: colors[index % colors.length] }}>
-                        {key}
+                    <div 
+                      key={index}
+                      className={`p-3 border rounded-lg ${
+                        inDatabase 
+                          ? 'border-primary/20 bg-primary/5 hover:border-primary/40 cursor-pointer transition-colors' 
+                          : 'border-muted bg-muted/30'
+                      }`}
+                      onClick={() => inDatabase && handleRelatedCareerClick(relatedCareer)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className={`text-sm ${inDatabase ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
+                          {relatedCareer}
+                        </span>
+                        {inDatabase && (
+                          <ArrowRight className="h-3 w-3 text-primary" />
+                        )}
                       </div>
-                      <div className="space-y-1">
-                        <div>
-                          <span className="text-muted-foreground">Siste årslønn:</span>
-                          <p className="font-semibold">{lastValue.toLocaleString('nb-NO')} kr</p>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Økning:</span>
-                          <p className="font-semibold text-green-600">
-                            +{increase.toLocaleString('nb-NO')} kr ({percentIncrease.toFixed(1)}%)
-                          </p>
-                        </div>
-                      </div>
+                      {inDatabase && (
+                        <Badge variant="outline" className="mt-1 text-xs">
+                          Klikk for å utforske
+                        </Badge>
+                      )}
                     </div>
                   );
                 })}
               </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Related Careers */}
-      {relatedCareers.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Briefcase className="h-5 w-5" />
-              Relaterte yrker
-            </CardTitle>
-            <CardDescription>
-              Yrker som er relatert til {career.Yrkesnavn}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {relatedCareers.map((relatedCareer, index) => {
-                const inDatabase = isCareerInDatabase(relatedCareer);
-                
-                return (
-                  <div 
-                    key={index}
-                    className={`p-3 border rounded-lg ${
-                      inDatabase 
-                        ? 'border-primary/20 bg-primary/5 hover:border-primary/40 cursor-pointer transition-colors' 
-                        : 'border-muted bg-muted/30'
-                    }`}
-                    onClick={() => inDatabase && handleRelatedCareerClick(relatedCareer)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className={`text-sm ${inDatabase ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
-                        {relatedCareer}
-                      </span>
-                      {inDatabase && (
-                        <ArrowRight className="h-3 w-3 text-primary" />
-                      )}
-                    </div>
-                    {inDatabase && (
-                      <Badge variant="outline" className="mt-1 text-xs">
-                        Klikk for å utforske
-                      </Badge>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 };
