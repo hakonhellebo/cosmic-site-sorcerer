@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import CareerDetailPage as CareerDetail from '@/components/statistics/CareerDetailPage';
+import CareerDetail from '@/components/statistics/CareerDetailPage';
 import Layout from '@/components/Layout';
 
 interface Career {
