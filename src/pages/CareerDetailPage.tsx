@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import CareerDetail from '@/components/statistics/CareerDetailPage';
 import Layout from '@/components/Layout';
@@ -18,8 +18,11 @@ interface Career {
 const CareerDetailPageWrapper: React.FC = () => {
   const { careerSlug } = useParams<{ careerSlug: string }>();
   const location = useLocation();
+  const navigate = useNavigate();
   const [career, setCareer] = useState<Career | null>(null);
   const [allCareers, setAllCareers] = useState<Career[]>([]);
+  const [companies, setCompanies] = useState<any[]>([]);
+  const [allStudentData, setAllStudentData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,6 +43,30 @@ const CareerDetailPageWrapper: React.FC = () => {
         }
 
         setAllCareers(careersData || []);
+
+        // Fetch companies data
+        const { data: companiesData, error: companiesError } = await supabase
+          .from('Bedrifter_ny')
+          .select('*')
+          .order('Selskap', { ascending: true });
+
+        if (companiesError) {
+          console.error("Error fetching companies:", companiesError);
+        } else {
+          setCompanies(companiesData || []);
+        }
+
+        // Fetch student data
+        const { data: studentData, error: studentError } = await supabase
+          .from('Student_data_ny')
+          .select('*')
+          .order('Lærestednavn', { ascending: true });
+
+        if (studentError) {
+          console.error("Error fetching student data:", studentError);
+        } else {
+          setAllStudentData(studentData || []);
+        }
 
         // Find the specific career based on the slug or location state
         let targetCareer: Career | null = null;
@@ -73,6 +100,10 @@ const CareerDetailPageWrapper: React.FC = () => {
     }
   };
 
+  const handleBackToStatistics = () => {
+    navigate('/statistikk');
+  };
+
   if (loading) {
     return (
       <Layout>
@@ -103,12 +134,12 @@ const CareerDetailPageWrapper: React.FC = () => {
     <Layout>
       <CareerDetail
         career={career}
-        onBack={() => window.history.back()}
+        onBack={handleBackToStatistics}
         onNavigateToCareer={handleNavigateToCareer}
         allCareers={allCareers}
         preloadedData={{
-          companies: [],
-          allStudentData: []
+          companies: companies,
+          allStudentData: allStudentData
         }}
       />
     </Layout>
