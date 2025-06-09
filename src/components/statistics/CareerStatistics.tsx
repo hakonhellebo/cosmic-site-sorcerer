@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase, TrendingUp, Users, Search, Loader2, ArrowRight } from "lucide-react";
+import { Briefcase, TrendingUp, Users, Search, Loader2, ArrowRight, Filter } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +14,7 @@ const CareerStatistics = () => {
   const [careerData, setCareerData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedSector, setSelectedSector] = useState<string>('all');
   const [selectedCareer, setSelectedCareer] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,11 +50,17 @@ const CareerStatistics = () => {
     }
   };
 
-  const filteredCareers = careerData.filter(career =>
-    career.Yrkesnavn?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    career['Kort beskrivelse']?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    career.Sektor?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCareers = careerData.filter(career => {
+    const matchesSearch = career.Yrkesnavn?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      career['Kort beskrivelse']?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      career.Sektor?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesSector = selectedSector === 'all' || career.Sektor === selectedSector;
+    
+    return matchesSearch && matchesSector;
+  });
+
+  const uniqueSectors = [...new Set(careerData.map(c => c.Sektor).filter(Boolean))].sort();
 
   const handleCareerSelect = (careerName: string) => {
     setSelectedCareer(careerName);
@@ -118,6 +126,22 @@ const CareerStatistics = () => {
                 className="pl-10"
               />
             </div>
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-gray-500" />
+              <Select value={selectedSector} onValueChange={setSelectedSector}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Filtrer på sektor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alle sektorer</SelectItem>
+                  {uniqueSectors.map((sector) => (
+                    <SelectItem key={sector} value={sector}>
+                      {sector}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <Button onClick={fetchCareerData} variant="outline">
               Oppdater data
             </Button>
@@ -134,7 +158,7 @@ const CareerStatistics = () => {
             <Card>
               <CardContent className="p-4 text-center">
                 <div className="text-2xl font-bold text-green-600">
-                  {[...new Set(careerData.map(c => c.Sektor).filter(Boolean))].length}
+                  {uniqueSectors.length}
                 </div>
                 <div className="text-sm text-muted-foreground">Ulike sektorer</div>
               </CardContent>
@@ -157,7 +181,10 @@ const CareerStatistics = () => {
           <CardHeader>
             <CardTitle>Yrker</CardTitle>
             <CardDescription>
-              {searchTerm ? `Viser søkeresultater for "${searchTerm}"` : 'Alle tilgjengelige yrker'}
+              {searchTerm || selectedSector !== 'all' 
+                ? `Viser filtrerte resultater${searchTerm ? ` for "${searchTerm}"` : ''}${selectedSector !== 'all' ? ` i sektor "${selectedSector}"` : ''}`
+                : 'Alle tilgjengelige yrker'
+              }
             </CardDescription>
           </CardHeader>
           <CardContent>
