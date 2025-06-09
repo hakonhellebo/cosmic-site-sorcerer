@@ -21,6 +21,11 @@ interface ProcessedEducation {
 
 interface EducationCardProps {
   education: ProcessedEducation;
+  sourceCompany?: {
+    Selskap: string;
+    Sektor: string;
+    sub_sektor: string;
+  };
   sourceCareer?: {
     Yrkesnavn: string;
     Sektor: string;
@@ -28,7 +33,7 @@ interface EducationCardProps {
   };
 }
 
-const EducationCard: React.FC<EducationCardProps> = ({ education, sourceCareer }) => {
+const EducationCard: React.FC<EducationCardProps> = ({ education, sourceCompany, sourceCareer }) => {
   const navigate = useNavigate();
 
   const getCompetitivenessLevel = (competitiveness?: number) => {
@@ -56,6 +61,7 @@ const EducationCard: React.FC<EducationCardProps> = ({ education, sourceCareer }
           spots: education.spots,
           competitiveness: education.competitiveness
         },
+        sourceCompany: sourceCompany,
         sourceCareer: sourceCareer
       }
     });
