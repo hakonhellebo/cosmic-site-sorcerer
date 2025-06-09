@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
@@ -250,18 +251,6 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="space-y-8">
-        {/* Header with Back Button */}
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="outline" 
-            onClick={onBack}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Tilbake til oversikt
-          </Button>
-        </div>
-
         {/* Career Title Card */}
         <Card>
           <CardHeader>
@@ -558,6 +547,18 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
             </CardContent>
           </Card>
         )}
+
+        {/* Back Button - Now at the bottom */}
+        <div className="flex justify-center pt-8">
+          <Button 
+            variant="outline" 
+            onClick={onBack}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Tilbake til oversikt
+          </Button>
+        </div>
       </div>
     </div>
   );
