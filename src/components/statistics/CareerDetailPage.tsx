@@ -248,7 +248,7 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
   const careerSector = career['Spesifikk sektor'] || career.Sektor;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button 
@@ -327,29 +327,21 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
         </Card>
       )}
 
-      {/* Related Companies */}
-      {preloadedData?.companies && careerSector && (
-        <RelatedCompanies 
-          sector={careerSector}
+      {/* Related Companies Section */}
+      {career.Sektor && preloadedData?.companies && (
+        <RelatedCompanies
+          sector={career.Sektor}
           companies={preloadedData.companies}
-          sourceCareer={{
-            Yrkesnavn: career.Yrkesnavn,
-            Sektor: career.Sektor,
-            'Spesifikk sektor': career['Spesifikk sektor']
-          }}
+          sourceCareer={career}
         />
       )}
 
-      {/* Related Educations */}
-      {preloadedData?.allStudentData && careerSector && (
-        <RelatedEducations 
-          sector={careerSector}
+      {/* Related Educations Section */}
+      {career.Sektor && preloadedData?.allStudentData && (
+        <RelatedEducations
+          sector={career.Sektor}
           educations={preloadedData.allStudentData}
-          sourceCareer={{
-            Yrkesnavn: career.Yrkesnavn,
-            Sektor: career.Sektor,
-            'Spesifikk sektor': career['Spesifikk sektor']
-          }}
+          sourceCareer={career}
         />
       )}
 

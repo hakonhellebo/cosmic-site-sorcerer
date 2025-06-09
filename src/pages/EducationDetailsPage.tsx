@@ -1,19 +1,25 @@
-
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ExternalLink, GraduationCap, Users, TrendingUp, Building } from "lucide-react";
+import { ArrowLeft, ExternalLink, GraduationCap, Users, TrendingUp, Building, Briefcase } from "lucide-react";
 import { supabase } from '@/lib/supabase';
+import RelatedCompanies from '@/components/statistics/career/RelatedCompanies';
+import { preloadStatisticsData } from './Statistics';
 
 const EducationDetailsPage = () => {
   const { universityId, studiekode } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [program, setProgram] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  
+  const [globalData, setGlobalData] = useState({
+    companies: [],
+    careers: []
+  });
+
   useEffect(() => {
     const fetchProgramData = async () => {
       setLoading(true);
@@ -90,6 +96,34 @@ const EducationDetailsPage = () => {
     }
   }, [universityId, studiekode]);
   
+  useEffect(() => {
+    // Load global data for related content
+    const loadGlobalData = async () => {
+      await preloadStatisticsData();
+      
+      // Get careers from Yrker_database
+      const { data: careersData, error: careersError } = await supabase
+        .from('Yrker_database')
+        .select('*')
+        .order('Yrkesnavn', { ascending: true });
+      
+      // Get companies from Bedrifter_ny  
+      const { data: companiesData, error: companiesError } = await supabase
+        .from('Bedrifter_ny')
+        .select('*')
+        .order('Selskap', { ascending: true });
+
+      if (!careersError && !companiesError) {
+        setGlobalData({
+          companies: companiesData || [],
+          careers: careersData || []
+        });
+      }
+    };
+
+    loadGlobalData();
+  }, [universityId, studiekode]);
+
   if (loading) {
     return (
       <Layout>
@@ -139,9 +173,12 @@ const EducationDetailsPage = () => {
     competitionColor = "bg-yellow-100 text-yellow-800";
   }
 
+  // Determine sector from program data
+  const programSector = program?.Sektor || program?.undersektor;
+
   return (
     <Layout>
-      <div className="container mx-auto py-20 px-4">
+      <div className="container mx-auto px-4 py-8 pt-24">
         <div className="max-w-4xl mx-auto">
           <Button 
             variant="ghost" 
@@ -278,6 +315,74 @@ const EducationDetailsPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Related Careers Section */}
+      {programSector && globalData.careers.length > 0 && (
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Briefcase className="h-5 w-5" />
+              Relevante karrierer
+              <Badge variant="secondary" className="ml-2">
+                {globalData.careers.filter(career => 
+                  career.Sektor?.toLowerCase() === programSector?.toLowerCase() ||
+                  career['Spesifikk sektor']?.toLowerCase() === programSector?.toLowerCase()
+                ).length} yrker
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {globalData.careers
+                .filter(career => 
+                  career.Sektor?.toLowerCase() === programSector?.toLowerCase() ||
+                  career['Spesifikk sektor']?.toLowerCase() === programSector?.toLowerCase()
+                )
+                .slice(0, 6)
+                .map((career, index) => (
+                  <Card 
+                    key={index} 
+                    className="border-l-4 border-l-primary/20 hover:border-l-primary transition-colors cursor-pointer hover:shadow-md"
+                  >
+                    <CardContent className="p-4">
+                      <div className="space-y-3">
+                        <div>
+                          <h4 className="font-semibold text-lg line-clamp-2">{career.Yrkesnavn}</h4>
+                          <Badge variant="outline" className="mt-1 text-xs">
+                            {career['Spesifikk sektor'] || career.Sektor}
+                          </Badge>
+                        </div>
+                        
+                        {career['Kort beskrivelse'] && (
+                          <p className="text-sm text-muted-foreground line-clamp-3">
+                            {career['Kort beskrivelse']}
+                          </p>
+                        )}
+                        
+                        {career['Nøkkelkompetanser'] && (
+                          <div className="text-xs text-muted-foreground">
+                            <span className="font-medium">Nøkkelkompetanser: </span>
+                            <span>{career['Nøkkelkompetanser'].slice(0, 100)}...</span>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Related Companies Section */}
+      {programSector && globalData.companies.length > 0 && (
+        <div className="mt-8">
+          <RelatedCompanies
+            sector={programSector}
+            companies={globalData.companies}
+          />
+        </div>
+      )}
     </Layout>
   );
 };
