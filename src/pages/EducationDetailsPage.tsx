@@ -20,6 +20,24 @@ const EducationDetailsPage = () => {
     careers: []
   });
 
+  // Get source career from navigation state
+  const sourceCareer = location.state?.sourceCareer;
+  
+  console.log("Education page - source career:", sourceCareer);
+
+  const handleBackNavigation = () => {
+    if (sourceCareer) {
+      // Navigate back to the specific career page
+      const careerSlug = sourceCareer.Yrkesnavn.toLowerCase().replace(/[^a-z0-9]/g, '-');
+      navigate(`/karriere/${careerSlug}`, { 
+        state: { career: sourceCareer }
+      });
+    } else {
+      // Default back to statistics page
+      navigate('/statistikk');
+    }
+  };
+
   useEffect(() => {
     const fetchProgramData = async () => {
       setLoading(true);
@@ -152,9 +170,9 @@ const EducationDetailsPage = () => {
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-3xl font-bold mb-4">Utdanning ikke funnet</h1>
             <p className="text-muted-foreground mb-6">Beklager, vi kunne ikke finne informasjon om denne utdanningen.</p>
-            <Button onClick={() => navigate('/statistikk')}>
+            <Button onClick={handleBackNavigation}>
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Tilbake til statistikk
+              {sourceCareer ? `Tilbake til ${sourceCareer.Yrkesnavn}` : 'Tilbake til statistikk'}
             </Button>
           </div>
         </div>
@@ -208,11 +226,11 @@ const EducationDetailsPage = () => {
         <div className="max-w-4xl mx-auto">
           <Button 
             variant="ghost" 
-            onClick={() => navigate('/statistikk')}
+            onClick={handleBackNavigation}
             className="mb-6"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Tilbake til statistikk
+            {sourceCareer ? `Tilbake til ${sourceCareer.Yrkesnavn}` : 'Tilbake til statistikk'}
           </Button>
           
           <div className="space-y-8">
