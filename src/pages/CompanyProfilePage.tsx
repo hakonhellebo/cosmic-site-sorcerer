@@ -85,27 +85,27 @@ const CompanyProfilePage = () => {
                   {company.Hovedbransje}
                 </Badge>
               )}
-              
-              <div className="flex gap-2 mt-4">
-                {sourceCareer ? (
-                  <Button 
-                    variant="ghost" 
-                    onClick={handleBackToCareer}
-                  >
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Tilbake til {sourceCareer.Yrkesnavn}
-                  </Button>
-                ) : (
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => navigate('/statistikk')}
-                  >
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Tilbake til statistikk
-                  </Button>
-                )}
-              </div>
             </div>
+          </div>
+          
+          <div className="flex gap-2 mt-4">
+            {sourceCareer ? (
+              <Button 
+                variant="ghost" 
+                onClick={handleBackToCareer}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Tilbake til {sourceCareer.Yrkesnavn}
+              </Button>
+            ) : (
+              <Button 
+                variant="ghost" 
+                onClick={() => navigate('/statistikk')}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Tilbake til statistikk
+              </Button>
+            )}
           </div>
         </div>
 
