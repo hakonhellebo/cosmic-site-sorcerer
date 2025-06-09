@@ -22,9 +22,14 @@ interface Company {
 interface RelatedCompaniesProps {
   sector: string;
   companies: Company[];
+  sourceCareer?: {
+    Yrkesnavn: string;
+    Sektor: string;
+    'Spesifikk sektor': string;
+  };
 }
 
-const RelatedCompanies: React.FC<RelatedCompaniesProps> = ({ sector, companies }) => {
+const RelatedCompanies: React.FC<RelatedCompaniesProps> = ({ sector, companies, sourceCareer }) => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(0);
   const [filteredCompanies, setFilteredCompanies] = useState<Company[]>([]);
@@ -59,7 +64,10 @@ const RelatedCompanies: React.FC<RelatedCompaniesProps> = ({ sector, companies }
   const handleCompanyClick = (company: Company) => {
     const companySlug = company.Selskap.toLowerCase().replace(/[^a-z0-9]/g, '-');
     navigate(`/bedrift/${companySlug}`, { 
-      state: { company } 
+      state: { 
+        company,
+        sourceCareer: sourceCareer
+      } 
     });
   };
 

@@ -332,6 +332,11 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
         <RelatedCompanies 
           sector={careerSector}
           companies={preloadedData.companies}
+          sourceCareer={{
+            Yrkesnavn: career.Yrkesnavn,
+            Sektor: career.Sektor,
+            'Spesifikk sektor': career['Spesifikk sektor']
+          }}
         />
       )}
 
@@ -340,6 +345,11 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
         <RelatedEducations 
           sector={careerSector}
           educations={preloadedData.allStudentData}
+          sourceCareer={{
+            Yrkesnavn: career.Yrkesnavn,
+            Sektor: career.Sektor,
+            'Spesifikk sektor': career['Spesifikk sektor']
+          }}
         />
       )}
 

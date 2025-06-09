@@ -35,9 +35,14 @@ interface ProcessedEducation {
 interface RelatedEducationsProps {
   sector: string;
   educations: Education[];
+  sourceCareer?: {
+    Yrkesnavn: string;
+    Sektor: string;
+    'Spesifikk sektor': string;
+  };
 }
 
-const RelatedEducations: React.FC<RelatedEducationsProps> = ({ sector, educations }) => {
+const RelatedEducations: React.FC<RelatedEducationsProps> = ({ sector, educations, sourceCareer }) => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(0);
   const [processedEducations, setProcessedEducations] = useState<ProcessedEducation[]>([]);
@@ -135,7 +140,8 @@ const RelatedEducations: React.FC<RelatedEducationsProps> = ({ sector, education
           applicants: education.applicants,
           spots: education.spots,
           competitiveness: education.competitiveness
-        }
+        },
+        sourceCareer: sourceCareer
       }
     });
   };
