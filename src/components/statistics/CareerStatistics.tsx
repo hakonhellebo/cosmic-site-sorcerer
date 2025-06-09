@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Search, Filter, Briefcase, Building, Users, ArrowLeft } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import CareerDetailPage from './CareerDetailPage';
+import { useLocation } from 'react-router-dom';
 
 interface Career {
   Yrkesnavn: string;
@@ -27,6 +27,7 @@ interface CareerStatisticsProps {
 }
 
 const CareerStatistics: React.FC<CareerStatisticsProps> = ({ preloadedData }) => {
+  const location = useLocation();
   const [careers, setCareers] = useState<Career[]>([]);
   const [filteredCareers, setFilteredCareers] = useState<Career[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -38,6 +39,16 @@ const CareerStatistics: React.FC<CareerStatisticsProps> = ({ preloadedData }) =>
   useEffect(() => {
     fetchCareers();
   }, []);
+
+  useEffect(() => {
+    // Check if we should show a specific career from navigation state
+    if (location.state?.selectedCareer && careers.length > 0) {
+      const careerToShow = careers.find(c => c.Yrkesnavn === location.state.selectedCareer);
+      if (careerToShow) {
+        setSelectedCareer(careerToShow);
+      }
+    }
+  }, [location.state, careers]);
 
   useEffect(() => {
     filterCareers();

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -46,7 +47,9 @@ const CompanyProfilePage = () => {
       // Navigate back to statistics page with the specific career selected
       navigate('/statistikk', { 
         state: { 
-          selectedCareer: sourceCareer.Yrkesnavn 
+          selectedCareer: sourceCareer.Yrkesnavn,
+          // Pass the entire career object so it can be shown directly
+          careerToShow: sourceCareer
         } 
       });
     } else {
