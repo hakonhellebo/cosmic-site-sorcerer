@@ -156,12 +156,6 @@ const RelatedEducations: React.FC<RelatedEducationsProps> = ({ sector, education
     );
   }
 
-  const totalPages = Math.ceil(processedEducations.length / educationsPerPage);
-  const currentEducations = processedEducations.slice(
-    currentPage * educationsPerPage,
-    (currentPage + 1) * educationsPerPage
-  );
-
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">

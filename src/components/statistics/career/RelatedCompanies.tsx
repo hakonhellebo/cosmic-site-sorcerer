@@ -79,12 +79,6 @@ const RelatedCompanies: React.FC<RelatedCompaniesProps> = ({ sector, companies }
     );
   }
 
-  const totalPages = Math.ceil(filteredCompanies.length / companiesPerPage);
-  const currentCompanies = filteredCompanies.slice(
-    currentPage * companiesPerPage,
-    (currentPage + 1) * companiesPerPage
-  );
-
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
