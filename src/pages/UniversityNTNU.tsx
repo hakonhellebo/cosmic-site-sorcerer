@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -77,10 +76,19 @@ const UniversityNTNU = () => {
   };
 
   const handleProgramClick = (program: any) => {
-    // Navigate to education details page
-    navigate(`/utdanning/ntnu/${program.code}`, { 
+    // Navigate to education details page with proper encoding
+    console.log("Program clicked:", program);
+    const universityEncoded = encodeURIComponent('Norges teknisk-naturvitenskapelige universitet');
+    const studiekodeEncoded = encodeURIComponent(program.code);
+    console.log("Navigating to:", `/utdanning/${universityEncoded}/${studiekodeEncoded}`);
+    navigate(`/utdanning/${universityEncoded}/${studiekodeEncoded}`, { 
       state: { 
-        program,
+        program: {
+          linje: program.name,
+          studiekode: program.code,
+          universitet: 'Norges teknisk-naturvitenskapelige universitet',
+          studiested: 'Trondheim'
+        },
         university: 'NTNU' 
       } 
     });

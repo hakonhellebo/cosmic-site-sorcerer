@@ -64,9 +64,16 @@ const ProgramsList: React.FC<ProgramsListProps> = ({
   };
 
   const handleProgramClick = (program: any) => {
+    console.log("Table row clicked for program:", program);
     const universityEncoded = encodeURIComponent(program.universitet);
     const studiekodeEncoded = encodeURIComponent(program.studiekode);
-    navigate(`/utdanning/${universityEncoded}/${studiekodeEncoded}`);
+    console.log("Navigating to:", `/utdanning/${universityEncoded}/${studiekodeEncoded}`);
+    navigate(`/utdanning/${universityEncoded}/${studiekodeEncoded}`, {
+      state: {
+        program: program,
+        university: program.universitet
+      }
+    });
   };
 
   const buttonHandler = getUniversityButtonHandler(selectedUniversity);

@@ -70,10 +70,17 @@ const UniversityProgramCard = ({ program, rank }) => {
   };
   
   const handleCardClick = () => {
+    console.log("Card clicked for program:", program);
     // Navigate to the detailed education page using proper encoding
     const universityEncoded = encodeURIComponent(program.universitet);
     const studiekodeEncoded = encodeURIComponent(program.studiekode);
-    navigate(`/utdanning/${universityEncoded}/${studiekodeEncoded}`);
+    console.log("Navigating to:", `/utdanning/${universityEncoded}/${studiekodeEncoded}`);
+    navigate(`/utdanning/${universityEncoded}/${studiekodeEncoded}`, {
+      state: {
+        program: program,
+        university: program.universitet
+      }
+    });
   };
   
   return (
