@@ -3,16 +3,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Briefcase, Building, Users, Target, ArrowRight, TrendingUp, Loader2, Filter } from "lucide-react";
+import { ArrowLeft, Briefcase, Building, Users, Target, ArrowRight, TrendingUp, Loader2, Filter, GraduationCap } from "lucide-react";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelList, LineChart, Line } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
+import RelatedCompanies from './career/RelatedCompanies';
+import RelatedEducations from './career/RelatedEducations';
 
 interface CareerDetailPageProps {
   career: any;
   onBack: () => void;
   onNavigateToCareer: (careerName: string) => void;
   allCareers: any[];
+  preloadedData?: {
+    companies: any[];
+    allStudentData: any[];
+  };
 }
 
 interface SalaryTrendData {
@@ -24,7 +30,8 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
   career,
   onBack,
   onNavigateToCareer,
-  allCareers
+  allCareers,
+  preloadedData
 }) => {
   const [salaryData, setSalaryData] = useState<SalaryTrendData[]>([]);
   const [loadingSalary, setLoadingSalary] = useState(false);
@@ -237,6 +244,9 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
     );
   }
 
+  // Get the sector for relating companies and educations
+  const careerSector = career['Spesifikk sektor'] || career.Sektor;
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -315,6 +325,22 @@ const CareerDetailPage: React.FC<CareerDetailPageProps> = ({
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Related Companies */}
+      {preloadedData?.companies && careerSector && (
+        <RelatedCompanies 
+          sector={careerSector}
+          companies={preloadedData.companies}
+        />
+      )}
+
+      {/* Related Educations */}
+      {preloadedData?.allStudentData && careerSector && (
+        <RelatedEducations 
+          sector={careerSector}
+          educations={preloadedData.allStudentData}
+        />
       )}
 
       {/* Salary Trend Chart with Filters */}

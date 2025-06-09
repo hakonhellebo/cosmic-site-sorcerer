@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -204,7 +205,12 @@ const Statistics = () => {
 
           <TabsContent value="careers">
             <div className="space-y-6">
-              <CareerStatistics />
+              <CareerStatistics 
+                preloadedData={{
+                  companies: allData.companies,
+                  allStudentData: allData.allStudentData
+                }}
+              />
             </div>
           </TabsContent>
 

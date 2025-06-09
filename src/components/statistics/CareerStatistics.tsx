@@ -1,296 +1,265 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase, TrendingUp, Users, Search, Loader2, ArrowRight, Filter } from "lucide-react";
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Search, Filter, Briefcase, Building, Users, ArrowLeft } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import CareerDetailPage from './CareerDetailPage';
 
-const CareerStatistics = () => {
-  const [careerData, setCareerData] = useState<any[]>([]);
+interface Career {
+  Yrkesnavn: string;
+  'Kort beskrivelse': string;
+  'Detaljert beskrivelse': string;
+  'Nøkkelkompetanser': string;
+  'Relaterte yrker': string;
+  Sektor: string;
+  'Spesifikk sektor': string;
+}
+
+interface CareerStatisticsProps {
+  preloadedData?: {
+    companies: any[];
+    allStudentData: any[];
+  };
+}
+
+const CareerStatistics: React.FC<CareerStatisticsProps> = ({ preloadedData }) => {
+  const [careers, setCareers] = useState<Career[]>([]);
+  const [filteredCareers, setFilteredCareers] = useState<Career[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedSector, setSelectedSector] = useState("all");
+  const [sectors, setSectors] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedSector, setSelectedSector] = useState<string>('all');
-  const [selectedSpecificSector, setSelectedSpecificSector] = useState<string>('all');
-  const [selectedCareer, setSelectedCareer] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [selectedCareer, setSelectedCareer] = useState<Career | null>(null);
 
   useEffect(() => {
-    fetchCareerData();
+    fetchCareers();
   }, []);
 
-  // Reset specific sector when main sector changes
   useEffect(() => {
-    setSelectedSpecificSector('all');
-  }, [selectedSector]);
+    filterCareers();
+  }, [careers, searchTerm, selectedSector]);
 
-  const fetchCareerData = async () => {
+  const fetchCareers = async () => {
+    setLoading(true);
+    console.log("Fetching careers from Yrker_database...");
+    
     try {
-      setLoading(true);
-      setError(null);
-      
-      console.log("Fetching career data from Yrker_database...");
-      
-      const { data: careerStats, error: careerError } = await supabase
+      const { data, error } = await supabase
         .from('Yrker_database')
         .select('*')
         .order('Yrkesnavn', { ascending: true });
       
-      if (careerError) {
-        console.error("Error fetching career data:", careerError);
-        throw careerError;
+      if (error) {
+        console.error("Error fetching careers:", error);
+      } else {
+        console.log(`Fetched ${data?.length || 0} careers`);
+        setCareers(data || []);
+        
+        // Extract unique sectors
+        const uniqueSectors = [...new Set(
+          (data || [])
+            .map(career => career.Sektor)
+            .filter(Boolean)
+            .sort()
+        )];
+        setSectors(uniqueSectors);
       }
-      
-      console.log("Career data fetched:", careerStats?.length, "rows");
-      setCareerData(careerStats || []);
-      
-    } catch (error) {
-      console.error("Error in fetchCareerData:", error);
-      setError("Kunne ikke hente yrkesdata fra databasen");
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      console.error("Error:", err);
+    }
+    
+    setLoading(false);
+  };
+
+  const filterCareers = () => {
+    let filtered = careers;
+    
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(career => 
+        career.Yrkesnavn?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        career['Kort beskrivelse']?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        career.Sektor?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        career['Spesifikk sektor']?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    // Apply sector filter
+    if (selectedSector !== 'all') {
+      filtered = filtered.filter(career => career.Sektor === selectedSector);
+    }
+    
+    setFilteredCareers(filtered);
+  };
+
+  const handleCareerClick = (career: Career) => {
+    setSelectedCareer(career);
+  };
+
+  const handleBackToList = () => {
+    setSelectedCareer(null);
+  };
+
+  const handleNavigateToCareer = (careerName: string) => {
+    const career = careers.find(c => c.Yrkesnavn === careerName);
+    if (career) {
+      setSelectedCareer(career);
     }
   };
-
-  const filteredCareers = careerData.filter(career => {
-    const matchesSearch = career.Yrkesnavn?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      career['Kort beskrivelse']?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      career.Sektor?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      career['Spesifikk sektor']?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesSector = selectedSector === 'all' || career.Sektor === selectedSector;
-    const matchesSpecificSector = selectedSpecificSector === 'all' || career['Spesifikk sektor'] === selectedSpecificSector;
-    
-    return matchesSearch && matchesSector && matchesSpecificSector;
-  });
-
-  const uniqueSectors = [...new Set(careerData.map(c => c.Sektor).filter(Boolean))].sort();
-  
-  // Filter specific sectors based on selected main sector
-  const getFilteredSpecificSectors = () => {
-    if (selectedSector === 'all') {
-      return [...new Set(careerData.map(c => c['Spesifikk sektor']).filter(Boolean))].sort();
-    }
-    return [...new Set(careerData
-      .filter(c => c.Sektor === selectedSector)
-      .map(c => c['Spesifikk sektor'])
-      .filter(Boolean)
-    )].sort();
-  };
-
-  const uniqueSpecificSectors = getFilteredSpecificSectors();
-
-  const handleCareerSelect = (careerName: string) => {
-    setSelectedCareer(careerName);
-  };
-
-  const getCareerByName = (careerName: string) => {
-    return careerData.find(c => c.Yrkesnavn === careerName);
-  };
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center p-12">
-        <Loader2 className="h-8 w-8 animate-spin mb-4" />
-        <p>Henter yrkesstatistikk...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-red-600 p-4 bg-red-50 rounded-lg">
-        <h3 className="font-semibold mb-2">Feil:</h3>
-        <p>{error}</p>
-        <Button onClick={fetchCareerData} className="mt-4">
-          Prøv igjen
-        </Button>
-      </div>
-    );
-  }
 
   if (selectedCareer) {
-    const careerDetails = getCareerByName(selectedCareer);
     return (
-      <CareerDetailPage 
-        career={careerDetails}
-        onBack={() => setSelectedCareer(null)}
-        onNavigateToCareer={handleCareerSelect}
-        allCareers={careerData}
+      <CareerDetailPage
+        career={selectedCareer}
+        onBack={handleBackToList}
+        onNavigateToCareer={handleNavigateToCareer}
+        allCareers={careers}
+        preloadedData={preloadedData}
       />
     );
   }
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Briefcase className="h-5 w-5" />
-            Yrkesstatistikk
+            <Briefcase className="h-6 w-6" />
+            Karrierestatistikk
           </CardTitle>
           <CardDescription>
-            Utforsk yrker og deres beskrivelser fra Yrker_database
+            Utforsk ulike yrker og karrieremuligheter
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4 mb-6 flex-wrap">
-            <div className="relative flex-1 min-w-64">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+      </Card>
+
+      {/* Search and Filter Controls */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                placeholder="Søk etter yrke, beskrivelse eller sektor..."
+                placeholder="Søk etter yrker..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-gray-500" />
-              <Select value={selectedSector} onValueChange={setSelectedSector}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Filtrer på sektor" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Alle sektorer</SelectItem>
-                  {uniqueSectors.map((sector) => (
-                    <SelectItem key={sector} value={sector}>
-                      {sector}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center gap-2">
-              <Select value={selectedSpecificSector} onValueChange={setSelectedSpecificSector}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Spesifikk sektor" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Alle spesifikke sektorer</SelectItem>
-                  {uniqueSpecificSectors.map((sector) => (
-                    <SelectItem key={sector} value={sector}>
-                      {sector}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button onClick={fetchCareerData} variant="outline">
-              Oppdater data
-            </Button>
+            
+            <Select value={selectedSector} onValueChange={setSelectedSector}>
+              <SelectTrigger>
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Velg sektor" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Alle sektorer</SelectItem>
+                {sectors.map((sector) => (
+                  <SelectItem key={sector} value={sector}>
+                    {sector}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-primary">{careerData.length}</div>
-                <div className="text-sm text-muted-foreground">Totalt antall yrker</div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-green-600">
-                  {uniqueSectors.length}
-                </div>
-                <div className="text-sm text-muted-foreground">Ulike sektorer</div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-orange-600">
-                  {uniqueSpecificSectors.length}
-                </div>
-                <div className="text-sm text-muted-foreground">Spesifikke sektorer</div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-blue-600">
-                  {filteredCareers.length}
-                </div>
-                <div className="text-sm text-muted-foreground">Filtrerte resultater</div>
-              </CardContent>
-            </Card>
+          
+          <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+            <span>Viser {filteredCareers.length} av {careers.length} yrker</span>
+            {(searchTerm || selectedSector !== 'all') && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedSector("all");
+                }}
+                className="h-6 px-2"
+              >
+                Nullstill filtre
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
 
-      {careerData.length > 0 && (
+      {/* Careers Grid */}
+      {loading ? (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Laster yrker...</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredCareers.map((career, index) => (
+            <Card 
+              key={career.Yrkesnavn || index} 
+              className="cursor-pointer hover:shadow-lg transition-shadow border-l-4 border-l-primary/20 hover:border-l-primary"
+              onClick={() => handleCareerClick(career)}
+            >
+              <CardHeader>
+                <CardTitle className="text-lg line-clamp-2">
+                  {career.Yrkesnavn}
+                </CardTitle>
+                <div className="flex flex-wrap gap-1">
+                  {career.Sektor && (
+                    <Badge variant="secondary" className="text-xs">
+                      <Building className="h-3 w-3 mr-1" />
+                      {career.Sektor}
+                    </Badge>
+                  )}
+                  {career['Spesifikk sektor'] && (
+                    <Badge variant="outline" className="text-xs">
+                      {career['Spesifikk sektor']}
+                    </Badge>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground line-clamp-3">
+                  {career['Kort beskrivelse']}
+                </p>
+                
+                <div className="mt-4 pt-4 border-t">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCareerClick(career);
+                    }}
+                  >
+                    Se detaljer
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {!loading && filteredCareers.length === 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle>Yrker</CardTitle>
-            <CardDescription>
-              {searchTerm || selectedSector !== 'all' || selectedSpecificSector !== 'all'
-                ? `Viser filtrerte resultater${searchTerm ? ` for "${searchTerm}"` : ''}${selectedSector !== 'all' ? ` i sektor "${selectedSector}"` : ''}${selectedSpecificSector !== 'all' ? ` i spesifikk sektor "${selectedSpecificSector}"` : ''}`
-                : 'Alle tilgjengelige yrker'
-              }
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Yrkesnavn</TableHead>
-                    <TableHead>Kort beskrivelse</TableHead>
-                    <TableHead>Sektor</TableHead>
-                    <TableHead>Spesifikk sektor</TableHead>
-                    <TableHead></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredCareers.slice(0, 50).map((career, index) => (
-                    <TableRow 
-                      key={index} 
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => handleCareerSelect(career.Yrkesnavn)}
-                    >
-                      <TableCell className="font-medium">
-                        {career.Yrkesnavn}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground max-w-md">
-                        {career['Kort beskrivelse']?.substring(0, 100)}
-                        {career['Kort beskrivelse']?.length > 100 && '...'}
-                      </TableCell>
-                      <TableCell>
-                        {career.Sektor && (
-                          <Badge variant="outline">{career.Sektor}</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        {career['Spesifikk sektor']}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCareerSelect(career.Yrkesnavn);
-                          }}
-                          className="flex items-center gap-1"
-                        >
-                          Se detaljer
-                          <ArrowRight className="h-3 w-3" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-            {filteredCareers.length > 50 && (
-              <div className="mt-4 text-center text-sm text-muted-foreground">
-                Viser de første 50 resultatene. Bruk søk for å filtrere.
-              </div>
-            )}
+          <CardContent className="text-center py-8">
+            <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Ingen yrker funnet</h3>
+            <p className="text-muted-foreground mb-4">
+              Prøv å justere søkekriteriene dine
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearchTerm("");
+                setSelectedSector("all");
+              }}
+            >
+              Nullstill filtre
+            </Button>
           </CardContent>
         </Card>
       )}
