@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -69,21 +68,21 @@ export const useCompanyData = () => {
     });
   };
 
-  // Fetch all companies on hook initialization
+  // Fetch all companies on hook initialization - NOW USING NEW TABLE
   const fetchCompanies = async () => {
     setInitialLoading(true);
-    console.log("Fetching companies from Supabase...");
+    console.log("Fetching companies from Bedrifter_ny (NEW TABLE)...");
     
     try {
       const { data, error } = await supabase
-        .from('Bedrifter')
+        .from('Bedrifter_ny')
         .select('*')
         .order('Selskap', { ascending: true });
       
       if (error) {
         console.error("Error fetching companies:", error);
       } else {
-        console.log(`Fetched ${data?.length || 0} companies`);
+        console.log(`Fetched ${data?.length || 0} companies from Bedrifter_ny`);
         setCompanies(data || []);
         
         // Extract unique industries

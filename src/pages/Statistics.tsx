@@ -26,16 +26,16 @@ const Statistics = () => {
   useEffect(() => {
     const loadAllStatisticsData = async () => {
       setLoading(true);
-      console.log("Loading ALL statistics data on page load...");
+      console.log("Loading ALL statistics data on page load using NEW tables...");
       
       try {
-        // Load university data
-        console.log("Fetching ALL data from Student_data...");
+        // Load university data from Student_data_ny (NEW TABLE)
+        console.log("Fetching ALL data from Student_data_ny...");
         const { count } = await supabase
-          .from('Student_data')
+          .from('Student_data_ny')
           .select('*', { count: 'exact', head: true });
         
-        console.log(`Total records in Student_data: ${count}`);
+        console.log(`Total records in Student_data_ny: ${count}`);
         
         let allStudentData: any[] = [];
         let from = 0;
@@ -47,7 +47,7 @@ const Statistics = () => {
           console.log(`Fetching batch ${batchNum}: records ${from} to ${from + batchSize - 1}`);
           
           const { data: batchData, error } = await supabase
-            .from('Student_data')
+            .from('Student_data_ny')
             .select('*')
             .range(from, from + batchSize - 1)
             .order('Lærestednavn', { ascending: true });
@@ -110,17 +110,17 @@ const Statistics = () => {
         
         console.log("Found universities (in custom order):", orderedUniversities);
 
-        // Load company data
-        console.log("Fetching companies data...");
+        // Load company data from Bedrifter_ny (NEW TABLE)
+        console.log("Fetching companies data from Bedrifter_ny...");
         const { data: companiesData, error: companiesError } = await supabase
-          .from('Bedrifter')
+          .from('Bedrifter_ny')
           .select('*')
           .order('Selskap', { ascending: true });
         
         if (companiesError) {
           console.error("Error fetching companies:", companiesError);
         } else {
-          console.log(`Fetched ${companiesData?.length || 0} companies`);
+          console.log(`Fetched ${companiesData?.length || 0} companies from Bedrifter_ny`);
         }
 
         // Load salary/career data
@@ -151,7 +151,7 @@ const Statistics = () => {
           yrkeOptions: yrkeOptions
         });
 
-        console.log("All statistics data loaded successfully!");
+        console.log("All statistics data loaded successfully using NEW tables!");
         
       } catch (error) {
         console.error("Error loading statistics data:", error);
@@ -174,7 +174,7 @@ const Statistics = () => {
           {loading && (
             <div className="mt-4 flex items-center gap-2 text-blue-600">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
-              <span className="text-sm">Laster all data...</span>
+              <span className="text-sm">Laster all data fra nye tabeller...</span>
             </div>
           )}
         </div>
@@ -256,13 +256,13 @@ const Statistics = () => {
                 <CardContent>
                   <div className="space-y-6">
                     <div className="bg-gray-50 p-4 rounded-lg">
-                      <h4 className="font-medium mb-2">Data Status:</h4>
+                      <h4 className="font-medium mb-2">Data Status (NYE TABELLER):</h4>
                       <div className="space-y-2 text-sm">
                         <p className={`${allData.allStudentData.length > 0 ? 'text-green-600' : 'text-yellow-600'}`}>
-                          ✅ Universitetsdata: {allData.allStudentData.length} poster
+                          ✅ Universitetsdata (Student_data_ny): {allData.allStudentData.length} poster
                         </p>
                         <p className={`${allData.companies.length > 0 ? 'text-green-600' : 'text-yellow-600'}`}>
-                          ✅ Bedriftsdata: {allData.companies.length} poster
+                          ✅ Bedriftsdata (Bedrifter_ny): {allData.companies.length} poster
                         </p>
                         <p className={`${allData.yrkeOptions.length > 0 ? 'text-green-600' : 'text-yellow-600'}`}>
                           ✅ Lønnsdata: {allData.yrkeOptions.length} yrker

@@ -37,18 +37,18 @@ export const useUniversityData = () => {
   useEffect(() => {
     const fetchStudentData = async () => {
       setLoading(true);
-      console.log("Fetching ALL data from Student_data...");
+      console.log("Fetching ALL data from Student_data_ny (NEW TABLE)...");
       
       try {
         // First, get the total count
         const { count, error: countError } = await supabase
-          .from('Student_data')
+          .from('Student_data_ny')
           .select('*', { count: 'exact', head: true });
         
         if (countError) {
           console.error("Error getting count:", countError);
         } else {
-          console.log("Total records in Student_data:", count);
+          console.log("Total records in Student_data_ny:", count);
         }
         
         // Fetch all data in larger batches with better logic
@@ -64,7 +64,7 @@ export const useUniversityData = () => {
           console.log(`Fetching batch ${attemptCount}: records ${from} to ${from + batchSize - 1}`);
           
           const { data: batchData, error } = await supabase
-            .from('Student_data')
+            .from('Student_data_ny')
             .select('*')
             .range(from, from + batchSize - 1)
             .order('Lærestednavn', { ascending: true });

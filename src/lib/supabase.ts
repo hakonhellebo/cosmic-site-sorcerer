@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 
 // Get environment variables or use provided project URL
@@ -370,13 +369,13 @@ export const getAllResponses = async (table: 'high_school_responses' | 'universi
   }
 };
 
-// Updated function to get university data from Student_data table
+// Updated function to get university data from Student_data_ny table
 export const getUniversityData = async (institutionCode?: string, year?: string) => {
   try {
-    console.log("Fetching university data from Student_data table with params:", { institutionCode, year });
+    console.log("Fetching university data from Student_data_ny table with params:", { institutionCode, year });
     
     let query = supabase
-      .from('Student_data')
+      .from('Student_data_ny')
       .select('*', { count: 'exact' })
       .order('Lærestednavn', { ascending: true });
     
@@ -386,7 +385,7 @@ export const getUniversityData = async (institutionCode?: string, year?: string)
       console.log("Institution code filtering not applicable with new data structure");
     }
     
-    console.log("Executing query to fetch ALL university data from Student_data table...");
+    console.log("Executing query to fetch ALL university data from Student_data_ny table...");
     
     // Fetch data in batches to handle large datasets
     let allData: any[] = [];
@@ -423,7 +422,7 @@ export const getUniversityData = async (institutionCode?: string, year?: string)
       }
     }
     
-    console.log("Student_data query complete:", { 
+    console.log("Student_data_ny query complete:", { 
       totalRecords: allData.length,
       sampleData: allData.slice(0, 3)
     });
@@ -433,14 +432,14 @@ export const getUniversityData = async (institutionCode?: string, year?: string)
     
     return { data: transformedData, error: null };
   } catch (error) {
-    console.error('Error fetching university data from Student_data:', error);
+    console.error('Error fetching university data from Student_data_ny:', error);
     return { data: null, error };
   }
 };
 
-// Helper function to transform Student_data pivot format to expected university data format
+// Helper function to transform Student_data_ny pivot format to expected university data format
 const transformStudentDataToUniversityFormat = (studentData: any[]) => {
-  console.log("Transforming Student_data to university format...");
+  console.log("Transforming Student_data_ny to university format...");
   
   // Group by study program
   const groupedData = studentData.reduce((acc, row) => {

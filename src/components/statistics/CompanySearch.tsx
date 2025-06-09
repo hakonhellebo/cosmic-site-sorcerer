@@ -172,10 +172,10 @@ const CompanySearch: React.FC<CompanySearchProps> = ({ preloadedData }) => {
       {/* Data source indicator */}
       <div className="bg-green-50 border border-green-200 rounded-lg p-4">
         <p className="text-green-800 text-sm">
-          ✅ Viser data hentet fra Bedrifter tabell (forhåndsinnlastet)
+          ✅ Viser data hentet fra Bedrifter_ny tabell (forhåndsinnlastet)
         </p>
         <p className="text-green-700 text-xs mt-1">
-          Totalt {companies.length} bedrifter hentet fra databasen
+          Totalt {companies.length} bedrifter hentet fra den nye databasen
         </p>
       </div>
 

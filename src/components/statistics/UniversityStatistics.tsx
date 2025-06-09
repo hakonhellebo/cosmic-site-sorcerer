@@ -34,10 +34,10 @@ const UniversityStatistics: React.FC<UniversityStatisticsProps> = ({ preloadedDa
       {/* Data source indicator */}
       <div className="bg-green-50 border border-green-200 rounded-lg p-4">
         <p className="text-green-800 text-sm">
-          ✅ Viser data hentet fra Student_data tabell (forhåndsinnlastet)
+          ✅ Viser data hentet fra Student_data_ny tabell (forhåndsinnlastet)
         </p>
         <p className="text-green-700 text-xs mt-1">
-          Totalt {allStudentData.length} poster hentet fra databasen
+          Totalt {allStudentData.length} poster hentet fra den nye databasen
         </p>
       </div>
 
