@@ -19,18 +19,41 @@ interface Company {
   Karriereportal: string;
 }
 
+interface SourceCareer {
+  Yrkesnavn: string;
+  Sektor: string;
+  'Spesifikk sektor': string;
+}
+
 const CompanyProfilePage = () => {
   const { companySlug } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const [company, setCompany] = useState<Company | null>(null);
+  const [sourceCareer, setSourceCareer] = useState<SourceCareer | null>(null);
 
   useEffect(() => {
     // Get company data from navigation state
     if (location.state?.company) {
       setCompany(location.state.company);
     }
+    if (location.state?.sourceCareer) {
+      setSourceCareer(location.state.sourceCareer);
+    }
   }, [location.state]);
+
+  const handleBackToCareer = () => {
+    if (sourceCareer) {
+      // Navigate back to statistics page with the specific career selected
+      navigate('/statistikk', { 
+        state: { 
+          selectedCareer: sourceCareer.Yrkesnavn 
+        } 
+      });
+    } else {
+      navigate('/statistikk');
+    }
+  };
 
   if (!company) {
     return (
@@ -54,14 +77,25 @@ const CompanyProfilePage = () => {
     <Layout>
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate('/statistikk')}
-            className="mb-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Tilbake til statistikk
-          </Button>
+          <div className="flex gap-2 mb-4">
+            {sourceCareer ? (
+              <Button 
+                variant="ghost" 
+                onClick={handleBackToCareer}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Tilbake til {sourceCareer.Yrkesnavn}
+              </Button>
+            ) : (
+              <Button 
+                variant="ghost" 
+                onClick={() => navigate('/statistikk')}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Tilbake til statistikk
+              </Button>
+            )}
+          </div>
           
           <div className="flex items-start gap-4">
             <div className="flex-1">
