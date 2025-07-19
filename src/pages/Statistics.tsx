@@ -136,6 +136,7 @@ const loadGlobalStatisticsData = async () => {
         .from('Clean_11418')
         .select('Yrke')
         .not('Yrke', 'is', null)
+        .limit(1000)
         .order('Yrke', { ascending: true });
       
       let yrkeOptions: {value: string, label: string}[] = [];
