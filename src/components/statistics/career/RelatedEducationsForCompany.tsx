@@ -44,17 +44,30 @@ const RelatedEducationsForCompany: React.FC<RelatedEducationsForCompanyProps> = 
       console.log("Fetching educations for sector:", sector, "subSector:", subSector);
       
       try {
+        // Fetch all educations and filter client-side to avoid SQL parsing issues with special characters
         const { data, error } = await supabase
           .from('Student_data_ny')
           .select('*')
-          .or(`Sektor.ilike.%${sector}%,undersektor.ilike.%${sector}%,Sektor.ilike.%${subSector || ''}%,undersektor.ilike.%${subSector || ''}%`)
           .order('Lærestednavn', { ascending: true });
         
         if (error) {
           console.error("Error fetching educations:", error);
         } else {
-          console.log(`Found ${data?.length || 0} relevant education records`);
-          setEducations(data || []);
+          // Filter client-side for sector matches
+          const filtered = (data || []).filter(education => {
+            const eduSektor = education.Sektor?.toLowerCase() || '';
+            const eduUndersektor = education.undersektor?.toLowerCase() || '';
+            const sectorLower = sector?.toLowerCase() || '';
+            const subSectorLower = subSector?.toLowerCase() || '';
+            
+            return eduSektor.includes(sectorLower) ||
+                   eduUndersektor.includes(sectorLower) ||
+                   (subSectorLower && eduSektor.includes(subSectorLower)) ||
+                   (subSectorLower && eduUndersektor.includes(subSectorLower));
+          });
+          
+          console.log(`Found ${filtered.length} relevant education records`);
+          setEducations(filtered);
         }
       } catch (err) {
         console.error("Error:", err);

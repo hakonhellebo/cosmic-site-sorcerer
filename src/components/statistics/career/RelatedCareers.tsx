@@ -36,17 +36,30 @@ const RelatedCareers: React.FC<RelatedCareersProps> = ({ sector, subSector, sour
       console.log("Fetching careers for sector:", sector, "subSector:", subSector);
       
       try {
+        // Fetch all careers and filter client-side to avoid SQL parsing issues with special characters
         const { data, error } = await supabase
           .from('Yrker_database')
           .select('*')
-          .or(`Sektor.ilike.%${sector}%,Sektor.ilike.%${subSector || ''}%,"Spesifikk sektor".ilike.%${sector}%,"Spesifikk sektor".ilike.%${subSector || ''}%`)
           .order('Yrkesnavn', { ascending: true });
         
         if (error) {
           console.error("Error fetching careers:", error);
         } else {
-          console.log(`Found ${data?.length || 0} relevant careers`);
-          setCareers(data || []);
+          // Filter client-side for sector matches
+          const filtered = (data || []).filter(career => {
+            const careerSektor = career.Sektor?.toLowerCase() || '';
+            const careerSpesifikk = career['Spesifikk sektor']?.toLowerCase() || '';
+            const sectorLower = sector?.toLowerCase() || '';
+            const subSectorLower = subSector?.toLowerCase() || '';
+            
+            return careerSektor.includes(sectorLower) ||
+                   careerSpesifikk.includes(sectorLower) ||
+                   (subSectorLower && careerSektor.includes(subSectorLower)) ||
+                   (subSectorLower && careerSpesifikk.includes(subSectorLower));
+          });
+          
+          console.log(`Found ${filtered.length} relevant careers`);
+          setCareers(filtered);
         }
       } catch (err) {
         console.error("Error:", err);
