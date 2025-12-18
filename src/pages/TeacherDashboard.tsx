@@ -139,7 +139,40 @@ const TeacherDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* 4. USIKKERHET */}
+          {/* 4. HVA ELEVENE ØNSKER Å LÆRE MER OM */}
+          <Card className="bg-white border-0 shadow-sm mb-12">
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold text-slate-800">
+                Hva elevene ønsker å lære mer om
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {[
+                  { label: 'Yrker og arbeidsoppgaver', percentage: 48 },
+                  { label: 'Hvilke studier som passer', percentage: 41 },
+                  { label: 'Lønn og jobbmuligheter', percentage: 34 },
+                  { label: 'Hva jeg er god på', percentage: 29 },
+                ].map((item, index) => (
+                  <div key={index} className="flex items-center gap-4">
+                    <span className="w-48 text-sm text-slate-600">{item.label}</span>
+                    <div className="flex-1 h-6 bg-slate-100 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-teal-400 rounded-full"
+                        style={{ width: `${item.percentage}%` }}
+                      />
+                    </div>
+                    <span className="w-12 text-right text-sm font-medium text-slate-700">{item.percentage} %</span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-sm text-slate-400 mt-6">
+                Kan brukes til å planlegge temaundervisning og gruppeveiledning.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* 5. USIKKERHET */}
           <Card className="bg-white border-0 shadow-sm mb-12">
             <CardHeader>
               <CardTitle className="text-xl font-semibold text-slate-800">
@@ -201,7 +234,31 @@ const TeacherDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* 5. ANBEFALT SAMTALEFOKUS */}
+          {/* 6. HVA GJØR ELEVENE MEST USIKRE */}
+          <Card className="bg-white border-0 shadow-sm mb-12">
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold text-slate-800">
+                Hva gjør elevene mest usikre?
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {[
+                  { label: 'Vet ikke hva jeg passer til', percentage: 39 },
+                  { label: 'Redd for å velge feil', percentage: 33 },
+                  { label: 'For mange valg', percentage: 17 },
+                  { label: 'Lite kunnskap om jobber', percentage: 11 },
+                ].map((item, index) => (
+                  <div key={index} className="flex items-center gap-4 p-3 bg-slate-50 rounded-lg">
+                    <span className="flex-1 text-sm text-slate-600">{item.label}</span>
+                    <span className="text-sm font-medium text-slate-700">{item.percentage} %</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 7. ANBEFALT SAMTALEFOKUS */}
           <Card className="bg-teal-50/50 border border-teal-100 shadow-sm mb-12">
             <CardHeader>
               <div className="flex items-start gap-3">
@@ -249,7 +306,7 @@ const TeacherDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* 6. ELEVENES OPPLEVELSE */}
+          {/* 8. ELEVENES OPPLEVELSE */}
           <Card className="bg-white border-0 shadow-sm mb-12">
             <CardHeader>
               <CardTitle className="text-xl font-semibold text-slate-800">
@@ -282,7 +339,7 @@ const TeacherDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* 7. UTFORDRINGER */}
+          {/* 9. UTFORDRINGER */}
           <Card className="bg-white border-0 shadow-sm mb-12">
             <CardHeader>
               <CardTitle className="text-xl font-semibold text-slate-800">
@@ -302,7 +359,7 @@ const TeacherDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* 8. HVORDAN BRUKE DETTE */}
+          {/* 10. HVORDAN BRUKE DETTE */}
           <Card className="bg-teal-50 border-0 shadow-sm mb-12">
             <CardHeader>
               <CardTitle className="text-xl font-semibold text-slate-800 flex items-center gap-2">
@@ -332,7 +389,7 @@ const TeacherDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* 9. PERSONVERN */}
+          {/* 11. PERSONVERN */}
           <div className="flex items-center justify-center gap-2 text-slate-400 text-sm">
             <Lock className="h-4 w-4" />
             <span>Alle data er anonymisert og vises kun samlet. Skolen har ikke tilgang til enkeltelevers svar.</span>
