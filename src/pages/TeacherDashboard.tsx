@@ -1,7 +1,7 @@
 import React from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Clock, CheckCircle, HelpCircle, Lock, Lightbulb, Target, BookOpen } from 'lucide-react';
+import { Users, Clock, CheckCircle, HelpCircle, Lock, Lightbulb, Target, BookOpen, Compass } from 'lucide-react';
 
 const TeacherDashboard: React.FC = () => {
   // Mock data
@@ -201,7 +201,55 @@ const TeacherDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* 5. UTFORDRINGER */}
+          {/* 5. ANBEFALT SAMTALEFOKUS */}
+          <Card className="bg-teal-50/50 border border-teal-100 shadow-sm mb-12">
+            <CardHeader>
+              <div className="flex items-start gap-3">
+                <Compass className="h-6 w-6 text-teal-600 mt-0.5 shrink-0" />
+                <div>
+                  <CardTitle className="text-xl font-semibold text-slate-800">
+                    Anbefalt fokus i rådgivningssamtaler
+                  </CardTitle>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Basert på elevenes samlede svar i EdPath
+                  </p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-slate-600 mb-4">
+                Basert på svarene anbefaler vi å:
+              </p>
+              <ul className="space-y-3 text-slate-600 mb-6">
+                <li className="flex items-start gap-2">
+                  <span className="text-teal-600 mt-1">•</span>
+                  <span>
+                    bruke tid på å normalisere usikkerhet – <span className="font-medium text-slate-700">{keyStats.uncertainStudents} %</span> av elevene er helt eller delvis usikre
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-teal-600 mt-1">•</span>
+                  <span>utforske konkrete yrker i samtaler, ikke bare studier</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-teal-600 mt-1">•</span>
+                  <span>vise at flere ulike veier kan føre til samme mål</span>
+                </li>
+              </ul>
+              
+              {/* Prioritering mini-seksjon */}
+              <div className="border-t border-teal-100 pt-5 mt-2">
+                <p className="text-sm font-medium text-slate-700 mb-2">
+                  🔍 Hvem kan ha ekstra behov for veiledning?
+                </p>
+                <p className="text-sm text-slate-500">
+                  Elever som er veldig usikre og samtidig viser interesse for flere retninger, kan ha ekstra behov for individuelle samtaler.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 6. UTFORDRINGER */}
           <Card className="bg-white border-0 shadow-sm mb-12">
             <CardHeader>
               <CardTitle className="text-xl font-semibold text-slate-800">
@@ -221,7 +269,7 @@ const TeacherDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* 6. HVORDAN BRUKE DETTE */}
+          {/* 7. HVORDAN BRUKE DETTE */}
           <Card className="bg-teal-50 border-0 shadow-sm mb-12">
             <CardHeader>
               <CardTitle className="text-xl font-semibold text-slate-800 flex items-center gap-2">
@@ -251,7 +299,7 @@ const TeacherDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* 7. PERSONVERN */}
+          {/* 8. PERSONVERN */}
           <div className="flex items-center justify-center gap-2 text-slate-400 text-sm">
             <Lock className="h-4 w-4" />
             <span>Alle data er anonymisert og vises kun samlet. Skolen har ikke tilgang til enkeltelevers svar.</span>
