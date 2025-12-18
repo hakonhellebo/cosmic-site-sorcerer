@@ -33,6 +33,7 @@ import UniversityUSN from "./pages/UniversityUSN"
 import CompanyProfilePage from "./pages/CompanyProfilePage"
 import EducationDetailsPage from "./pages/EducationDetailsPage"
 import CareerDetailPageWrapper from "./pages/CareerDetailPage"
+import TeacherDashboard from "./pages/TeacherDashboard"
 import { preloadStatisticsData } from "./pages/Statistics"
 import { useEffect } from "react"
 
@@ -78,6 +79,7 @@ const App = () => {
             
             {/* Dashboard */}
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/laerer" element={<TeacherDashboard />} />
             
             {/* University Pages */}
             <Route path="/university/ntnu" element={<UniversityNTNU />} />
