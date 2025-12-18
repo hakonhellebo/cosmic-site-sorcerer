@@ -249,7 +249,40 @@ const TeacherDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* 6. UTFORDRINGER */}
+          {/* 6. ELEVENES OPPLEVELSE */}
+          <Card className="bg-white border-0 shadow-sm mb-12">
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold text-slate-800">
+                Elevenes opplevelse etter anbefalingene
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {[
+                  { label: 'Føler seg mye mer bevisst', percentage: 42, color: 'bg-teal-500' },
+                  { label: 'Føler seg litt mer bevisst', percentage: 31, color: 'bg-teal-400' },
+                  { label: 'Omtrent som før', percentage: 22, color: 'bg-slate-300' },
+                  { label: 'Litt mer usikre', percentage: 5, color: 'bg-slate-400' },
+                ].map((item, index) => (
+                  <div key={index} className="flex items-center gap-4">
+                    <span className="w-48 text-sm text-slate-600">{item.label}</span>
+                    <div className="flex-1 h-6 bg-slate-100 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full ${item.color} rounded-full`}
+                        style={{ width: `${item.percentage}%` }}
+                      />
+                    </div>
+                    <span className="w-12 text-right text-sm font-medium text-slate-700">{item.percentage} %</span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-slate-400 mt-6 italic">
+                Basert på elevenes egen vurdering rett etter bruk av EdPath.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* 7. UTFORDRINGER */}
           <Card className="bg-white border-0 shadow-sm mb-12">
             <CardHeader>
               <CardTitle className="text-xl font-semibold text-slate-800">
@@ -269,7 +302,7 @@ const TeacherDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* 7. HVORDAN BRUKE DETTE */}
+          {/* 8. HVORDAN BRUKE DETTE */}
           <Card className="bg-teal-50 border-0 shadow-sm mb-12">
             <CardHeader>
               <CardTitle className="text-xl font-semibold text-slate-800 flex items-center gap-2">
@@ -299,7 +332,7 @@ const TeacherDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* 8. PERSONVERN */}
+          {/* 9. PERSONVERN */}
           <div className="flex items-center justify-center gap-2 text-slate-400 text-sm">
             <Lock className="h-4 w-4" />
             <span>Alle data er anonymisert og vises kun samlet. Skolen har ikke tilgang til enkeltelevers svar.</span>
