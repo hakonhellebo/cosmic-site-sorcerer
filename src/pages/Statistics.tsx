@@ -213,26 +213,26 @@ const Statistics = () => {
         </div>
 
         <Tabs defaultValue="careers" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="careers" className="flex items-center gap-2">
+          <TabsList className="flex w-full overflow-x-auto gap-1 p-1">
+            <TabsTrigger value="careers" className="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm whitespace-nowrap flex-shrink-0">
               <Briefcase className="h-4 w-4" />
-              Karrierer
+              <span className="hidden sm:inline">Karrierer</span>
             </TabsTrigger>
-            <TabsTrigger value="universities" className="flex items-center gap-2">
+            <TabsTrigger value="universities" className="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm whitespace-nowrap flex-shrink-0">
               <Users className="h-4 w-4" />
-              Universiteter
+              <span className="hidden sm:inline">Universiteter</span>
             </TabsTrigger>
-            <TabsTrigger value="companies" className="flex items-center gap-2">
+            <TabsTrigger value="companies" className="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm whitespace-nowrap flex-shrink-0">
               <Building className="h-4 w-4" />
-              Bedrifter
+              <span className="hidden sm:inline">Bedrifter</span>
             </TabsTrigger>
-            <TabsTrigger value="salary" className="flex items-center gap-2">
+            <TabsTrigger value="salary" className="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm whitespace-nowrap flex-shrink-0">
               <DollarSign className="h-4 w-4" />
-              Lønn
+              <span className="hidden sm:inline">Lønn</span>
             </TabsTrigger>
-            <TabsTrigger value="test" className="flex items-center gap-2">
+            <TabsTrigger value="test" className="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm whitespace-nowrap flex-shrink-0">
               <TestTube className="h-4 w-4" />
-              Test
+              <span className="hidden sm:inline">Test</span>
             </TabsTrigger>
           </TabsList>
 
