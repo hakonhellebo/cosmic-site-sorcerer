@@ -9,6 +9,9 @@ const Hero: React.FC = () => {
           <div className="mb-8 flex justify-center">
             <img src="/lovable-uploads/5ea5acb7-62cf-4c3e-8769-6f1975b41458.png" alt="EdPath Logo" className="h-64 w-auto opacity-0 animate-stagger-1" />
           </div>
+          <p className="opacity-0 animate-stagger-2 text-2xl font-semibold text-primary mb-2">
+            Hei Henrik
+          </p>
           <span className="opacity-0 animate-stagger-2 inline-block mb-3 rounded-full bg-secondary px-3 py-1 font-medium text-3xl">
             Velkommen til EdPath
           </span>
