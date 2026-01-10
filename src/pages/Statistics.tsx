@@ -1,10 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { BarChart, Users, Briefcase, Building, DollarSign, TestTube } from 'lucide-react';
+import { BarChart, Users, Briefcase, Building, DollarSign, TestTube, ClipboardList } from 'lucide-react';
 import CareerStatistics from '@/components/statistics/CareerStatistics';
 import UniversityStatistics from '@/components/statistics/UniversityStatistics';
 import CompanyStatistics from '@/components/statistics/CompanyStatistics';
@@ -172,6 +173,7 @@ const loadGlobalStatisticsData = async () => {
 };
 
 const Statistics = () => {
+  const navigate = useNavigate();
   const [allData, setAllData] = useState({
     universities: [],
     companies: [],
@@ -200,10 +202,21 @@ const Statistics = () => {
     <Layout>
       <div className="container mx-auto px-4 py-8 pt-24">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Statistikk og Data</h1>
-          <p className="text-muted-foreground">
-            Utforsk statistikk om karrierer, universiteter, bedrifter og lønninger
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Statistikk og Data</h1>
+              <p className="text-muted-foreground">
+                Utforsk statistikk om karrierer, universiteter, bedrifter og lønninger
+              </p>
+            </div>
+            <Button 
+              onClick={() => navigate('/university-questionnaire')}
+              className="flex items-center gap-2"
+            >
+              <ClipboardList className="h-4 w-4" />
+              Spørreundersøkelse for studenter
+            </Button>
+          </div>
           {loading && (
             <div className="mt-4 flex items-center gap-2 text-blue-600">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
