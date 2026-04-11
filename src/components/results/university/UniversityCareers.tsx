@@ -4,15 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Briefcase, Building } from 'lucide-react';
 
+import { EdPathStudie } from '@/services/edpathApi.types';
+
 interface UniversityCareersProps {
   recommendations: any[];
-  apiCareers?: {
-    navn: string;
-    lærested: string;
-    dimensjoner: string[];
-    stillinger: string[];
-    arbeidsgivere: string[];
-  }[];
+  apiCareers?: EdPathStudie[];
 }
 
 const UniversityCareers: React.FC<UniversityCareersProps> = ({ 

@@ -7,7 +7,8 @@ import UniversityDimensions from './university/UniversityDimensions';
 import UniversityEducation from './university/UniversityEducation';
 import UniversityCareers from './university/UniversityCareers';
 import { calculateUniversityDimensions, getTopDimensions } from '@/utils/universityDimensionCalculator';
-import { getRecommendationsFromApi, EdPathApiResponse } from '@/services/edpathApi';
+import { getRecommendations } from '@/services/edpathApi';
+import type { EdPathApiResponse } from '@/services/edpathApi.types';
 import { mapUniversityAnswersToApi } from '@/utils/universityApiMapper';
 import { toast } from 'sonner';
 
@@ -31,7 +32,7 @@ export const UniversityResultsView: React.FC<UniversityResultsViewProps> = ({ us
       try {
         setIsLoadingApi(true);
         const mappedAnswers = mapUniversityAnswersToApi(universityData);
-        const recommendations = await getRecommendationsFromApi(mappedAnswers);
+        const recommendations = await getRecommendations(mappedAnswers, 'student');
         setApiRecommendations(recommendations);
         setUseApiRecommendations(true);
         console.log("Successfully loaded API recommendations");
