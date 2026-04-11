@@ -4,7 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, CheckCircle, XCircle, FileText, GraduationCap, BookOpen } from 'lucide-react';
-import { getRecommendationsFromApi } from '@/services/edpathApi';
+import { getRecommendations } from '@/services/edpathApi';
+import { isEdPathApiConfigured } from '@/services/edpathApi.config';
+import type { EdPathApiResponse, EdPathUserType } from '@/services/edpathApi.types';
 import { mapUniversityAnswersToApi } from '@/utils/universityApiMapper';
 import { mapHighSchoolAnswersToApi } from '@/utils/highSchoolApiMapper';
 import { useNavigate } from 'react-router-dom';
@@ -12,28 +14,14 @@ import { useNavigate } from 'react-router-dom';
 const ApiTester: React.FC = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<EdPathApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [testType, setTestType] = useState<'university' | 'highschool' | null>(null);
+  const [testType, setTestType] = useState<EdPathUserType | null>(null);
 
-  // Test data som simulerer en student som har fylt ut skjemaet
   const testUniversityData = {
-    interests: {
-      teknologi: true,
-      økonomi: true,
-      naturvitenskap: false,
-      helse: false
-    },
-    strengths: {
-      kritisk_tenkning: true,
-      problemløsning: true,
-      kreativitet: false
-    },
-    taskPreferences: {
-      analytical: true,
-      creative: false,
-      practical: true
-    },
+    interests: { teknologi: true, økonomi: true, naturvitenskap: false, helse: false },
+    strengths: { kritisk_tenkning: true, problemløsning: true, kreativitet: false },
+    taskPreferences: { analytical: true, creative: false, practical: true },
     workPreference: 'team',
     aiUsage: 'daily',
     internship: 'yes',
@@ -43,96 +31,38 @@ const ApiTester: React.FC = () => {
     impactImportance: 'important'
   };
 
-  // Test data som simulerer en elev som har fylt ut skjemaet
   const testHighSchoolData = {
-    interests: {
-      naturvitenskap: true,
-      teknologi: true,
-      helse: false,
-      økonomi: false
-    },
-    strengths: {
-      analytisk: true,
-      kreativ: false,
-      samarbeidsvillig: true
-    },
-    favoriteSubjects: {
-      matematikk: true,
-      fysikk: true,
-      kjemi: false
-    },
+    interests: { naturvitenskap: true, teknologi: true, helse: false, økonomi: false },
+    strengths: { analytisk: true, kreativ: false, samarbeidsvillig: true },
+    favoriteSubjects: { matematikk: true, fysikk: true, kjemi: false },
     futureEducation: 'university',
     certaintylevel: 'somewhat-certain'
   };
 
-  const testUniversityApi = async () => {
+  const runTest = async (userType: EdPathUserType, data: any) => {
     setIsLoading(true);
     setError(null);
     setResult(null);
-    setTestType('university');
+    setTestType(userType);
 
     try {
-      console.log("🧪 Testing University API with data:", testUniversityData);
-      
-      // Map test data to API format
-      const mappedAnswers = mapUniversityAnswersToApi(testUniversityData);
-      console.log("📤 Mapped university answers:", mappedAnswers);
-      
-      // Call API
-      const recommendations = await getRecommendationsFromApi(mappedAnswers);
-      console.log("📥 University API Response:", recommendations);
-      
+      const mappedAnswers = userType === 'student'
+        ? mapUniversityAnswersToApi(data)
+        : mapHighSchoolAnswersToApi(data);
+
+      console.log(`📤 Mapped ${userType} answers:`, mappedAnswers);
+      const recommendations = await getRecommendations(mappedAnswers, userType);
+      console.log(`📥 ${userType} API Response:`, recommendations);
       setResult(recommendations);
     } catch (err) {
-      console.error("❌ University API Test failed:", err);
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      console.error(`❌ ${userType} API Test failed:`, err);
+      setError(err instanceof Error ? err.message : 'Ukjent feil');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const testHighSchoolApi = async () => {
-    setIsLoading(true);
-    setError(null);
-    setResult(null);
-    setTestType('highschool');
-
-    try {
-      console.log("🧪 Testing High School API with data:", testHighSchoolData);
-      
-      // Map high school data to elev API format
-      const mappedAnswers = mapHighSchoolAnswersToApi(testHighSchoolData);
-      console.log("📤 Mapped high school answers:", mappedAnswers);
-      
-      // Call the HIGH SCHOOL API endpoint on port 8002 with CORRECT URL
-      const response = await fetch("http://127.0.0.1:8002/api/anbefaling/elever", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-        body: JSON.stringify({ svar: mappedAnswers }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`High School API request failed with status ${response.status}`);
-      }
-
-      const recommendations = await response.json();
-      console.log("📥 High School API Response:", recommendations);
-      
-      setResult(recommendations);
-    } catch (err) {
-      console.error("❌ High School API Test failed:", err);
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleQuestionnaireTest = () => {
-    navigate('/user-type-selection');
-  };
+  const apiConfigured = isEdPathApiConfigured();
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
@@ -142,35 +72,43 @@ const ApiTester: React.FC = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {!apiConfigured && (
+          <div className="flex items-center gap-2 p-3 bg-yellow-50 rounded-lg">
+            <span className="text-yellow-600 text-sm">
+              ⚠️ VITE_EDPATH_API_BASE_URL er ikke satt. Legg den til i .env for å teste mot ekte API.
+            </span>
+          </div>
+        )}
+
         <div className="text-sm text-muted-foreground">
           Tester API-kommunikasjon med eksempeldata for studenter og elever
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <Button 
-            onClick={testUniversityApi} 
-            disabled={isLoading}
+            onClick={() => runTest('student', testUniversityData)} 
+            disabled={isLoading || !apiConfigured}
             className="flex items-center gap-2"
           >
-            {isLoading && testType === 'university' && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isLoading && testType === 'student' && <Loader2 className="h-4 w-4 animate-spin" />}
             <GraduationCap className="h-4 w-4" />
-            {isLoading && testType === 'university' ? 'Tester...' : 'Test Student API'}
+            {isLoading && testType === 'student' ? 'Tester...' : 'Test Student API'}
           </Button>
           
           <Button 
-            onClick={testHighSchoolApi} 
-            disabled={isLoading}
+            onClick={() => runTest('elev', testHighSchoolData)} 
+            disabled={isLoading || !apiConfigured}
             variant="secondary"
             className="flex items-center gap-2"
           >
-            {isLoading && testType === 'highschool' && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isLoading && testType === 'elev' && <Loader2 className="h-4 w-4 animate-spin" />}
             <BookOpen className="h-4 w-4" />
-            {isLoading && testType === 'highschool' ? 'Tester...' : 'Test Elev API'}
+            {isLoading && testType === 'elev' ? 'Tester...' : 'Test Elev API'}
           </Button>
         </div>
         
         <Button 
-          onClick={handleQuestionnaireTest}
+          onClick={() => navigate('/user-type-selection')}
           variant="outline"
           className="w-full flex items-center gap-2"
         >
@@ -193,40 +131,57 @@ const ApiTester: React.FC = () => {
             <div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg">
               <CheckCircle className="h-5 w-5 text-green-500" />
               <div className="font-medium text-green-800">
-                {testType === 'university' ? 'Student' : 'Elev'} API Test vellykket!
+                {testType === 'student' ? 'Student' : 'Elev'} API Test vellykket!
               </div>
             </div>
             
             <div className="space-y-3">
-              <div>
-                <h4 className="font-medium mb-2">Topp dimensjoner:</h4>
-                <div className="flex flex-wrap gap-1">
-                  {result.topp_dimensjoner?.map((dim: string, idx: number) => (
-                    <Badge key={idx} variant="secondary">
-                      {dim}
-                    </Badge>
-                  ))}
+              {result.dimensjoner && result.dimensjoner.length > 0 && (
+                <div>
+                  <h4 className="font-medium mb-2">Dimensjoner:</h4>
+                  <div className="flex flex-wrap gap-1">
+                    {result.dimensjoner.map((dim, idx) => (
+                      <Badge key={idx} variant="secondary">
+                        {dim.navn}: {dim.score}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {result.topp_dimensjoner && result.topp_dimensjoner.length > 0 && (
+                <div>
+                  <h4 className="font-medium mb-2">Topp dimensjoner:</h4>
+                  <div className="flex flex-wrap gap-1">
+                    {result.topp_dimensjoner.map((dim, idx) => (
+                      <Badge key={idx} variant="secondary">{dim}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
               
-              <div>
-                <h4 className="font-medium mb-2">
-                  Anbefalte {testType === 'university' ? 'studier' : 'utdanninger'} ({result.studier?.length || 0}):
-                </h4>
-                <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {result.studier?.slice(0, 3).map((studie: any, idx: number) => (
-                    <div key={idx} className="p-2 bg-gray-50 rounded">
-                      <div className="font-medium">{studie.navn}</div>
-                      <div className="text-sm text-muted-foreground">{studie.lærested}</div>
-                      {studie.stillinger?.length > 0 && (
-                        <div className="text-xs mt-1">
-                          Stillinger: {studie.stillinger.slice(0, 2).join(', ')}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+              {result.studier && result.studier.length > 0 && (
+                <div>
+                  <h4 className="font-medium mb-2">
+                    Anbefalte studier ({result.studier.length}):
+                  </h4>
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {result.studier.slice(0, 3).map((studie, idx) => (
+                      <div key={idx} className="p-2 bg-gray-50 rounded">
+                        <div className="font-medium">{studie.navn}</div>
+                        {studie.lærested && (
+                          <div className="text-sm text-muted-foreground">{studie.lærested}</div>
+                        )}
+                        {studie.stillinger && studie.stillinger.length > 0 && (
+                          <div className="text-xs mt-1">
+                            Stillinger: {studie.stillinger.slice(0, 2).join(', ')}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         )}
