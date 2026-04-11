@@ -7,7 +7,8 @@ import UniversityDimensions from './university/UniversityDimensions';
 import UniversityEducation from './university/UniversityEducation';
 import UniversityCareers from './university/UniversityCareers';
 import { calculateUniversityDimensions, getTopDimensions } from '@/utils/universityDimensionCalculator';
-import { getRecommendationsFromApi, EdPathApiResponse } from '@/services/edpathApi';
+import { getRecommendations, EdPathApiResponse } from '@/services/edpathApi';
+import { isEdPathApiConfigured } from '@/services/edpathApi.config';
 import { mapUniversityAnswersToApi } from '@/utils/universityApiMapper';
 import { toast } from 'sonner';
 
