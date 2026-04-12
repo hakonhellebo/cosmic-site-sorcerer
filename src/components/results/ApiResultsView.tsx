@@ -12,6 +12,7 @@ import {
   Check, User, ArrowRight, Sparkles, Target, Compass,
   Heart, Brain, GraduationCap, MapPin, Star, Zap,
 } from 'lucide-react';
+import CareerJourney from './CareerJourney';
 import type { EdPathApiResponse, EdPathUserType } from '@/services/edpathApi.types';
 
 interface ApiResultsViewProps {
@@ -274,6 +275,13 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answ
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* ══════════════════════════════════════════════
+          CAREER JOURNEY — visual pathway highlight
+         ══════════════════════════════════════════════ */}
+      {(hasStudier || hasYrker || hasBedrifter) && (
+        <CareerJourney studier={studier} yrker={yrker} bedrifter={bedrifter} />
       )}
 
       {/* ══════════════════════════════════════════════
