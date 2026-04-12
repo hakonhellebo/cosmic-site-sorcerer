@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,12 +10,14 @@ import {
 import {
   BookOpen, Briefcase, Building2, TrendingUp, Lightbulb,
   Check, User, ArrowRight, Sparkles, Target, Compass,
+  Heart, Brain, GraduationCap, MapPin, Star, Zap,
 } from 'lucide-react';
 import type { EdPathApiResponse, EdPathUserType } from '@/services/edpathApi.types';
 
 interface ApiResultsViewProps {
   results: EdPathApiResponse;
   userType: EdPathUserType;
+  answers?: Record<string, any>;
 }
 
 /* ─── colour palette ─── */
@@ -30,82 +32,127 @@ const COLORS = [
   'hsl(215 76% 56%)',
 ];
 
-/* ─── helpers: slug creators ─── */
+/* ─── slug helpers ─── */
 const toCareerSlug = (name: string) =>
   encodeURIComponent(name.toLowerCase().replace(/\s+/g, '-'));
 const toCompanySlug = (name: string) =>
   encodeURIComponent(name.toLowerCase().replace(/\s+/g, '-'));
 
-/* ─── narrative templates ─── */
+/* ─── user type labels ─── */
 const userTypeLabels: Record<EdPathUserType, string> = {
-  elev: 'elev',
+  elev: 'elev i videregående',
   student: 'student',
   arbeidstaker: 'arbeidstaker',
 };
 
-const buildProfileSummary = (
+const userTypeGreetings: Record<EdPathUserType, string> = {
+  elev: 'Hei! Her er din personlige karriereprofil',
+  student: 'Hei! Her er din personlige studieprofil',
+  arbeidstaker: 'Hei! Her er din personlige karriereprofil',
+};
+
+/* ─── dimension descriptions ─── */
+const dimensionDescriptions: Record<string, string> = {
+  'Strukturert': 'Du trives i miljøer der planlegging, organisering og klare systemer er viktig. Du liker å ha oversikt og jobbe metodisk mot mål.',
+  'Analytisk': 'Du er god til å bryte ned problemer, se mønstre og tenke logisk. Du foretrekker å basere beslutninger på data og fakta.',
+  'Kreativ': 'Du liker å tenke utenfor boksen, finne nye løsninger og uttrykke deg. Kreative miljøer gir deg energi og motivasjon.',
+  'Sosial': 'Du er god med mennesker og trives i samarbeid. Du liker å kommunisere, hjelpe andre og bygge relasjoner.',
+  'Praktisk': 'Du foretrekker å lære gjennom å gjøre, ikke bare lese. Du liker konkrete oppgaver der du kan se resultatene av arbeidet ditt.',
+  'Teknologisk': 'Du er nysgjerrig på teknologi og liker å forstå hvordan ting fungerer. Digitale verktøy og systemer er naturlig for deg.',
+  'Ledelse': 'Du tar gjerne ansvar, organiserer andre og driver prosjekter fremover. Du er komfortabel med å ta beslutninger.',
+  'Innovativ': 'Du tenker fremover og liker å utvikle nye ideer. Du ser muligheter der andre ser utfordringer.',
+  'Kommunikativ': 'Du er flink til å uttrykke deg, både skriftlig og muntlig. Du liker å formidle, presentere og overbevise.',
+  'Fleksibel': 'Du tilpasser deg lett nye situasjoner og trives med variasjon. Du er åpen for endring og nye utfordringer.',
+};
+
+const getDimensionDescription = (name: string): string => {
+  return dimensionDescriptions[name] ??
+    `Du viser styrke innen ${name.toLowerCase()}. Dette er en egenskap som verdsettes i mange ulike roller og bransjer.`;
+};
+
+/* ─── narrative builders ─── */
+const buildWhoYouAre = (
   dims: { navn: string; score: number }[],
   userType: EdPathUserType,
 ): string => {
-  if (dims.length === 0)
-    return 'Vi har analysert svarene dine, men klarte ikke å beregne tydelige dimensjoner. Prøv gjerne spørreskjemaet på nytt med mer detaljerte svar.';
-
-  const top = dims.slice(0, 3).map((d) => d.navn);
+  if (dims.length === 0) return '';
+  const top = dims.slice(0, 3).map(d => d.navn.toLowerCase());
   const label = userTypeLabels[userType];
 
-  if (top.length === 1)
-    return `Basert på svarene dine viser du en tydelig styrke innen ${top[0]}. Som ${label} har du en profil som passer godt i miljøer der denne egenskapen verdsettes høyt.`;
+  const parts: string[] = [];
 
-  if (top.length === 2)
-    return `Profilen din som ${label} preges av ${top[0]} og ${top[1]}. Du ser ut til å trives i roller som kombinerer disse styrkene — noe som åpner for spennende muligheter på tvers av flere bransjer.`;
+  // Work style
+  if (top.includes('strukturert') || top.includes('analytisk')) {
+    parts.push('Du jobber best når du har tydelige mål og struktur. Du liker å planlegge og jobbe systematisk, og du setter pris på logikk og oversikt.');
+  } else if (top.includes('kreativ') || top.includes('innovativ')) {
+    parts.push('Du jobber best når du har frihet til å tenke kreativt og utforske nye ideer. Rutinearbeid kan kjenne seg begrensende — du trenger rom til å eksperimentere.');
+  } else if (top.includes('sosial') || top.includes('kommunikativ')) {
+    parts.push('Du jobber best i team og i roller der du kan samarbeide med andre. Kommunikasjon og relasjoner er viktig for deg.');
+  } else {
+    parts.push(`Som ${label} viser du en sammensatt profil med styrker som kan brukes i mange ulike sammenhenger.`);
+  }
 
-  return `Du viser en sterk kombinasjon av ${top[0]}, ${top[1]} og ${top[2]}. Denne profilen som ${label} tyder på at du trives med utfordringer som krever flere kompetanser samtidig — og det betyr at du har mange interessante veier å velge mellom.`;
+  // Learning style
+  if (top.includes('praktisk')) {
+    parts.push('Du lærer best gjennom praktisk erfaring — prosjekter, case-studier og hands-on arbeid gir deg mer enn forelesninger.');
+  } else if (top.includes('analytisk') || top.includes('teknologisk')) {
+    parts.push('Du lærer best gjennom å forstå systemene bak ting. Du liker å grave dypt i et tema og bygge forståelse steg for steg.');
+  } else {
+    parts.push('Du lærer på din egen måte og har evnen til å tilpasse deg ulike læringsmiljøer.');
+  }
+
+  // Motivation
+  if (top.includes('ledelse') || top.includes('innovativ')) {
+    parts.push('Du motiveres av å skape noe, ta ansvar og se resultater av arbeidet ditt. Du vil gjerne gjøre en forskjell.');
+  } else if (top.includes('sosial')) {
+    parts.push('Du motiveres av å jobbe med mennesker og bidra til at andre lykkes. Meningsfylt arbeid er viktigere enn høy lønn for deg.');
+  } else {
+    parts.push('Du motiveres av faglig utvikling og mestring. Å bli bedre i det du gjør er en viktig drivkraft.');
+  }
+
+  return parts.join(' ');
 };
 
 const buildSectorExplanation = (sektor: string): string => {
   const explanations: Record<string, string> = {
-    'IT og teknologi':
-      'Denne sektoren passer deg som liker analytiske utfordringer, problemløsning og å jobbe med komplekse systemer. Her kan du utvikle teknologiske løsninger som gjør en forskjell.',
-    'Undervisning og pedagogikk':
-      'Utdanningssektoren er for deg som brenner for å formidle kunnskap og hjelpe andre å vokse. Her kombinerer du faglig dybde med mellommenneskelige ferdigheter.',
-    'Helse og omsorg':
-      'Helsesektoren trenger folk med empati, analytisk sans og ønske om å hjelpe andre. Dine svar tyder på at du kan trives i et miljø der arbeidet har direkte betydning for folks liv.',
-    'Økonomi og finans':
-      'Økonomi og finans passer deg som liker tall, analyse og strategisk tenkning. Her jobber du med å forstå markeder, optimalisere ressurser og ta viktige beslutninger.',
-    'Ingeniør og teknisk':
-      'Ingeniørfag kombinerer teori med praktisk problemløsning. Denne sektoren er for deg som ønsker å designe, bygge og forbedre systemer og infrastruktur.',
-    'Psykologi og rådgivning':
-      'Denne sektoren passer deg som er interessert i mennesker, atferd og mentale prosesser. Her kan du bruke analytiske og mellommenneskelige ferdigheter til å støtte andre.',
-    'Administrasjon og ledelse':
-      'Administrasjon og ledelse handler om å koordinere, organisere og drive organisasjoner fremover. Dine styrker innen struktur og kommunikasjon passer godt her.',
-    'Design, markedsføring og kommun':
-      'Kreative sektorer kombinerer estetikk med strategi. Her bruker du kreativitet og kommunikasjon til å forme budskap, produkter og opplevelser.',
-    'Samfunnsfag og politikk':
-      'Denne sektoren passer deg som er opptatt av samfunnsstrukturer, politikk og å forstå hvordan verden henger sammen. Analytisk tenkning og engasjement er nøkkelegenskaper her.',
+    'IT og teknologi': 'Denne sektoren passer deg som liker analytiske utfordringer, problemløsning og å jobbe med komplekse systemer. Her kan du utvikle teknologiske løsninger som gjør en forskjell.',
+    'Undervisning og pedagogikk': 'Utdanningssektoren er for deg som brenner for å formidle kunnskap og hjelpe andre å vokse. Her kombinerer du faglig dybde med mellommenneskelige ferdigheter.',
+    'Helse og omsorg': 'Helsesektoren trenger folk med empati, analytisk sans og ønske om å hjelpe andre. Dine svar tyder på at du kan trives i et miljø der arbeidet har direkte betydning for folks liv.',
+    'Økonomi og finans': 'Økonomi og finans passer deg som liker tall, analyse og strategisk tenkning. Her jobber du med å forstå markeder, optimalisere ressurser og ta viktige beslutninger.',
+    'Ingeniør og teknisk': 'Ingeniørfag kombinerer teori med praktisk problemløsning. Denne sektoren er for deg som ønsker å designe, bygge og forbedre systemer og infrastruktur.',
+    'Psykologi og rådgivning': 'Denne sektoren passer deg som er interessert i mennesker, atferd og mentale prosesser. Her kan du bruke analytiske og mellommenneskelige ferdigheter til å støtte andre.',
+    'Administrasjon og ledelse': 'Administrasjon og ledelse handler om å koordinere, organisere og drive organisasjoner fremover. Dine styrker innen struktur og kommunikasjon passer godt her.',
+    'Design, markedsføring og kommun': 'Kreative sektorer kombinerer estetikk med strategi. Her bruker du kreativitet og kommunikasjon til å forme budskap, produkter og opplevelser.',
+    'Samfunnsfag og politikk': 'Denne sektoren passer deg som er opptatt av samfunnsstrukturer, politikk og å forstå hvordan verden henger sammen. Analytisk tenkning og engasjement er nøkkelegenskaper her.',
   };
-
-  return (
-    explanations[sektor] ??
-    `Denne sektoren matcher profilen din basert på svarene du ga om interesser, styrker og arbeidspreferanser. Her finnes roller som kan utnytte dine sterke sider.`
-  );
+  return explanations[sektor] ?? `Denne sektoren matcher profilen din basert på svarene du ga om interesser, styrker og arbeidspreferanser. Her finnes roller som kan utnytte dine sterke sider.`;
 };
 
 const buildCareerExplanation = (yrke: string, sektor: string): string => {
-  return `Som ${yrke.toLowerCase()} jobber du typisk innen ${sektor.toLowerCase()}. Denne rollen matcher profilen din fordi den krever mange av de egenskapene du scoret høyt på. Utforsk rollen for å lære mer om hva den innebærer i praksis.`;
+  return `Som ${yrke.toLowerCase()} jobber du typisk innen ${sektor.toLowerCase()}. Denne rollen krever mange av egenskapene du scoret høyt på — og profiler som din finner seg ofte godt til rette her.`;
 };
 
 const buildStudyExplanation = (studie: string, sektor: string): string => {
-  return `${studie} gir deg kompetanse som er etterspurt innen ${sektor.toLowerCase()}. Basert på profilen din kan dette studiet være et godt valg for å bygge en karriere som matcher dine styrker og interesser.`;
+  return `${studie} gir deg kompetanse som er etterspurt innen ${sektor.toLowerCase()}. Studiet kombinerer teori og praksis på en måte som matcher styrkeområdene i profilen din.`;
 };
 
 const buildCompanyExplanation = (bedrift: string, sektor: string): string => {
-  return `${bedrift} opererer innen ${sektor.toLowerCase()} og er en arbeidsgiver der profiler som din ofte finner relevante muligheter. Utforsk bedriften for å se hvilke stillinger og karriereveier de tilbyr.`;
+  return `${bedrift} opererer innen ${sektor.toLowerCase()} og er en arbeidsgiver der profiler som din ofte finner relevante muligheter. Utforsk bedriften for å se hvilke karriereveier de tilbyr.`;
 };
 
 /* ─── component ─── */
-const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType }) => {
+const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answers = {} }) => {
   const navigate = useNavigate();
   const { dimensjoner = [], topp_sektorer = [], yrker = [], studier = [], bedrifter = [] } = results;
+
+  // Try to get answers from localStorage if not passed as prop
+  const surveyAnswers = useMemo(() => {
+    if (Object.keys(answers).length > 0) return answers;
+    try {
+      const stored = localStorage.getItem('surveyAnswers');
+      return stored ? JSON.parse(stored) : {};
+    } catch { return {}; }
+  }, [answers]);
 
   const hasDimensions = dimensjoner.length > 0;
   const hasSektorer = topp_sektorer.length > 0;
@@ -138,56 +185,114 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType }) =>
     }
   }, [navigate]);
 
+  const topDims = dimensjoner.slice(0, 3);
+
   return (
-    <div className="space-y-10">
-      {/* ── 1. PROFILE SUMMARY ── */}
-      <Card className="relative overflow-hidden border-primary/20">
+    <div className="space-y-8">
+
+      {/* ══════════════════════════════════════════════
+          1. PERSONAL PROFILE HEADER
+         ══════════════════════════════════════════════ */}
+      <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
         <div className="absolute top-0 left-0 h-full w-1.5 bg-primary" />
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <User className="h-6 w-6 text-primary" />
-            <CardTitle className="text-2xl">Din personlige profil</CardTitle>
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <User className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-2xl md:text-3xl">
+                {userTypeGreetings[userType]}
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Basert på svarene dine har vi laget en personlig profil som forklarer hvem du er, hva du er god på, og hvilke veier som kan passe deg.
+              </p>
+            </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-base leading-relaxed text-foreground/90">
-            {buildProfileSummary(dimensjoner, userType)}
-          </p>
-
-          {hasDimensions && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
-              {dimensjoner.slice(0, 3).map((dim, i) => (
-                <div
-                  key={i}
-                  className="p-4 rounded-lg border border-primary/20 bg-primary/5"
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <Sparkles className="h-4 w-4 text-primary" />
-                    <h4 className="font-semibold">{dim.navn}</h4>
-                  </div>
-                  <p className="text-sm text-muted-foreground">Score: {dim.score} poeng</p>
-                </div>
-              ))}
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-background/60 border">
+              <GraduationCap className="h-5 w-5 text-primary flex-shrink-0" />
+              <div>
+                <p className="text-xs text-muted-foreground">Brukertype</p>
+                <p className="font-medium text-sm capitalize">{userTypeLabels[userType]}</p>
+              </div>
             </div>
-          )}
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-background/60 border">
+              <Star className="h-5 w-5 text-primary flex-shrink-0" />
+              <div>
+                <p className="text-xs text-muted-foreground">Toppstyrke</p>
+                <p className="font-medium text-sm">{topDims[0]?.navn ?? '–'}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-background/60 border">
+              <Target className="h-5 w-5 text-primary flex-shrink-0" />
+              <div>
+                <p className="text-xs text-muted-foreground">Toppsektor</p>
+                <p className="font-medium text-sm">{topp_sektorer[0]?.sektor ?? '–'}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-background/60 border">
+              <Zap className="h-5 w-5 text-primary flex-shrink-0" />
+              <div>
+                <p className="text-xs text-muted-foreground">Antall dimensjoner</p>
+                <p className="font-medium text-sm">{dimensjoner.length} analysert</p>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-      {/* ── 2. DIMENSION CHART ── */}
+      {/* ══════════════════════════════════════════════
+          2. WHO YOU ARE
+         ══════════════════════════════════════════════ */}
       {hasDimensions && (
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              <CardTitle>Dine dimensjoner i detalj</CardTitle>
+              <Heart className="h-5 w-5 text-primary" />
+              <CardTitle>Hvem du er</CardTitle>
             </div>
-            <p className="text-sm text-muted-foreground mt-1">
-              Slik fordeler styrkene dine seg. Jo høyere score, desto sterkere
-              match med roller som krever denne egenskapen.
+            <p className="text-xs text-muted-foreground mt-1">
+              Basert på dimensjonene dine har vi satt sammen en beskrivelse av hvordan du jobber, lærer og hva som motiverer deg.
             </p>
           </CardHeader>
           <CardContent>
-            <div className="h-[280px]">
+            <p className="text-base leading-relaxed text-foreground/90">
+              {buildWhoYouAre(dimensjoner, userType)}
+            </p>
+
+            {/* Quick dimension badges */}
+            <div className="flex flex-wrap gap-2 mt-4">
+              {topDims.map((dim, i) => (
+                <Badge key={i} variant="secondary" className="text-sm py-1 px-3">
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  {dim.navn}
+                </Badge>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ══════════════════════════════════════════════
+          3. YOUR CORE STRENGTHS
+         ══════════════════════════════════════════════ */}
+      {hasDimensions && (
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <Brain className="h-5 w-5 text-primary" />
+              <CardTitle>Dine styrker</CardTitle>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Hver dimensjon sier noe om styrkene dine. Her er hva de betyr for deg.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-0">
+            {/* Chart */}
+            <div className="h-[280px] mb-6">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={dimensjoner.map((d, i) => ({
@@ -199,12 +304,7 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType }) =>
                   margin={{ left: 10, right: 20 }}
                 >
                   <XAxis type="number" />
-                  <YAxis
-                    type="category"
-                    dataKey="navn"
-                    width={130}
-                    tick={{ fontSize: 13 }}
-                  />
+                  <YAxis type="category" dataKey="navn" width={130} tick={{ fontSize: 13 }} />
                   <Tooltip formatter={(v: number) => [`${v} poeng`, 'Score']} />
                   <Bar dataKey="score" radius={[0, 6, 6, 0]}>
                     {dimensjoner.map((_, i) => (
@@ -214,29 +314,46 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType }) =>
                 </BarChart>
               </ResponsiveContainer>
             </div>
+
+            {/* Dimension explanations */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {dimensjoner.map((dim, i) => (
+                <div key={i} className="p-4 rounded-lg border bg-muted/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div
+                      className="h-3 w-3 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                    />
+                    <h4 className="font-semibold">{dim.navn}</h4>
+                    <Badge variant="outline" className="ml-auto text-xs">{dim.score} poeng</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {getDimensionDescription(dim.navn)}
+                  </p>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}
 
-      {/* ── 3. WHY THESE SECTORS FIT ── */}
+      {/* ══════════════════════════════════════════════
+          4. WHY THESE SECTORS FIT
+         ══════════════════════════════════════════════ */}
       {hasSektorer && (
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <Target className="h-5 w-5 text-primary" />
-              <CardTitle>Hvorfor disse sektorene passer deg</CardTitle>
+              <CardTitle>Sektorer som passer deg</CardTitle>
             </div>
-            <p className="text-sm text-muted-foreground mt-1">
-              Basert på profilen din har vi identifisert sektorer der du sannsynligvis
-              vil trives og gjøre det bra.
+            <p className="text-xs text-muted-foreground mt-1">
+              Basert på styrkene dine har vi identifisert sektorer der du sannsynligvis vil trives og gjøre det bra.
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
             {topp_sektorer.map((sektor, i) => (
-              <div
-                key={i}
-                className="p-5 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors"
-              >
+              <div key={i} className="p-5 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-semibold text-lg">{sektor.sektor}</h4>
                   <Badge variant="secondary">{sektor.score} poeng</Badge>
@@ -253,45 +370,9 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType }) =>
         </Card>
       )}
 
-      {/* ── 4. CAREER PATHS ── */}
-      {hasYrker && (
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <Briefcase className="h-5 w-5 text-primary" />
-              <CardTitle>Mulige karriereveier</CardTitle>
-            </div>
-            <p className="text-sm text-muted-foreground mt-1">
-              Disse yrkene matcher profilen din. Klikk på et yrke for å utforske det
-              i detalj — se beskrivelse, kompetansekrav og relaterte muligheter.
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {yrker.map((yrke, i) => (
-                <div
-                  key={i}
-                  onClick={() => navigate(`/karriere/${toCareerSlug(yrke.navn)}`)}
-                  className="p-5 rounded-lg border cursor-pointer hover:shadow-md hover:border-primary/40 transition-all group"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-semibold group-hover:text-primary transition-colors">
-                      {yrke.navn}
-                    </h4>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                  </div>
-                  <Badge variant="outline" className="mb-3">{yrke.sektor}</Badge>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    {buildCareerExplanation(yrke.navn, yrke.sektor)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* ── 5. STUDY PROGRAMS ── */}
+      {/* ══════════════════════════════════════════════
+          5. STUDY PROGRAMMES THAT MATCH
+         ══════════════════════════════════════════════ */}
       {hasStudier && (
         <Card>
           <CardHeader className="pb-3">
@@ -299,9 +380,8 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType }) =>
               <BookOpen className="h-5 w-5 text-primary" />
               <CardTitle>Studier som matcher deg</CardTitle>
             </div>
-            <p className="text-sm text-muted-foreground mt-1">
-              Disse studieprogrammene gir deg kompetansen du trenger for å lykkes
-              i sektorene som passer profilen din.
+            <p className="text-xs text-muted-foreground mt-1">
+              Disse studieprogrammene gir deg kompetansen du trenger for å lykkes i sektorene som passer profilen din. Klikk for å utforske detaljene.
             </p>
           </CardHeader>
           <CardContent>
@@ -319,11 +399,68 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType }) =>
                     <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                   </div>
                   {studie.lærested && (
-                    <p className="text-xs text-muted-foreground mb-2">{studie.lærested}</p>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+                      <MapPin className="h-3 w-3" />
+                      {studie.lærested}
+                    </div>
                   )}
                   <Badge variant="outline" className="mb-3">{studie.sektor}</Badge>
                   <p className="text-sm leading-relaxed text-muted-foreground">
                     {buildStudyExplanation(studie.navn, studie.sektor)}
+                  </p>
+
+                  {/* Show related positions if available */}
+                  {studie.stillinger && studie.stillinger.length > 0 && (
+                    <div className="mt-3 pt-3 border-t">
+                      <p className="text-xs text-muted-foreground mb-1">Mulige stillinger:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {studie.stillinger.slice(0, 3).map((s, j) => (
+                          <Badge key={j} variant="secondary" className="text-xs">{s}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ══════════════════════════════════════════════
+          6. CAREERS YOU COULD EXPLORE
+         ══════════════════════════════════════════════ */}
+      {hasYrker && (
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <Briefcase className="h-5 w-5 text-primary" />
+              <CardTitle>Karriereveier du kan utforske</CardTitle>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Disse yrkene matcher profilen din. Klikk på et yrke for å utforske det i detalj — se beskrivelse, kompetansekrav og relaterte muligheter.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {yrker.map((yrke, i) => (
+                <div
+                  key={i}
+                  onClick={() => navigate(`/karriere/${toCareerSlug(yrke.navn)}`)}
+                  className="p-5 rounded-lg border cursor-pointer hover:shadow-md hover:border-primary/40 transition-all group"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold group-hover:text-primary transition-colors">
+                      {yrke.navn}
+                    </h4>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </div>
+                  <Badge variant="outline" className="mb-3">{yrke.sektor}</Badge>
+                  {yrke.underkategori && (
+                    <Badge variant="outline" className="mb-3 ml-1">{yrke.underkategori}</Badge>
+                  )}
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {buildCareerExplanation(yrke.navn, yrke.sektor)}
                   </p>
                 </div>
               ))}
@@ -332,17 +469,18 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType }) =>
         </Card>
       )}
 
-      {/* ── 6. COMPANIES ── */}
+      {/* ══════════════════════════════════════════════
+          7. COMPANIES YOU MAY FIND INTERESTING
+         ══════════════════════════════════════════════ */}
       {hasBedrifter && (
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <Building2 className="h-5 w-5 text-primary" />
-              <CardTitle>Bedrifter du bør utforske</CardTitle>
+              <CardTitle>Bedrifter som kan passe deg</CardTitle>
             </div>
-            <p className="text-sm text-muted-foreground mt-1">
-              Disse bedriftene opererer i sektorer som matcher profilen din. Klikk
-              for å lese mer om bedriften og se relevante karrieremuligheter.
+            <p className="text-xs text-muted-foreground mt-1">
+              Disse bedriftene opererer i sektorer som matcher profilen din. Klikk for å lese mer og se karrieremuligheter.
             </p>
           </CardHeader>
           <CardContent>
@@ -360,6 +498,9 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType }) =>
                     <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                   </div>
                   <Badge variant="outline" className="mb-3">{bedrift.sektor}</Badge>
+                  {bedrift.underkategori && (
+                    <Badge variant="outline" className="mb-3 ml-1 text-xs">{bedrift.underkategori}</Badge>
+                  )}
                   <p className="text-xs leading-relaxed text-muted-foreground">
                     {buildCompanyExplanation(bedrift.navn, bedrift.sektor)}
                   </p>
@@ -370,7 +511,9 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType }) =>
         </Card>
       )}
 
-      {/* ── 7. HOW YOUR ANSWERS INFLUENCED THIS ── */}
+      {/* ══════════════════════════════════════════════
+          8. HOW YOUR ANSWERS INFLUENCED THIS
+         ══════════════════════════════════════════════ */}
       <Card className="bg-muted/20 border-dashed">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
@@ -380,46 +523,46 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType }) =>
         </CardHeader>
         <CardContent>
           <p className="text-sm leading-relaxed text-muted-foreground mb-4">
-            Svarene du ga om interesser, styrker og arbeidspreferanser ble analysert
-            og koblet mot ulike karrieredimensjoner. Disse dimensjonene ble deretter
-            matchet mot sektorer, studier og yrker der lignende profiler typisk
-            trives og lykkes.
+            Svarene du ga om interesser, styrker og arbeidspreferanser ble analysert og koblet mot ulike karrieredimensjoner. Hver dimensjon representerer en egenskap eller et interesseområde — og scorene viser hvor sterkt du trekker i hver retning.
+          </p>
+          <p className="text-sm leading-relaxed text-muted-foreground mb-4">
+            Dimensjonene ble deretter matchet mot sektorer der lignende profiler typisk trives og lykkes. Innenfor disse sektorene fant vi studier, yrker og bedrifter som er relevante for deg.
           </p>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            Anbefalingene er ikke endelige — de er et utgangspunkt for å utforske
-            mulighetene som passer deg best. Jo mer du utforsker, desto bedre
-            bilde får du av hva som kan være riktig for deg.
+            Resultatet er ikke et fasitsvar — det er et utgangspunkt for å forstå deg selv bedre og utforske mulighetene som passer deg best.
           </p>
         </CardContent>
       </Card>
 
-      {/* ── 8. NEXT STEPS ── */}
-      <Card>
+      {/* ══════════════════════════════════════════════
+          9. NEXT STEPS
+         ══════════════════════════════════════════════ */}
+      <Card className="border-primary/20">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
             <Lightbulb className="h-5 w-5 text-primary" />
-            <CardTitle>Neste steg – dette får du snart tilgang til</CardTitle>
+            <CardTitle>Neste steg for deg</CardTitle>
           </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            Her er konkrete ting du kan gjøre for å utforske mulighetene videre.
+          </p>
         </CardHeader>
         <CardContent>
-          <p className="mb-4 text-sm text-muted-foreground">
-            EdPath blir mer enn bare anbefalinger. Du vil snart kunne:
-          </p>
-          <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {[
-              'Se hva andre med lik profil har valgt – og hvor de fikk jobb',
-              'Utforske bedrifter og stillinger som passer akkurat deg',
-              'Få ferdige forslag til hva du kan skrive i en CV',
-              'Få anbefalte kurs og ferdigheter som gjør deg mer attraktiv',
-              'Snakke med vår AI-rådgiver og få veiledning døgnet rundt',
-              'Bygge din egen profil som oppdateres etter hvert som du utvikler deg',
-            ].map((text, i) => (
-              <li key={i} className="flex items-start">
-                <Check className="h-5 w-5 mr-2 mt-0.5 text-primary flex-shrink-0" />
-                <span className="text-sm">{text}</span>
-              </li>
+              { icon: '💬', text: 'Snakk med en rådgiver — vis dem denne profilen og diskuter mulighetene' },
+              { icon: '🎓', text: 'Utforsk studiene over — klikk deg inn og les mer om opptakskrav og innhold' },
+              { icon: '🏢', text: 'Besøk bedriftene som interesserer deg — se om de har trainee-programmer eller praksis' },
+              { icon: '👥', text: 'Snakk med folk som jobber i yrkene — spør hva de liker og hva som er utfordrende' },
+              { icon: '📊', text: 'Utforsk statistikksiden vår for å sammenligne studier, lønn og jobbmuligheter' },
+              { icon: '🔄', text: 'Ta spørreskjemaet på nytt senere — profilen din utvikler seg over tid' },
+            ].map((step, i) => (
+              <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/20 border">
+                <span className="text-lg flex-shrink-0">{step.icon}</span>
+                <span className="text-sm text-foreground/90">{step.text}</span>
+              </div>
             ))}
-          </ul>
+          </div>
         </CardContent>
       </Card>
     </div>
