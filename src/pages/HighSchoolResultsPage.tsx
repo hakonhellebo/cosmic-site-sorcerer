@@ -5,35 +5,45 @@ import Layout from '@/components/Layout';
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import NoResultsView from '@/components/results/NoResultsView';
-import TestDataNotice from '@/components/results/TestDataNotice';
-import { HighSchoolResultsView } from '@/components/results/HighSchoolResultsView';
+import ApiResultsView from '@/components/results/ApiResultsView';
+import type { EdPathApiResponse } from '@/services/edpathApi.types';
 
 const HighSchoolResultsPage: React.FC = () => {
   const navigate = useNavigate();
-  const [userData, setUserData] = useState<any>(null);
-  
+  const [apiResults, setApiResults] = useState<EdPathApiResponse | null>(null);
+  const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [hasData, setHasData] = useState(false);
+
   useEffect(() => {
-    // Get the full user data including questionnaire answers
-    const savedFullData = localStorage.getItem('userFullData');
-    
-    if (savedFullData) {
-      const parsedData = JSON.parse(savedFullData);
-      setUserData(parsedData);
-      
-      // If the data doesn't have high school questionnaire data, show a toast
-      if (!parsedData.questionnaire?.highSchool) {
-        toast.warning("Ingen elevdata funnet", {
-          description: "Du kan laste inn testdata for elever fra hovedsiden"
-        });
+    // Try to load API results from the new dynamic questionnaire flow
+    const edpathResults = localStorage.getItem('edpathResults');
+    const surveyAnswers = localStorage.getItem('surveyAnswers');
+    const surveyType = localStorage.getItem('surveyType');
+
+    if (edpathResults && (surveyType === 'elev' || surveyType === null)) {
+      try {
+        const parsed = JSON.parse(edpathResults) as EdPathApiResponse;
+        const hasContent = (parsed.dimensjoner?.length > 0) || 
+                          (parsed.yrker?.length > 0) || 
+                          (parsed.studier?.length > 0);
+        if (hasContent) {
+          setApiResults(parsed);
+          setAnswers(surveyAnswers ? JSON.parse(surveyAnswers) : {});
+          setHasData(true);
+          return;
+        }
+      } catch (e) {
+        console.error('Failed to parse edpathResults:', e);
       }
-    } else {
-      toast.warning("Ingen resultater funnet", {
-        description: "Tips: Du kan laste inn testdata fra hovedsiden"
-      });
     }
+
+    // No valid data found
+    toast.warning("Ingen resultater funnet", {
+      description: "Vennligst fullfør spørreskjemaet først."
+    });
   }, [navigate]);
-  
-  if (!userData) {
+
+  if (!hasData || !apiResults) {
     return (
       <Layout>
         <NoResultsView />
@@ -41,24 +51,14 @@ const HighSchoolResultsPage: React.FC = () => {
     );
   }
 
-  // Extract user's name from user data
-  const { firstName, lastName } = userData || {};
-  const fullName = firstName && lastName ? `${firstName} ${lastName}` : "Anonym bruker";
-  const isTestData = firstName === "Test";
-  
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12 md:py-16">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold">Din videregående profil</h1>
-          <p className="text-sm text-muted-foreground">{fullName}</p>
         </div>
-        
         <Separator className="mb-8" />
-        
-        <HighSchoolResultsView userData={userData} />
-        
-        <TestDataNotice isTestData={isTestData} userType="highSchool" />
+        <ApiResultsView results={apiResults} answers={answers} userType="elev" />
       </div>
     </Layout>
   );
