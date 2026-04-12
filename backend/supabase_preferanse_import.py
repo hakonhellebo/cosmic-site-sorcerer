@@ -89,19 +89,33 @@ def _rens(v):
 
 
 def _upsert(sb: Client, table: str, rader: list[dict], conflict: str) -> None:
-    for i in range(0, len(rader), BATCH_SIZE):
-        batch = rader[i: i + BATCH_SIZE]
+    # Dedupliser per konfliktnøkkel — hindrer "ON CONFLICT ... same row twice" innen samme batch
+    conflict_keys = [k.strip() for k in conflict.split(",")]
+    sett: set[tuple] = set()
+    unike: list[dict] = []
+    for rad in rader:
+        nøkkel = tuple(rad.get(k) for k in conflict_keys)
+        if nøkkel not in sett:
+            sett.add(nøkkel)
+            unike.append(rad)
+    if len(unike) < len(rader):
+        print(f"  [{table}] {len(rader) - len(unike)} duplikater fjernet (slug-kollisjon)")
+
+    for i in range(0, len(unike), BATCH_SIZE):
+        batch = unike[i: i + BATCH_SIZE]
         sb.table(table).upsert(batch, on_conflict=conflict).execute()
-        done = min(i + BATCH_SIZE, len(rader))
-        print(f"  [{table}] {done}/{len(rader)} ✓")
+        done = min(i + BATCH_SIZE, len(unike))
+        print(f"  [{table}] {done}/{len(unike)} ✓")
 
 
 def _slug(tekst: str) -> str:
-    """Gjør tekst om til lowercase underscore-slug for option_value."""
+    """Gjør tekst om til lowercase underscore-slug for option_value.
+    Trunkerer til 120 tegn (Supabase-compat) og erstatter spesialtegn.
+    """
     import unicodedata
     nfkd = unicodedata.normalize("NFKD", tekst)
     ascii_str = "".join(c for c in nfkd if not unicodedata.combining(c))
-    return (
+    slug = (
         ascii_str.lower()
         .strip()
         .replace(" ", "_")
@@ -111,8 +125,37 @@ def _slug(tekst: str) -> str:
         .replace("/", "_")
         .replace("(", "")
         .replace(")", "")
-        [:80]  # maks 80 tegn
+        .replace(":", "_")
+        .replace("&", "og")
+        .replace("'", "")
+        .replace('"', "")
     )
+    # Fjern doble understreker
+    while "__" in slug:
+        slug = slug.replace("__", "_")
+    return slug.strip("_")[:120]
+
+
+# Globalt register for slug-kollisjonshåndtering per run
+_slug_register: dict[str, set[str]] = {}
+
+
+def _uniq_slug(tekst: str, question_id: str) -> str:
+    """Returnerer en unik slug for (question_id, tekst)-kombinasjonen.
+    Ved kollisjon legges et kort hash-suffiks til.
+    """
+    if question_id not in _slug_register:
+        _slug_register[question_id] = set()
+    base = _slug(tekst)
+    if base not in _slug_register[question_id]:
+        _slug_register[question_id].add(base)
+        return base
+    # Kollisjon — legg til hash-suffiks (6 hex-tegn)
+    import hashlib
+    suffix = hashlib.md5(tekst.encode()).hexdigest()[:6]
+    uniq = f"{base[:112]}_{suffix}"
+    _slug_register[question_id].add(uniq)
+    return uniq
 
 
 # ---------------------------------------------------------------------------
@@ -273,12 +316,18 @@ def bygg_preferanse_options(
     yrker: list[str],
     bedrifter: list[str],
 ) -> list[dict]:
-    """Returnerer alle alternativer for de 4 nye spørsmålene."""
+    """Returnerer alle alternativer for de 4 nye spørsmålene.
+    Bruker _uniq_slug() for å garantere unike option_value per question_id.
+    """
+    # Tøm slug-register for denne run (viktig hvis funksjonen kalles flere ganger)
+    for qid in ["study_interest", "career_interest", "company_interest"]:
+        _slug_register.pop(qid, None)
+
     rader: list[dict] = []
 
     # study_interest → alle studier fra connections
     for i, studie in enumerate(studier, start=1):
-        slug = _slug(studie)
+        slug = _uniq_slug(studie, "study_interest")
         rader.append({
             "survey_id":     survey_id,
             "question_id":   "study_interest",
@@ -296,7 +345,7 @@ def bygg_preferanse_options(
 
     # career_interest → alle yrker fra connections
     for i, yrke in enumerate(yrker, start=1):
-        slug = _slug(yrke)
+        slug = _uniq_slug(yrke, "career_interest")
         rader.append({
             "survey_id":     survey_id,
             "question_id":   "career_interest",
@@ -314,7 +363,7 @@ def bygg_preferanse_options(
 
     # company_interest → alle bedrifter fra connections
     for i, bedrift in enumerate(bedrifter, start=1):
-        slug = _slug(bedrift)
+        slug = _uniq_slug(bedrift, "company_interest")
         rader.append({
             "survey_id":     survey_id,
             "question_id":   "company_interest",
