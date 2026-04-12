@@ -51,7 +51,8 @@ export const useSurveyQuestions = (surveyId: SurveyId) => {
   const questionsQuery = useQuery({
     queryKey: ['survey-questions', surveyId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Fetch questions
+      const { data: questions, error: qError } = await supabase
         .from('survey_questions')
         .select(`
           question_id,
@@ -70,25 +71,49 @@ export const useSurveyQuestions = (surveyId: SurveyId) => {
           max_value,
           placeholder,
           depends_on_question_id,
-          depends_on_option_value,
-          survey_options (
-            option_value,
-            option_label,
-            option_order,
-            is_exclusive,
-            is_open_text,
-            depends_on_question_id,
-            depends_on_option_value
-          )
+          depends_on_option_value
         `)
         .eq('survey_id', surveyId)
         .order('page_order', { ascending: true })
         .order('question_order', { ascending: true });
 
-      if (error) throw error;
-      return data as unknown as SurveyQuestion[];
+      if (qError) throw qError;
+
+      // Fetch options separately
+      const { data: options, error: oError } = await supabase
+        .from('survey_options')
+        .select(`
+          question_id,
+          option_value,
+          option_label,
+          option_order,
+          is_exclusive,
+          is_open_text,
+          depends_on_question_id,
+          depends_on_option_value
+        `)
+        .eq('survey_id', surveyId)
+        .order('option_order', { ascending: true });
+
+      if (oError) throw oError;
+
+      // Group options by question_id
+      const optionsByQuestion = new Map<string, SurveyOption[]>();
+      for (const opt of (options || [])) {
+        const qid = opt.question_id;
+        if (!optionsByQuestion.has(qid)) {
+          optionsByQuestion.set(qid, []);
+        }
+        optionsByQuestion.get(qid)!.push(opt);
+      }
+
+      // Merge options into questions
+      return (questions || []).map((q) => ({
+        ...q,
+        survey_options: optionsByQuestion.get(q.question_id) || [],
+      })) as SurveyQuestion[];
     },
-    staleTime: 1000 * 60 * 30, // cache 30 min
+    staleTime: 1000 * 60 * 30,
   });
 
   const sectionsQuery = useQuery({
