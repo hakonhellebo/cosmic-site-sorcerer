@@ -58,7 +58,7 @@ const HighSchoolResultsPage: React.FC = () => {
           <h1 className="text-3xl md:text-4xl font-bold">Din videregående profil</h1>
         </div>
         <Separator className="mb-8" />
-        <ApiResultsView results={apiResults} answers={answers} userType="elev" />
+        <ApiResultsView results={apiResults} userType="elev" />
       </div>
     </Layout>
   );

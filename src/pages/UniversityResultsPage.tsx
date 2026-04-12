@@ -56,7 +56,7 @@ const UniversityResultsPage: React.FC = () => {
           <h1 className="text-3xl md:text-4xl font-bold">Din studieprofil</h1>
         </div>
         <Separator className="mb-8" />
-        <ApiResultsView results={apiResults} answers={answers} userType="student" />
+        <ApiResultsView results={apiResults} userType="student" />
       </div>
     </Layout>
   );
