@@ -407,6 +407,162 @@ export type Database = {
         }
         Relationships: []
       }
+      survey_options: {
+        Row: {
+          depends_on_option_value: string | null
+          depends_on_question_id: string | null
+          id: number
+          is_exclusive: boolean | null
+          is_open_text: boolean | null
+          is_unknown: boolean | null
+          legacy_id: string | null
+          option_label: string | null
+          option_order: number | null
+          option_value: string
+          question_id: string
+          survey_id: string
+          target_group: string
+        }
+        Insert: {
+          depends_on_option_value?: string | null
+          depends_on_question_id?: string | null
+          id?: number
+          is_exclusive?: boolean | null
+          is_open_text?: boolean | null
+          is_unknown?: boolean | null
+          legacy_id?: string | null
+          option_label?: string | null
+          option_order?: number | null
+          option_value: string
+          question_id: string
+          survey_id: string
+          target_group: string
+        }
+        Update: {
+          depends_on_option_value?: string | null
+          depends_on_question_id?: string | null
+          id?: number
+          is_exclusive?: boolean | null
+          is_open_text?: boolean | null
+          is_unknown?: boolean | null
+          legacy_id?: string | null
+          option_label?: string | null
+          option_order?: number | null
+          option_value?: string
+          question_id?: string
+          survey_id?: string
+          target_group?: string
+        }
+        Relationships: []
+      }
+      survey_questions: {
+        Row: {
+          collect_for_scoring: boolean | null
+          depends_on_option_value: string | null
+          depends_on_question_id: string | null
+          help_text: string | null
+          id: number
+          is_filter: boolean | null
+          is_metadata: boolean | null
+          legacy_id: string | null
+          max_select: number | null
+          max_value: number | null
+          min_select: number | null
+          min_value: number | null
+          page_id: string | null
+          page_label: string | null
+          page_order: number | null
+          placeholder: string | null
+          question_id: string
+          question_order: number | null
+          required: boolean | null
+          survey_id: string
+          target_group: string
+          text: string | null
+          type: string | null
+          version: string | null
+        }
+        Insert: {
+          collect_for_scoring?: boolean | null
+          depends_on_option_value?: string | null
+          depends_on_question_id?: string | null
+          help_text?: string | null
+          id?: number
+          is_filter?: boolean | null
+          is_metadata?: boolean | null
+          legacy_id?: string | null
+          max_select?: number | null
+          max_value?: number | null
+          min_select?: number | null
+          min_value?: number | null
+          page_id?: string | null
+          page_label?: string | null
+          page_order?: number | null
+          placeholder?: string | null
+          question_id: string
+          question_order?: number | null
+          required?: boolean | null
+          survey_id: string
+          target_group: string
+          text?: string | null
+          type?: string | null
+          version?: string | null
+        }
+        Update: {
+          collect_for_scoring?: boolean | null
+          depends_on_option_value?: string | null
+          depends_on_question_id?: string | null
+          help_text?: string | null
+          id?: number
+          is_filter?: boolean | null
+          is_metadata?: boolean | null
+          legacy_id?: string | null
+          max_select?: number | null
+          max_value?: number | null
+          min_select?: number | null
+          min_value?: number | null
+          page_id?: string | null
+          page_label?: string | null
+          page_order?: number | null
+          placeholder?: string | null
+          question_id?: string
+          question_order?: number | null
+          required?: boolean | null
+          survey_id?: string
+          target_group?: string
+          text?: string | null
+          type?: string | null
+          version?: string | null
+        }
+        Relationships: []
+      }
+      survey_sections: {
+        Row: {
+          id: number
+          page_id: string
+          section_label: string | null
+          section_order: number | null
+          survey_id: string
+          target_group: string
+        }
+        Insert: {
+          id?: number
+          page_id: string
+          section_label?: string | null
+          section_order?: number | null
+          survey_id: string
+          target_group: string
+        }
+        Update: {
+          id?: number
+          page_id?: string
+          section_label?: string | null
+          section_order?: number | null
+          survey_id?: string
+          target_group?: string
+        }
+        Relationships: []
+      }
       universitet_statistikk: {
         Row: {
           "2019": string | null
