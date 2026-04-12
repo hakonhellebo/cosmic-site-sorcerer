@@ -117,7 +117,7 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType }) =>
     try {
       const { data, error } = await supabase
         .from('Student_data_ny')
-        .select('Lærestednavn, Studiekode, Studienavn')
+        .select('*')
         .ilike('Studienavn', `%${studieName}%`)
         .limit(1);
 
@@ -129,9 +129,9 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType }) =>
         return;
       }
 
-      const match = data[0];
-      const universitySlug = encodeURIComponent(match.Lærestednavn || '');
-      const studiekode = encodeURIComponent(match.Studiekode || '');
+      const match = data[0] as any;
+      const universitySlug = encodeURIComponent(match['Lærestednavn'] || '');
+      const studiekode = encodeURIComponent(match['Studiekode'] || '');
       navigate(`/utdanning/${universitySlug}/${studiekode}`);
     } catch {
       navigate('/statistikk', { state: { searchQuery: studieName } });
