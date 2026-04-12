@@ -5,73 +5,43 @@ import Layout from '@/components/Layout';
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import NoResultsView from '@/components/results/NoResultsView';
-import TestDataNotice from '@/components/results/TestDataNotice';
-import { WorkerResultsView } from '@/components/results/WorkerResultsView';
+import ApiResultsView from '@/components/results/ApiResultsView';
+import type { EdPathApiResponse } from '@/services/edpathApi.types';
 
 const WorkerResultsPage: React.FC = () => {
   const navigate = useNavigate();
-  const [userData, setUserData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  
+  const [apiResults, setApiResults] = useState<EdPathApiResponse | null>(null);
+  const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [hasData, setHasData] = useState(false);
+
   useEffect(() => {
-    console.log("WorkerResultsPage: Loading user data");
-    setIsLoading(true);
-    
-    // Check if user is logged in
-    const storedUser = localStorage.getItem('currentUser');
-    if (storedUser) {
-      const user = JSON.parse(storedUser);
-      
-      // Try to load user-specific data first
-      const userSpecificData = localStorage.getItem(`userFullData_${user.id}`);
-      
-      if (userSpecificData) {
-        const parsedData = JSON.parse(userSpecificData);
-        if (parsedData.questionnaire?.worker) {
-          setUserData(parsedData);
-          setIsLoading(false);
+    const edpathResults = localStorage.getItem('edpathResults');
+    const surveyAnswers = localStorage.getItem('surveyAnswers');
+    const surveyType = localStorage.getItem('surveyType');
+
+    if (edpathResults && (surveyType === 'worker' || surveyType === null)) {
+      try {
+        const parsed = JSON.parse(edpathResults) as EdPathApiResponse;
+        const hasContent = (parsed.dimensjoner?.length > 0) || 
+                          (parsed.yrker?.length > 0) || 
+                          (parsed.studier?.length > 0);
+        if (hasContent) {
+          setApiResults(parsed);
+          setAnswers(surveyAnswers ? JSON.parse(surveyAnswers) : {});
+          setHasData(true);
           return;
         }
+      } catch (e) {
+        console.error('Failed to parse edpathResults:', e);
       }
     }
-    
-    // Fall back to general userFullData if no user-specific data found
-    const savedFullData = localStorage.getItem('userFullData');
-    
-    if (savedFullData) {
-      const parsedData = JSON.parse(savedFullData);
-      console.log("Loading general worker data:", parsedData);
-      setUserData(parsedData);
-      
-      // Save the user type for navigation purposes
-      localStorage.setItem('userType', 'worker');
-      
-      // If the data doesn't have worker questionnaire data, show a toast
-      if (!parsedData.questionnaire?.worker) {
-        toast.warning("Ingen arbeidstakerdata funnet", {
-          description: "Du kan laste inn testdata for arbeidstakere fra hovedsiden"
-        });
-      }
-    } else {
-      toast.warning("Ingen resultater funnet", {
-        description: "Tips: Du kan laste inn testdata fra hovedsiden"
-      });
-    }
-    
-    setIsLoading(false);
+
+    toast.warning("Ingen resultater funnet", {
+      description: "Vennligst fullfør spørreskjemaet først."
+    });
   }, [navigate]);
-  
-  if (isLoading) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-4 py-12 md:py-16 flex justify-center items-center">
-          <p>Laster inn data...</p>
-        </div>
-      </Layout>
-    );
-  }
-  
-  if (!userData || !userData.questionnaire?.worker) {
+
+  if (!hasData || !apiResults) {
     return (
       <Layout>
         <NoResultsView />
@@ -79,24 +49,14 @@ const WorkerResultsPage: React.FC = () => {
     );
   }
 
-  // Extract user's name from user data
-  const { firstName, lastName } = userData || {};
-  const fullName = firstName && lastName ? `${firstName} ${lastName}` : "Anonym bruker";
-  const isTestData = firstName === "Test";
-  
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12 md:py-16">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold">Din karriereprofil</h1>
-          <p className="text-sm text-muted-foreground">{fullName}</p>
         </div>
-        
         <Separator className="mb-8" />
-        
-        <WorkerResultsView userData={userData} />
-        
-        <TestDataNotice isTestData={isTestData} userType="worker" />
+        <ApiResultsView results={apiResults} userType="arbeidstaker" />
       </div>
     </Layout>
   );
