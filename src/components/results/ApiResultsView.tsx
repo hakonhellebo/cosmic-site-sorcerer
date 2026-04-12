@@ -113,6 +113,31 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType }) =>
   const hasStudier = studier.length > 0;
   const hasBedrifter = bedrifter.length > 0;
 
+  const handleStudyClick = useCallback(async (studieName: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('Student_data_ny')
+        .select('Lærestednavn, Studiekode, Studienavn')
+        .ilike('Studienavn', `%${studieName}%`)
+        .limit(1);
+
+      if (error || !data || data.length === 0) {
+        toast.info('Fant ikke studiet i databasen', {
+          description: 'Prøv å søke etter det på statistikksiden.',
+        });
+        navigate('/statistikk', { state: { searchQuery: studieName } });
+        return;
+      }
+
+      const match = data[0];
+      const universitySlug = encodeURIComponent(match.Lærestednavn || '');
+      const studiekode = encodeURIComponent(match.Studiekode || '');
+      navigate(`/utdanning/${universitySlug}/${studiekode}`);
+    } catch {
+      navigate('/statistikk', { state: { searchQuery: studieName } });
+    }
+  }, [navigate]);
+
   return (
     <div className="space-y-10">
       {/* ── 1. PROFILE SUMMARY ── */}
