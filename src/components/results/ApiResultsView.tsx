@@ -3,12 +3,11 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, Briefcase, Building2, TrendingUp, Lightbulb, Check } from 'lucide-react';
-import type { EdPathApiResponse } from '@/services/edpathApi.types';
+import type { EdPathApiResponse, EdPathUserType } from '@/services/edpathApi.types';
 
 interface ApiResultsViewProps {
   results: EdPathApiResponse;
-  answers: Record<string, any>;
-  userType: 'elev' | 'student' | 'worker';
+  userType: EdPathUserType;
 }
 
 const DIMENSION_COLORS = [
@@ -22,15 +21,7 @@ const DIMENSION_COLORS = [
   'hsl(215, 76%, 56%)',
 ];
 
-const SECTION_ICONS = {
-  dimensjoner: TrendingUp,
-  sektorer: Briefcase,
-  yrker: Briefcase,
-  studier: BookOpen,
-  bedrifter: Building2,
-};
-
-const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, answers, userType }) => {
+const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType }) => {
   const hasDimensions = results.dimensjoner && results.dimensjoner.length > 0;
   const hasSektorer = results.topp_sektorer && results.topp_sektorer.length > 0;
   const hasYrker = results.yrker && results.yrker.length > 0;
