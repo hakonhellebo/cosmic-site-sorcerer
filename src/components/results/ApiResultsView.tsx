@@ -309,11 +309,7 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType }) =>
               {studier.map((studie, i) => (
                 <div
                   key={i}
-                  onClick={() =>
-                    navigate('/statistikk', {
-                      state: { searchQuery: studie.navn },
-                    })
-                  }
+                  onClick={() => handleStudyClick(studie.navn)}
                   className="p-5 rounded-lg border cursor-pointer hover:shadow-md hover:border-primary/40 transition-all group"
                 >
                   <div className="flex items-center justify-between mb-2">
