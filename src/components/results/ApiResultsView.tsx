@@ -284,7 +284,7 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answ
         <CareerJourney studier={studier} yrker={yrker} bedrifter={bedrifter} />
       )}
 
-
+      {/* ══════════════════════════════════════════════
           3. YOUR CORE STRENGTHS
          ══════════════════════════════════════════════ */}
       {hasDimensions && (
