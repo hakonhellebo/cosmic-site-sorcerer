@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -110,6 +112,31 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType }) =>
   const hasYrker = yrker.length > 0;
   const hasStudier = studier.length > 0;
   const hasBedrifter = bedrifter.length > 0;
+
+  const handleStudyClick = useCallback(async (studieName: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('Student_data_ny')
+        .select('*')
+        .ilike('Studienavn', `%${studieName}%`)
+        .limit(1);
+
+      if (error || !data || data.length === 0) {
+        toast.info('Fant ikke studiet i databasen', {
+          description: 'Prøv å søke etter det på statistikksiden.',
+        });
+        navigate('/statistikk', { state: { searchQuery: studieName } });
+        return;
+      }
+
+      const match = data[0] as any;
+      const universitySlug = encodeURIComponent(match['Lærestednavn'] || '');
+      const studiekode = encodeURIComponent(match['Studiekode'] || '');
+      navigate(`/utdanning/${universitySlug}/${studiekode}`);
+    } catch {
+      navigate('/statistikk', { state: { searchQuery: studieName } });
+    }
+  }, [navigate]);
 
   return (
     <div className="space-y-10">
@@ -282,11 +309,7 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType }) =>
               {studier.map((studie, i) => (
                 <div
                   key={i}
-                  onClick={() =>
-                    navigate('/statistikk', {
-                      state: { searchQuery: studie.navn },
-                    })
-                  }
+                  onClick={() => handleStudyClick(studie.navn)}
                   className="p-5 rounded-lg border cursor-pointer hover:shadow-md hover:border-primary/40 transition-all group"
                 >
                   <div className="flex items-center justify-between mb-2">
