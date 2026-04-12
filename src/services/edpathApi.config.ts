@@ -43,7 +43,7 @@ export const isEdPathApiConfigured = (): boolean => {
  * API endpoint paths by user type.
  */
 export const EDPATH_ENDPOINTS = {
-  elev: '/api/anbefaling/elev',
-  student: '/api/anbefaling/student',
+  elev: '/api/anbefaling/elever',
+  student: '/api/anbefaling/studenter',
   arbeidstaker: '/api/anbefaling/arbeidstaker',
 } as const;
