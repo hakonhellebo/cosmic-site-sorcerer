@@ -42,6 +42,9 @@ import { useRestoreResults } from "./hooks/useRestoreResults"
 const queryClient = new QueryClient()
 
 const App = () => {
+  // Restore previous results from Supabase on login
+  useRestoreResults();
+
   // Preload statistics data when app starts
   useEffect(() => {
     console.log("App started - preloading statistics data...");
