@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Clock, CheckCircle, HelpCircle, Lock, Lightbulb, Compass, ArrowLeft } from 'lucide-react';
+import { Users, Clock, CheckCircle, HelpCircle, Lock, Lightbulb, Compass, ArrowLeft, BookOpen, Briefcase, BarChart3, Star, CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useClassStats, ClassGroup } from '@/hooks/useClassGroups';
@@ -12,6 +12,10 @@ import {
   aggregateLearningWishes,
   aggregateCertaintyLevels,
   aggregateChallenges,
+  aggregatePostExperience,
+  aggregateWorkPreferences,
+  aggregateSubjectPreferences,
+  getResponseTimeline,
 } from '@/utils/classInsights';
 
 interface Props {
@@ -39,7 +43,12 @@ const ClassDetailDashboard: React.FC<Props> = ({ classGroup, schoolName }) => {
   const certaintyLevels = aggregateCertaintyLevels(responses);
   const challenges = aggregateChallenges(responses);
   const recommendations = generateInsightRecommendations(responses);
+  const postExperience = aggregatePostExperience(responses);
+  const workPreferences = aggregateWorkPreferences(responses);
+  const subjectPreferences = aggregateSubjectPreferences(responses);
+  const timeline = getResponseTimeline(responses);
   const uncertaintyRate = certaintyLevels.find(c => c.label.includes('usikre'))?.percentage || 0;
+  const completedCount = responses.filter(r => r.completion_status === 'completed').length;
 
   return (
     <div className="space-y-8">
@@ -69,7 +78,7 @@ const ClassDetailDashboard: React.FC<Props> = ({ classGroup, schoolName }) => {
       {/* Key stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <StatCard icon={Users} label="Elever som har startet" value={stats.total} sub="respondenter" />
-        <StatCard icon={CheckCircle} label="Fullføringsgrad" value={`${stats.completionRate} %`} sub="fullførte hele undersøkelsen" />
+        <StatCard icon={CheckCircle} label="Fullføringsgrad" value={`${stats.completionRate} %`} sub={`${completedCount} av ${stats.total} fullførte`} />
         <StatCard icon={Clock} label="Snitt tidsbruk" value={`${stats.avgTimeMinutes} min`} sub="per elev" />
         <StatCard icon={HelpCircle} label="Andel usikre" value={`${uncertaintyRate} %`} sub="helt eller delvis usikre" />
       </div>
@@ -89,56 +98,32 @@ const ClassDetailDashboard: React.FC<Props> = ({ classGroup, schoolName }) => {
 
       {stats.total > 0 && (
         <>
-          {/* Interests */}
-          {interests.length > 0 && (
+          {/* Response timeline */}
+          {timeline.length > 1 && (
             <Card className="bg-white border-0 shadow-sm">
               <CardHeader>
-                <CardTitle className="text-xl font-semibold text-slate-800">
-                  Hva er elevene mest interessert i?
+                <CardTitle className="text-xl font-semibold text-slate-800 flex items-center gap-2">
+                  <CalendarDays className="h-5 w-5 text-teal-600" />
+                  Svar over tid
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {interests.map((item, i) => (
-                    <div key={i} className="flex items-center gap-4">
-                      <div className="w-40 text-sm text-slate-600 shrink-0 truncate">{item.name}</div>
-                      <div className="flex-1 h-8 bg-slate-100 rounded-full overflow-hidden">
+                <div className="flex items-end gap-1 h-32">
+                  {timeline.map((day, i) => {
+                    const maxCount = Math.max(...timeline.map(t => t.count));
+                    const heightPct = maxCount > 0 ? (day.count / maxCount) * 100 : 0;
+                    return (
+                      <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                        <span className="text-xs text-slate-500 font-medium">{day.count}</span>
                         <div
-                          className="h-full bg-teal-500 rounded-full flex items-center justify-end pr-3 transition-all duration-500"
-                          style={{ width: `${Math.min(item.percentage * 2, 100)}%` }}
-                        >
-                          <span className="text-sm font-medium text-white">{item.percentage} %</span>
-                        </div>
+                          className="w-full bg-teal-500 rounded-t-md transition-all min-h-[4px]"
+                          style={{ height: `${heightPct}%` }}
+                        />
+                        <span className="text-[10px] text-slate-400 truncate max-w-full">{day.date}</span>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
-                <p className="text-sm text-slate-400 mt-6">Basert på elevenes svar i EdPath.</p>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Learning wishes */}
-          {learningWishes.length > 0 && (
-            <Card className="bg-white border-0 shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold text-slate-800">
-                  Hva elevene ønsker å lære mer om
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {learningWishes.map((item, i) => (
-                    <div key={i} className="flex items-center gap-4">
-                      <span className="w-48 text-sm text-slate-600">{item.label}</span>
-                      <div className="flex-1 h-6 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-teal-400 rounded-full" style={{ width: `${item.percentage}%` }} />
-                      </div>
-                      <span className="w-12 text-right text-sm font-medium text-slate-700">{item.percentage} %</span>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-sm text-slate-400 mt-6">Kan brukes til å planlegge temaundervisning og gruppeveiledning.</p>
               </CardContent>
             </Card>
           )}
@@ -186,6 +171,115 @@ const ClassDetailDashboard: React.FC<Props> = ({ classGroup, schoolName }) => {
             </Card>
           )}
 
+          {/* Interests */}
+          {interests.length > 0 && (
+            <Card className="bg-white border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-slate-800 flex items-center gap-2">
+                  <Star className="h-5 w-5 text-teal-600" />
+                  Hva er elevene mest interessert i?
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {interests.map((item, i) => (
+                    <div key={i} className="flex items-center gap-4">
+                      <div className="w-40 text-sm text-slate-600 shrink-0 truncate">{item.name}</div>
+                      <div className="flex-1 h-8 bg-slate-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-teal-500 rounded-full flex items-center justify-end pr-3 transition-all duration-500"
+                          style={{ width: `${Math.min(item.percentage * 2, 100)}%` }}
+                        >
+                          <span className="text-sm font-medium text-white">{item.percentage} %</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-sm text-slate-400 mt-6">Basert på elevenes svar i EdPath.</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Favourite subjects */}
+          {subjectPreferences.length > 0 && (
+            <Card className="bg-white border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-slate-800 flex items-center gap-2">
+                  <BookOpen className="h-5 w-5 text-teal-600" />
+                  Favorittfag blant elevene
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {subjectPreferences.map((item, i) => (
+                    <div key={i} className="flex items-center gap-4">
+                      <div className="w-40 text-sm text-slate-600 shrink-0 truncate">{item.name}</div>
+                      <div className="flex-1 h-8 bg-slate-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-indigo-400 rounded-full flex items-center justify-end pr-3 transition-all duration-500"
+                          style={{ width: `${Math.min(item.percentage * 2, 100)}%` }}
+                        >
+                          <span className="text-sm font-medium text-white">{item.percentage} %</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Work preferences */}
+          {workPreferences.length > 0 && (
+            <Card className="bg-white border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-slate-800 flex items-center gap-2">
+                  <Briefcase className="h-5 w-5 text-teal-600" />
+                  Arbeidsstil og jobbpreferanser
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {workPreferences.map((item, i) => (
+                    <div key={i} className="flex items-center gap-4">
+                      <span className="w-48 text-sm text-slate-600 truncate">{item.label}</span>
+                      <div className="flex-1 h-6 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-amber-400 rounded-full" style={{ width: `${item.percentage}%` }} />
+                      </div>
+                      <span className="w-12 text-right text-sm font-medium text-slate-700">{item.percentage} %</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Learning wishes */}
+          {learningWishes.length > 0 && (
+            <Card className="bg-white border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-slate-800">
+                  Hva elevene ønsker å lære mer om
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {learningWishes.map((item, i) => (
+                    <div key={i} className="flex items-center gap-4">
+                      <span className="w-48 text-sm text-slate-600 truncate">{item.label}</span>
+                      <div className="flex-1 h-6 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-teal-400 rounded-full" style={{ width: `${item.percentage}%` }} />
+                      </div>
+                      <span className="w-12 text-right text-sm font-medium text-slate-700">{item.percentage} %</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-sm text-slate-400 mt-6">Kan brukes til å planlegge temaundervisning og gruppeveiledning.</p>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Challenges */}
           {challenges.length > 0 && (
             <Card className="bg-white border-0 shadow-sm">
@@ -203,6 +297,31 @@ const ClassDetailDashboard: React.FC<Props> = ({ classGroup, schoolName }) => {
                     </div>
                   ))}
                 </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Post-experience */}
+          {postExperience.length > 0 && (
+            <Card className="bg-white border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-slate-800 flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-teal-600" />
+                  Elevenes opplevelse etter anbefalingene
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col md:flex-row gap-6">
+                  {postExperience.map((item, i) => (
+                    <div key={i} className="flex-1 text-center p-4 bg-slate-50 rounded-xl">
+                      <div className={`w-12 h-12 rounded-full ${item.color} mx-auto mb-3 flex items-center justify-center`}>
+                        <span className="text-white text-lg font-bold">{item.percentage}%</span>
+                      </div>
+                      <p className="text-sm font-medium text-slate-700">{item.label}</p>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-sm text-slate-400 mt-6">Basert på elevenes svar etter å ha mottatt sine anbefalinger.</p>
               </CardContent>
             </Card>
           )}
@@ -252,13 +371,65 @@ const ClassDetailDashboard: React.FC<Props> = ({ classGroup, schoolName }) => {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-teal-600 mt-1">•</span>
-                  planlegge temainformasjon og gruppeveiledning
+                  planlegge temainformasjon og gruppeveiledning basert på interesser og fagpreferanser
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-teal-600 mt-1">•</span>
-                  strukturere individuelle samtaler bedre
+                  strukturere individuelle samtaler bedre med bakgrunn i usikkerhet og utfordringer
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-teal-600 mt-1">•</span>
+                  evaluere om rådgivningen har effekt ved å følge med på opplevelsen etter anbefalingene
                 </li>
               </ul>
+            </CardContent>
+          </Card>
+
+          {/* Anonymized responses overview */}
+          <Card className="bg-white border-0 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold text-slate-800">
+                Oversikt over besvarelser
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-100">
+                      <th className="text-left py-3 px-2 text-slate-500 font-medium">Respondent</th>
+                      <th className="text-left py-3 px-2 text-slate-500 font-medium">Status</th>
+                      <th className="text-left py-3 px-2 text-slate-500 font-medium">Startet</th>
+                      <th className="text-left py-3 px-2 text-slate-500 font-medium">Fullført</th>
+                      <th className="text-left py-3 px-2 text-slate-500 font-medium">Tidsbruk</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {responses.map((r, i) => {
+                      const started = new Date(r.started_at);
+                      const completed = r.completed_at ? new Date(r.completed_at) : null;
+                      const minutes = completed ? Math.round((completed.getTime() - started.getTime()) / 60000) : null;
+                      return (
+                        <tr key={r.id} className="border-b border-slate-50 hover:bg-slate-50/50">
+                          <td className="py-3 px-2 text-slate-600">Elev {i + 1}</td>
+                          <td className="py-3 px-2">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                              r.completion_status === 'completed' 
+                                ? 'bg-emerald-100 text-emerald-700' 
+                                : 'bg-amber-100 text-amber-700'
+                            }`}>
+                              {r.completion_status === 'completed' ? 'Fullført' : 'Påbegynt'}
+                            </span>
+                          </td>
+                          <td className="py-3 px-2 text-slate-500">{started.toLocaleDateString('nb-NO')}</td>
+                          <td className="py-3 px-2 text-slate-500">{completed ? completed.toLocaleDateString('nb-NO') : '–'}</td>
+                          <td className="py-3 px-2 text-slate-500">{minutes !== null ? `${minutes} min` : '–'}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </CardContent>
           </Card>
         </>
