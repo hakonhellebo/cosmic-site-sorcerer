@@ -37,10 +37,14 @@ import TeacherDashboard from "./pages/TeacherDashboard"
 import SurveyJoinPage from "./pages/SurveyJoinPage"
 import { preloadStatisticsData } from "./pages/Statistics"
 import { useEffect } from "react"
+import { useRestoreResults } from "./hooks/useRestoreResults"
 
 const queryClient = new QueryClient()
 
 const App = () => {
+  // Restore previous results from Supabase on login
+  useRestoreResults();
+
   // Preload statistics data when app starts
   useEffect(() => {
     console.log("App started - preloading statistics data...");
