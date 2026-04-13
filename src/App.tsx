@@ -34,6 +34,7 @@ import CompanyProfilePage from "./pages/CompanyProfilePage"
 import EducationDetailsPage from "./pages/EducationDetailsPage"
 import CareerDetailPageWrapper from "./pages/CareerDetailPage"
 import TeacherDashboard from "./pages/TeacherDashboard"
+import SurveyJoinPage from "./pages/SurveyJoinPage"
 import { preloadStatisticsData } from "./pages/Statistics"
 import { useEffect } from "react"
 

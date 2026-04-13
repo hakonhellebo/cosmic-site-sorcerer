@@ -1,9 +1,8 @@
 import React from 'react';
-import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Clock, CheckCircle, HelpCircle, Lock, Lightbulb, Compass, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useClassStats, ClassGroup } from '@/hooks/useClassGroups';
 import { Skeleton } from '@/components/ui/skeleton';
 import ClassCodeCard from './ClassCodeCard';

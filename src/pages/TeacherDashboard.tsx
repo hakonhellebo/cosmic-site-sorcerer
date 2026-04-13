@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, School, ChevronRight, Plus } from 'lucide-react';
+import { Users, School, ChevronRight } from 'lucide-react';
 import { useSchools, useClassGroups, ClassGroup } from '@/hooks/useClassGroups';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import CreateSchoolDialog from '@/components/teacher/CreateSchoolDialog';
 import CreateClassDialog from '@/components/teacher/CreateClassDialog';
-import ClassCodeCard from '@/components/teacher/ClassCodeCard';
+
 import ClassDetailDashboard from '@/components/teacher/ClassDetailDashboard';
 import { Skeleton } from '@/components/ui/skeleton';
 
