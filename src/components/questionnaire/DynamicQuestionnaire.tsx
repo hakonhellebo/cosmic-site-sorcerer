@@ -110,6 +110,27 @@ const DynamicQuestionnaire: React.FC<DynamicQuestionnaireProps> = ({
       localStorage.setItem('surveyAnswers', JSON.stringify(answers));
       localStorage.setItem('surveyType', surveyId);
 
+      // If coming from a class join link, update the class survey response
+      const classGroupId = localStorage.getItem('classGroupId');
+      if (classGroupId) {
+        try {
+          const { supabase } = await import('@/integrations/supabase/client');
+          const { data: { user } } = await supabase.auth.getUser();
+          // Try to update existing started response or insert new one
+          await supabase.from('class_survey_responses').insert({
+            class_group_id: classGroupId,
+            survey_type: surveyId,
+            user_id: user?.id || null,
+            responses: answers,
+            completion_status: 'completed',
+            started_at: new Date(Date.now() - 10 * 60000).toISOString(), // approximate
+            completed_at: new Date().toISOString(),
+          });
+        } catch (classErr) {
+          console.warn('Could not save class response:', classErr);
+        }
+      }
+
       // Call EdPath API for recommendations
       try {
         const recommendations = await getRecommendations(answers, apiUserType);

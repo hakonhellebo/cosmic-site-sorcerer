@@ -128,6 +128,100 @@ export type Database = {
         }
         Relationships: []
       }
+      class_groups: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          grade_level: string | null
+          id: string
+          join_code: string
+          name: string
+          program_area: string | null
+          school_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          grade_level?: string | null
+          id?: string
+          join_code?: string
+          name: string
+          program_area?: string | null
+          school_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          grade_level?: string | null
+          id?: string
+          join_code?: string
+          name?: string
+          program_area?: string | null
+          school_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_groups_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_survey_responses: {
+        Row: {
+          class_group_id: string
+          completed_at: string | null
+          completion_status: string
+          created_at: string
+          id: string
+          respondent_id: string
+          responses: Json | null
+          scores: Json | null
+          started_at: string
+          survey_type: string
+          user_id: string | null
+        }
+        Insert: {
+          class_group_id: string
+          completed_at?: string | null
+          completion_status?: string
+          created_at?: string
+          id?: string
+          respondent_id?: string
+          responses?: Json | null
+          scores?: Json | null
+          started_at?: string
+          survey_type: string
+          user_id?: string | null
+        }
+        Update: {
+          class_group_id?: string
+          completed_at?: string | null
+          completion_status?: string
+          created_at?: string
+          id?: string
+          respondent_id?: string
+          responses?: Json | null
+          scores?: Json | null
+          started_at?: string
+          survey_type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_survey_responses_class_group_id_fkey"
+            columns: ["class_group_id"]
+            isOneToOne: false
+            referencedRelation: "class_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       Clean_11418: {
         Row: {
           AvtaltVanlig: string | null
@@ -319,6 +413,81 @@ export type Database = {
           user_type?: string | null
         }
         Relationships: []
+      }
+      schools: {
+        Row: {
+          address: string | null
+          contact_email: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          contact_email?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          contact_email?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      shared_results: {
+        Row: {
+          class_group_id: string
+          display_name: string | null
+          id: string
+          response_id: string
+          result_data: Json | null
+          shared_at: string
+          shared_by: string | null
+        }
+        Insert: {
+          class_group_id: string
+          display_name?: string | null
+          id?: string
+          response_id: string
+          result_data?: Json | null
+          shared_at?: string
+          shared_by?: string | null
+        }
+        Update: {
+          class_group_id?: string
+          display_name?: string | null
+          id?: string
+          response_id?: string
+          result_data?: Json | null
+          shared_at?: string
+          shared_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_results_class_group_id_fkey"
+            columns: ["class_group_id"]
+            isOneToOne: false
+            referencedRelation: "class_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_results_response_id_fkey"
+            columns: ["response_id"]
+            isOneToOne: false
+            referencedRelation: "class_survey_responses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ssb_til_yrker: {
         Row: {
@@ -773,6 +942,10 @@ export type Database = {
     }
     Functions: {
       get_user_role: { Args: { user_id: string }; Returns: string }
+      is_class_creator: {
+        Args: { _class_group_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

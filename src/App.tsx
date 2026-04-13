@@ -34,6 +34,7 @@ import CompanyProfilePage from "./pages/CompanyProfilePage"
 import EducationDetailsPage from "./pages/EducationDetailsPage"
 import CareerDetailPageWrapper from "./pages/CareerDetailPage"
 import TeacherDashboard from "./pages/TeacherDashboard"
+import SurveyJoinPage from "./pages/SurveyJoinPage"
 import { preloadStatisticsData } from "./pages/Statistics"
 import { useEffect } from "react"
 
@@ -99,6 +100,7 @@ const App = () => {
             <Route path="/bedrift/:companySlug" element={<CompanyProfilePage />} />
             <Route path="/utdanning/:universityId/:studiekode" element={<EducationDetailsPage />} />
             <Route path="/karriere/:careerSlug" element={<CareerDetailPageWrapper />} />
+            <Route path="/survey/join/:joinCode" element={<SurveyJoinPage />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
