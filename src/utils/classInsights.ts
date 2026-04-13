@@ -13,7 +13,6 @@ export function generateInsightRecommendations(responses: any[]): InsightRecomme
   const completed = responses.filter(r => r.completion_status === 'completed');
   if (completed.length === 0) return recommendations;
 
-  // Analyze responses for uncertainty
   const uncertaintyRate = calculateUncertaintyRate(completed);
   if (uncertaintyRate > 60) {
     recommendations.push({
@@ -29,7 +28,6 @@ export function generateInsightRecommendations(responses: any[]): InsightRecomme
     });
   }
 
-  // Career knowledge
   const careerKnowledgeGap = calculateCareerKnowledgeGap(completed);
   if (careerKnowledgeGap > 40) {
     recommendations.push({
@@ -39,7 +37,6 @@ export function generateInsightRecommendations(responses: any[]): InsightRecomme
     });
   }
 
-  // Study interest
   const studyInterestGap = calculateStudyInterestGap(completed);
   if (studyInterestGap > 40) {
     recommendations.push({
@@ -49,7 +46,6 @@ export function generateInsightRecommendations(responses: any[]): InsightRecomme
     });
   }
 
-  // Completion rate
   const completionRate = Math.round((completed.length / responses.length) * 100);
   if (completionRate < 50) {
     recommendations.push({
@@ -59,7 +55,6 @@ export function generateInsightRecommendations(responses: any[]): InsightRecomme
     });
   }
 
-  // Default recommendation
   if (recommendations.length === 0) {
     recommendations.push({
       icon: '✅',
@@ -81,13 +76,10 @@ export function aggregateInterests(responses: any[]): { name: string; count: num
   const interestCounts: Record<string, number> = {};
   for (const r of completed) {
     const answers = r.responses || {};
-    // Look for interest-related questions (common patterns)
     for (const [key, value] of Object.entries(answers)) {
       if (key.toLowerCase().includes('interesse') || key.toLowerCase().includes('interest') || key.toLowerCase().includes('sektor')) {
         if (Array.isArray(value)) {
-          for (const v of value) {
-            interestCounts[v] = (interestCounts[v] || 0) + 1;
-          }
+          for (const v of value) interestCounts[v] = (interestCounts[v] || 0) + 1;
         } else if (typeof value === 'string' && value) {
           interestCounts[value] = (interestCounts[value] || 0) + 1;
         }
@@ -179,6 +171,102 @@ export function aggregateChallenges(responses: any[]): { label: string; percenta
     .map(([label, count]) => ({ label, percentage: Math.round((count / completed.length) * 100) }))
     .sort((a, b) => b.percentage - a.percentage)
     .slice(0, 5);
+}
+
+export function aggregatePostExperience(responses: any[]): { label: string; percentage: number; color: string }[] {
+  const completed = responses.filter(r => r.completion_status === 'completed');
+  if (completed.length === 0) return [];
+
+  let positive = 0, neutral = 0, negative = 0;
+  for (const r of completed) {
+    const answers = r.responses || {};
+    for (const [key, value] of Object.entries(answers)) {
+      if (key.toLowerCase().includes('opplevelse') || key.toLowerCase().includes('nyttig') || key.toLowerCase().includes('experience') || key.toLowerCase().includes('fornøyd') || key.toLowerCase().includes('hjelp')) {
+        const v = typeof value === 'string' ? value.toLowerCase() : '';
+        if (v.includes('veldig') || v.includes('svært') || v.includes('ja') || v === '5' || v === '4') {
+          positive++;
+        } else if (v.includes('nei') || v.includes('ikke') || v === '1' || v === '2') {
+          negative++;
+        } else {
+          neutral++;
+        }
+        break;
+      }
+    }
+  }
+
+  const total = positive + neutral + negative;
+  if (total === 0) return [];
+
+  return [
+    { label: 'Positiv opplevelse', percentage: Math.round((positive / total) * 100), color: 'bg-emerald-400' },
+    { label: 'Nøytral', percentage: Math.round((neutral / total) * 100), color: 'bg-slate-300' },
+    { label: 'Negativ opplevelse', percentage: Math.round((negative / total) * 100), color: 'bg-red-400' },
+  ];
+}
+
+export function aggregateWorkPreferences(responses: any[]): { label: string; percentage: number }[] {
+  const completed = responses.filter(r => r.completion_status === 'completed');
+  if (completed.length === 0) return [];
+
+  const counts: Record<string, number> = {};
+  for (const r of completed) {
+    const answers = r.responses || {};
+    for (const [key, value] of Object.entries(answers)) {
+      if (key.toLowerCase().includes('arbeid') || key.toLowerCase().includes('jobb') || key.toLowerCase().includes('work') || key.toLowerCase().includes('stil')) {
+        if (Array.isArray(value)) {
+          for (const v of value) counts[v] = (counts[v] || 0) + 1;
+        } else if (typeof value === 'string' && value) {
+          counts[value] = (counts[value] || 0) + 1;
+        }
+      }
+    }
+  }
+
+  return Object.entries(counts)
+    .map(([label, count]) => ({ label, percentage: Math.round((count / completed.length) * 100) }))
+    .sort((a, b) => b.percentage - a.percentage)
+    .slice(0, 6);
+}
+
+export function aggregateSubjectPreferences(responses: any[]): { name: string; count: number; percentage: number }[] {
+  const completed = responses.filter(r => r.completion_status === 'completed');
+  if (completed.length === 0) return [];
+
+  const counts: Record<string, number> = {};
+  for (const r of completed) {
+    const answers = r.responses || {};
+    for (const [key, value] of Object.entries(answers)) {
+      if (key.toLowerCase().includes('fag') || key.toLowerCase().includes('subject') || key.toLowerCase().includes('emne')) {
+        if (Array.isArray(value)) {
+          for (const v of value) counts[v] = (counts[v] || 0) + 1;
+        } else if (typeof value === 'string' && value) {
+          counts[value] = (counts[value] || 0) + 1;
+        }
+      }
+    }
+  }
+
+  return Object.entries(counts)
+    .map(([name, count]) => ({ name, count, percentage: Math.round((count / completed.length) * 100) }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8);
+}
+
+export function getResponseTimeline(responses: any[]): { date: string; count: number }[] {
+  const dateCounts: Record<string, number> = {};
+  for (const r of responses) {
+    const date = new Date(r.started_at || r.created_at).toLocaleDateString('nb-NO');
+    dateCounts[date] = (dateCounts[date] || 0) + 1;
+  }
+
+  return Object.entries(dateCounts)
+    .map(([date, count]) => ({ date, count }))
+    .sort((a, b) => {
+      const [dA, mA, yA] = a.date.split('.').map(Number);
+      const [dB, mB, yB] = b.date.split('.').map(Number);
+      return new Date(yA, mA - 1, dA).getTime() - new Date(yB, mB - 1, dB).getTime();
+    });
 }
 
 function calculateUncertaintyRate(completed: any[]): number {
