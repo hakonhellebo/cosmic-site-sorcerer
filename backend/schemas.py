@@ -65,8 +65,9 @@ class AnbefalingItem(BaseModel):
     navn: str
     sektor: str
     underkategori: str = ""
-    match_score: float = 0.0     # sammensatt matchscore (0–100)
-    preferanse_boost: bool = False  # True hvis fremmet pga. eksplisitt preferanse
+    match_score: float = 0.0          # sammensatt matchscore (0–100)
+    preferanse_boost: bool = False    # True hvis fremmet pga. eksplisitt preferanse
+    match_reasons: list[str] = Field(default_factory=list)  # topp-dimensjoner bak anbefalingen
 
 
 class AnbefalingRespons(BaseModel):

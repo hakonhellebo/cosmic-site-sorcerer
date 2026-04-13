@@ -25,7 +25,7 @@ from typing import Any
 import pandas as pd
 
 from filter_engine import filtrer_anbefalinger, hent_aktive_filterregler, sorter_etter_score
-from mapping_engine import map_til_sektorer
+from mapping_engine import map_til_sektorer, topp_dims_for_sektor
 from profil_engine import lag_profil_beskrivelse
 from schemas import PreferanseSignaler
 from scoring_engine import scorer_svar, topp_dimensjoner, normaliser_scores
@@ -105,6 +105,42 @@ _BEDRIFT_BOOST     = 1.25   # bedrift nevnt av bruker finnes i resultater
 
 
 # ---------------------------------------------------------------------------
+# Match-reasons: norske etiketter per dimensjon
+# ---------------------------------------------------------------------------
+
+_DIM_ETIKETT: dict[str, str] = {
+    "Teknologi":        "teknologisk interesse",
+    "Analytisk":        "analytisk tankegang",
+    "Bærekraft":        "miljøengasjement",
+    "Helseinteresse":   "interesse for helse",
+    "Kreativitet":      "kreativ profil",
+    "Praktisk":         "praktisk orientering",
+    "Ambisjon":         "lederambisjoner",
+    "Selvstendighet":   "selvstendig arbeidsform",
+    "Sosialitet":       "sosial orientering",
+    "Struktur":         "strukturert tilnærming",
+    "Fleksibilitet":    "fleksibel arbeidsform",
+    "Helse":            "helseorientering",
+    "Økonomi":          "økonomiinteresse",
+    "Samfunnsfag":      "samfunnsengasjement",
+    "Kunst/design":     "estetisk sans",
+    "Utdanning":        "pedagogisk interesse",
+    "Jus":              "juridisk interesse",
+    "Sikkerhet":        "sikkerhetsinteresse",
+    "Sport":            "idrettsinteresse",
+    "Transport":        "interesse for transport",
+    "Religion":         "livssynsinteresse",
+    "Humaniora":        "humanistisk orientering",
+    "Språk":            "språkinteresse",
+}
+
+
+def _dim_til_etikett(dim_label: str) -> str:
+    """Konverterer dimensjonsnavn til norsk match-reason-tekst."""
+    return _DIM_ETIKETT.get(dim_label, dim_label.lower())
+
+
+# ---------------------------------------------------------------------------
 # connections-sortert wrapper
 # ---------------------------------------------------------------------------
 
@@ -164,17 +200,18 @@ class _ConnectionsSortert:
     ) -> dict[str, list[dict]]:
         """
         Henter og scorer anbefalinger fra connections.
-        Sorterer på match_score (sektorens relevanscore) FØR dedup.
-        """
-        alle_yrker: list[dict] = []
-        alle_studier: list[dict] = []
-        alle_bedrifter: list[dict] = []
 
-        # Bygg sektor → score dict for rask oppslag
-        sektor_scores: dict[str, float] = {}
-        for sektor, underkat, score in sektor_tupler:
-            key = f"{sektor}||{underkat}" if underkat else sektor
-            sektor_scores[key] = max(sektor_scores.get(key, 0.0), score)
+        DEL 4 — Sammensatt multi-dimensjonal scoring:
+          Items som dukker opp i FLERE relevante sektorer akkumulerer score.
+          Første gang: full sektor-score.
+          Gjentagelse: +25% av ny sektor-score (avtagende utbytte).
+          Dette gir items som passer bredt i brukerens profil høyere score
+          enn items som bare passer i én enkelt sektor.
+        """
+        # Bruk dict-akkumulering for å summere score på tvers av sektorer
+        yrke_acc:    dict[str, dict] = {}
+        studie_acc:  dict[str, dict] = {}
+        bedrift_acc: dict[str, dict] = {}
 
         for sektor, underkat, score in sektor_tupler:
             ark = self._finn_ark(sektor)
@@ -192,26 +229,46 @@ class _ConnectionsSortert:
                 yrke_df = studie_df = bedrift_df = df
 
             if "Alle yrker" in df.columns:
-                alle_yrker += self._hent_kolonne(yrke_df, "Alle yrker", "Underkategori_yrker", ark, score)
+                _akkumuler_items(yrke_acc, self._hent_kolonne(yrke_df, "Alle yrker", "Underkategori_yrker", ark, score))
             elif "Alle yrker 2" in df.columns:
-                alle_yrker += self._hent_kolonne(yrke_df, "Alle yrker 2", None, ark, score)
+                _akkumuler_items(yrke_acc, self._hent_kolonne(yrke_df, "Alle yrker 2", None, ark, score))
 
             if "Studielinje" in df.columns:
-                alle_studier += self._hent_kolonne(studie_df, "Studielinje", "Underkategori_studielinje", ark, score)
+                _akkumuler_items(studie_acc, self._hent_kolonne(studie_df, "Studielinje", "Underkategori_studielinje", ark, score))
 
             if "Bedrifter" in df.columns:
-                alle_bedrifter += self._hent_kolonne(bedrift_df, "Bedrifter", "Underkategori_bedrifter", ark, score)
+                _akkumuler_items(bedrift_acc, self._hent_kolonne(bedrift_df, "Bedrifter", "Underkategori_bedrifter", ark, score))
 
-        # Sorter etter match_score (høyest relevante sektorer øverst) FØR dedup
-        alle_yrker.sort(key=lambda x: x["match_score"], reverse=True)
-        alle_studier.sort(key=lambda x: x["match_score"], reverse=True)
-        alle_bedrifter.sort(key=lambda x: x["match_score"], reverse=True)
+        # Sorter akkumulerte dicts
+        alle_yrker    = sorted(yrke_acc.values(),    key=lambda x: x["match_score"], reverse=True)
+        alle_studier  = sorted(studie_acc.values(),  key=lambda x: x["match_score"], reverse=True)
+        alle_bedrifter = sorted(bedrift_acc.values(), key=lambda x: x["match_score"], reverse=True)
 
         return {
-            "yrker":     _dedup(alle_yrker, n),
-            "studier":   _dedup(alle_studier, n),
-            "bedrifter": _dedup(alle_bedrifter, n),
+            "yrker":     alle_yrker[:n],
+            "studier":   alle_studier[:n],
+            # Bedrifter: diversifiser på tvers av sektorer (maks 2 per sektor)
+            "bedrifter": _dedup_diverse(alle_bedrifter, n, maks_per_sektor=2),
         }
+
+    def bygg_navn_index(self) -> dict[str, set[str]]:
+        """
+        Bygger en omvendt indeks: normalisert_navn → sett av sektorer.
+        Brukes til å finne hvilken sektor et yrke/studie/bedrift tilhører,
+        slik at preferansesignaler kan knyttes til riktig sektor.
+        """
+        index: dict[str, set[str]] = {}
+        kolonner = ["Alle yrker", "Alle yrker 2", "Studielinje", "Bedrifter"]
+        for ark_navn, df in self._ark.items():
+            for kol in kolonner:
+                if kol not in df.columns:
+                    continue
+                for verdi in df[kol].dropna():
+                    v = str(verdi).strip()
+                    if v:
+                        norm = _normaliser(v)
+                        index.setdefault(norm, set()).add(ark_navn)
+        return index
 
 
 def _dedup(lst: list[dict], maks: int) -> list[dict]:
@@ -227,9 +284,60 @@ def _dedup(lst: list[dict], maks: int) -> list[dict]:
     return ut
 
 
+def _dedup_diverse(lst: list[dict], maks: int, maks_per_sektor: int = 2) -> list[dict]:
+    """
+    Dedup på navn med sektor-diversitet.
+    Maks maks_per_sektor items per sektor i første runde.
+    Deretter fylles opp med resterende (fra hvilken som helst sektor) til maks nås.
+    Brukes for bedrifter for å sikre bredde på tvers av bransjer.
+    """
+    sett: set[str] = set()
+    sektor_teller: dict[str, int] = {}
+    ut: list[dict] = []
+    venteliste: list[dict] = []
+
+    for item in lst:
+        if item["navn"] in sett:
+            continue
+        sektor = item.get("sektor", "")
+        if sektor_teller.get(sektor, 0) < maks_per_sektor:
+            sett.add(item["navn"])
+            sektor_teller[sektor] = sektor_teller.get(sektor, 0) + 1
+            ut.append(item)
+            if len(ut) == maks:
+                return ut
+        else:
+            venteliste.append(item)
+
+    for item in venteliste:
+        if item["navn"] not in sett:
+            sett.add(item["navn"])
+            ut.append(item)
+            if len(ut) == maks:
+                break
+    return ut
+
+
 def _normaliser(tekst: str) -> str:
     nfkd = unicodedata.normalize("NFKD", tekst)
     return "".join(c for c in nfkd if not unicodedata.combining(c)).lower().strip()
+
+
+def _akkumuler_items(acc: dict[str, dict], nye_items: list[dict]) -> None:
+    """
+    DEL 4 — Akkumulerer items inn i en dict.
+    Eksisterende item: legger til 25% av ny score (avtagende utbytte).
+    Nytt item: legger til med full score.
+    """
+    for item in nye_items:
+        navn = item["navn"]
+        if navn in acc:
+            # Item er allerede kjent fra en annen sektor — gi bonus
+            acc[navn]["match_score"] = round(
+                acc[navn]["match_score"] + item["match_score"] * 0.25, 2
+            )
+        else:
+            acc[navn] = dict(item)
 
 
 @lru_cache(maxsize=None)
@@ -238,6 +346,37 @@ def _hent_connections() -> _ConnectionsSortert:
     if not fp.exists():
         raise FileNotFoundError(f"Finner ikke connections-fil: {fp}")
     return _ConnectionsSortert(fp)
+
+
+@lru_cache(maxsize=None)
+def _hent_navn_sektor_index() -> dict[str, set[str]]:
+    """
+    DEL 3 — Omvendt indeks: normalisert_navn → sett av sektorer.
+    Brukes til å finne hvilken sektor et yrke/bedrift/studie tilhører.
+    Caches ved første kall.
+    """
+    return _hent_connections().bygg_navn_index()
+
+
+def _finn_sektorer_fra_preferanse(navn_liste: list[str]) -> set[str]:
+    """
+    DEL 3 — Slår opp hvilke sektorer en liste av navn (yrker/bedrifter/studier)
+    tilhører i connections-data. Brukes for å boost sektorer basert på
+    eksplisitte preferanser, selv om brukeren ikke scoret høyt på den sektoren.
+    """
+    index = _hent_navn_sektor_index()
+    sektorer: set[str] = set()
+    for navn in navn_liste:
+        navn_norm = _normaliser(navn)
+        if navn_norm in index:
+            sektorer.update(index[navn_norm])
+        else:
+            # Prøv delvis match for korte navn (f.eks. "Lege" → finnes i "Lege (spesialist)")
+            for idx_key, idx_sektorer in index.items():
+                if len(navn_norm) >= 4 and (navn_norm in idx_key or idx_key in navn_norm):
+                    sektorer.update(idx_sektorer)
+                    break
+    return sektorer
 
 
 # ---------------------------------------------------------------------------
@@ -250,22 +389,55 @@ def _appliser_preferanse_boost(
     sektor_tupler: list[tuple[str, str, float]],
 ) -> dict[str, list[dict]]:
     """
-    Booster items basert på brukerens eksplisitte preferanser.
-    Opererer på en kopi — påvirker ikke originaldataene.
+    DEL 3 — Booster items basert på brukerens eksplisitte preferanser.
+
+    Signaltyper og effekt:
+      bransje_interesse → boost alle items fra matchende sektor (navn-oppslag + direkte dict)
+      studie_interesse  → boost studier som matcher navnmessig
+                        → boost sektorer disse studiene tilhører (via reverse index)
+      yrke_interesse    → boost yrker som matcher navnmessig
+                        → boost sektorer disse yrkene tilhører (via reverse index)
+      bedrift_interesse → boost bedrifter som matcher navnmessig
+                        → boost sektoren bedriften tilhører (via reverse index)
+
+    Boost-faktorer er moderate (1.25–1.30) slik at preferanser forbedrer
+    rangeringen uten å overstyre profil-basert scoring.
     """
-    # Bygg sektor-boost fra bransje_interesse
+    # --- Bransje → sektor: direkte mapping + reverse index ---
     bransje_boost_sektorer: set[str] = set()
     for bransje in preferanser.bransje_interesse:
         norm = _normaliser(bransje)
-        sektor = _BRANSJE_TIL_SEKTOR.get(norm)
-        if sektor:
-            bransje_boost_sektorer.add(sektor)
-            logger.debug("bransje-boost: '%s' → sektor '%s'", bransje, sektor)
+        direkte = _BRANSJE_TIL_SEKTOR.get(norm)
+        if direkte:
+            bransje_boost_sektorer.add(direkte)
+            logger.debug("bransje-boost (direkte): '%s' → '%s'", bransje, direkte)
 
-    # Normaliser preferanselister for matching
-    studie_norm   = {_normaliser(s) for s in preferanser.studie_interesse}
-    yrke_norm     = {_normaliser(y) for y in preferanser.yrke_interesse}
-    bedrift_norm  = {_normaliser(b) for b in preferanser.bedrift_interesse}
+    # --- Yrke → sektor: reverse index (DEL 3) ---
+    yrke_boost_sektorer: set[str] = set()
+    if preferanser.yrke_interesse:
+        yrke_boost_sektorer = _finn_sektorer_fra_preferanse(preferanser.yrke_interesse)
+        for s in yrke_boost_sektorer:
+            logger.debug("yrke-sektor-boost: '%s'", s)
+
+    # --- Bedrift → sektor: reverse index (DEL 3) ---
+    bedrift_boost_sektorer: set[str] = set()
+    if preferanser.bedrift_interesse:
+        bedrift_boost_sektorer = _finn_sektorer_fra_preferanse(preferanser.bedrift_interesse)
+        for s in bedrift_boost_sektorer:
+            logger.debug("bedrift-sektor-boost: '%s'", s)
+
+    # --- Studie → sektor: reverse index (DEL 3) ---
+    studie_boost_sektorer: set[str] = set()
+    if preferanser.studie_interesse:
+        studie_boost_sektorer = _finn_sektorer_fra_preferanse(preferanser.studie_interesse)
+
+    # Alle boost-sektorer samlet (for tverr-kategori bransje-boost)
+    alle_boost_sektorer = bransje_boost_sektorer | yrke_boost_sektorer | bedrift_boost_sektorer | studie_boost_sektorer
+
+    # Normaliser preferanselister for direkte navn-matching
+    studie_norm  = {_normaliser(s) for s in preferanser.studie_interesse}
+    yrke_norm    = {_normaliser(y) for y in preferanser.yrke_interesse}
+    bedrift_norm = {_normaliser(b) for b in preferanser.bedrift_interesse}
 
     def _boost_liste(items: list[dict], kategori: str) -> list[dict]:
         boosted = []
@@ -274,24 +446,24 @@ def _appliser_preferanse_boost(
             navn_norm = _normaliser(item["navn"])
             sektor = item.get("sektor", "")
 
-            # Bransje-boost
-            if sektor in bransje_boost_sektorer:
+            # Sektor-boost (fra bransje + yrke + bedrift reverse lookup)
+            if sektor in alle_boost_sektorer:
                 ny["match_score"] = round(ny.get("match_score", 1.0) * _BRANSJE_BOOST, 2)
                 ny["preferanse_boost"] = True
 
-            # Studie-boost
+            # Direkte navn-match: studie
             if kategori == "studier" and studie_norm:
                 if any(navn_norm in s or s in navn_norm for s in studie_norm):
                     ny["match_score"] = round(ny.get("match_score", 1.0) * _STUDIE_BOOST, 2)
                     ny["preferanse_boost"] = True
 
-            # Yrke-boost
+            # Direkte navn-match: yrke
             if kategori == "yrker" and yrke_norm:
                 if any(navn_norm in y or y in navn_norm for y in yrke_norm):
                     ny["match_score"] = round(ny.get("match_score", 1.0) * _YRKE_BOOST, 2)
                     ny["preferanse_boost"] = True
 
-            # Bedrift-boost
+            # Direkte navn-match: bedrift
             if kategori == "bedrifter" and bedrift_norm:
                 if any(navn_norm in b or b in navn_norm for b in bedrift_norm):
                     ny["match_score"] = round(ny.get("match_score", 1.0) * _BEDRIFT_BOOST, 2)
@@ -412,6 +584,12 @@ def generer_anbefaling(
         anbefalinger[kat] = _normaliser_match_score(anbefalinger[kat], global_maks)
         anbefalinger[kat] = anbefalinger[kat][:n_resultater]
 
+    # --- 8b. Generer match_reasons per item ---
+    for kat in ["yrker", "studier", "bedrifter"]:
+        for item in anbefalinger[kat]:
+            _dims = topp_dims_for_sektor(item.get("sektor", ""), scoring.dimensjon_scores, n=3)
+            item["match_reasons"] = [_dim_til_etikett(d) for d in _dims]
+
     # --- 9. Bygg dimensjon-liste (topp 5, normalisert) ---
     norm_scores = normaliser_scores(scoring.dimensjon_scores)
     topp_dims = topp_dimensjoner(scoring.dimensjon_scores, n=5)
@@ -440,6 +618,37 @@ def generer_anbefaling(
     # --- 11. Generer profilbeskrivelse ---
     profil = lag_profil_beskrivelse(scoring.dimensjon_scores, brukertype)
 
+    # --- 12. Bygg LLM-kontekst (DEL 6) ---
+    # Strukturert metadata klar for prompt-generering til forklaringstekster.
+    # Inneholder alt LLM trenger for å lage personlig, troverdig forklaring.
+    alle_match_reasons: list[str] = list({
+        r
+        for kat in ["yrker", "studier", "bedrifter"]
+        for item in anbefalinger.get(kat, [])
+        for r in item.get("match_reasons", [])
+    })
+    llm_context = {
+        "brukertype": brukertype,
+        "topp_dimensjoner": [
+            {"navn": navn, "score_norm": norm_scores.get(navn, 0.0)}
+            for navn, _ in topp_dims
+        ],
+        "topp_sektorer": [
+            {"sektor": s["sektor"], "score_norm": s["score"]}
+            for s in topp_sektorer[:3]
+        ],
+        "profil_sammendrag": profil.profil_sammendrag,
+        "styrker": profil.styrker,
+        "match_temaer": alle_match_reasons[:6],   # unike match-reasons på tvers
+        "preferanser": {
+            "studier":  scoring.preferanse_signaler.studie_interesse[:3],
+            "yrker":    scoring.preferanse_signaler.yrke_interesse[:3],
+            "bransjer": scoring.preferanse_signaler.bransje_interesse[:3],
+        },
+        "topp_yrker":   [y["navn"] for y in anbefalinger.get("yrker", [])[:3]],
+        "topp_studier": [s["navn"] for s in anbefalinger.get("studier", [])[:3]],
+    }
+
     return {
         "dimensjoner":   dimensjoner_liste,
         "topp_sektorer": topp_sektorer,
@@ -448,4 +657,5 @@ def generer_anbefaling(
         "bedrifter":     anbefalinger.get("bedrifter", []),
         "profil":        profil.model_dump(),
         "preferanser":   scoring.preferanse_signaler.model_dump(),
+        "llm_context":   llm_context,
     }

@@ -3,13 +3,21 @@ filter_engine.py
 ================
 Filtermotor og re-ranking for rammevariabler.
 
-Støttede regler (v2.1):
+Støttede regler (v2.2):
   - grade_average     : snittkarakter → ekskluderer prestisjeprogrammer ved lavt snitt
+  - program_type      : utdanningsprogram (studiespesialisering/yrkesfag) → filtrerer studier
   - study_length      : ønsket studielengde → boost/filtrering etter varighet
   - education_level   : nåværende utdanningsnivå → matcher anbefalt neste steg
   - geography         : fylke + flyttevillighet → region-re-ranking (TODO: per-studie data)
   - preferred_region  : foretrukket studiested
-  - admission_req     : opptakskrav / kravfag (TODO: per-studie data)
+  - admission_req     : opptakskrav / kravfag (TODO: per-studie metadata)
+
+Strukturert for fremtidige regler (DEL 5):
+  - study_certainty   : usikkerhetsnivå → bredere anbefalinger (TODO)
+  - gradstype         : bachelor/master/fagskole (TODO: per-studie metadata)
+  - kravfag           : spesifikke kravfag (TODO: per-studie metadata)
+  - opptakskrav       : karakterkrav, særskilt vurdering (TODO: per-studie metadata)
+  - utdanningsnivaa   : ønsket sluttnivå (TODO)
 
 Arkitektur:
   - Alle regler er rene funksjoner: dict → dict
@@ -126,6 +134,29 @@ _LOKAL_TILKNYTNING: set[str] = {"lokal_tilknytning", "nei", "no"}
 _MODERAT_FLEKSIBILITET: set[str] = {"moderat_fleksibilitet", "kanskje", "maybe"}
 _GEOGRAFISK_FLEKSIBEL: set[str] = {"geografisk_fleksibilitet", "ja", "yes", "fleksibel"}
 
+# Utdanningsprogram → hvilke studietyper passer
+_PROGRAM_TYPE_BOOST: dict[str, list[str]] = {
+    # Yrkesfag-elever: boost praktiske linjer, penaliser lange akademiske
+    "yrkesfag":     ["Fagskole", "Ingeniør", "Teknisk", "Bygg", "Helse", "Praktisk"],
+    # Idrettsfag: boost sport-relaterte
+    "idrettsfag":   ["Idrett", "Sport", "Kroppsøving", "Folkehelse"],
+    # Musikk/dans/drama: boost kreative linjer
+    "musikk_dans_drama": ["Musikk", "Dans", "Drama", "Teater", "Kunst", "Film"],
+    # Studiespesialisering og påbygg: ingen begrensning
+    "studiespesialisering": [],
+    "pabygg": [],
+}
+_YRKESFAG_BOOST_UNDERKAT: set[str] = {
+    "Fagskole og kortere utdanning", "Teknisk og faglig",
+    "Helsefagarbeider og praktisk helse", "Byggfag og anlegg",
+}
+
+# Nøkkelord som indikerer akademisk/lang studievei (penaliseres for yrkesfag-elever)
+_AKADEMISK_STUDIE_NOKKELORD: list[str] = [
+    "bachelor", "master", "sivilingeniør", "siviløkonom",
+    "jus", "medisin", "odontologi", "psykologi",
+]
+
 
 # ---------------------------------------------------------------------------
 # Hjelpefunksjoner
@@ -191,8 +222,14 @@ def filtrer_anbefalinger(anbefalinger: dict[str, Any], filter_data: dict[str, An
     resultat = _regel_snitt(resultat, filter_data)
 
     # --- Re-ranking (boost/penalisering basert på preferanser) ---
+    resultat = _regel_program_type(resultat, filter_data)
     resultat = _regel_studielengde(resultat, filter_data)
     resultat = _regel_geografi(resultat, filter_data)
+
+    # --- TODO-regler (struktur klar, mangler per-studie metadata) ---
+    # resultat = _regel_kravfag(resultat, filter_data)
+    # resultat = _regel_gradstype(resultat, filter_data)
+    # resultat = _regel_opptakskrav(resultat, filter_data)
 
     return resultat
 
@@ -252,6 +289,58 @@ def _regel_snitt(anbefalinger: dict[str, Any], filter_data: dict[str, Any]) -> d
         "yrker":     _behandle(anbefalinger.get("yrker", [])),
         "studier":   _behandle(anbefalinger.get("studier", [])),
         "bedrifter": _behandle(anbefalinger.get("bedrifter", [])),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Regel: utdanningsprogram (DEL 5)
+# ---------------------------------------------------------------------------
+
+def _regel_program_type(anbefalinger: dict[str, Any], filter_data: dict[str, Any]) -> dict[str, Any]:
+    """
+    Utdanningsprogram (yrkesfag/idrettsfag/etc.) → re-rank studier.
+    Yrkesfag-elever: boost praktiske linjer, penaliser lange akademiske.
+    Idrettsfag: boost sport-linjer.
+    Musikk/dans/drama: boost kreative linjer.
+    Studiespesialisering/påbygg: ingen begrensning.
+    """
+    prog_val = _hent_enkeltverdi(filter_data, "program_type")
+    if not prog_val:
+        return anbefalinger
+
+    prog_norm = _normaliser(prog_val)
+    logger.info("filter_engine: program_type=%s", prog_norm)
+
+    if prog_norm in ("studiespesialisering", "pabygg", "studiespesialisering_pabygg"):
+        return anbefalinger   # ingen filtrering
+
+    boost_nokkelord = _PROGRAM_TYPE_BOOST.get(prog_norm, [])
+    if not boost_nokkelord:
+        return anbefalinger
+
+    er_yrkesfag = prog_norm == "yrkesfag"
+
+    def _behandle(item: dict) -> dict:
+        navn_lower = _normaliser(item.get("navn", ""))
+        underkat = _normaliser(item.get("underkategori", ""))
+
+        # Sjekk boost-nøkkelord
+        har_boost = any(_normaliser(kw) in navn_lower or _normaliser(kw) in underkat
+                        for kw in boost_nokkelord)
+        if har_boost:
+            return _boost_item(item, 1.15, f"program_match_{prog_norm}")
+
+        # Yrkesfag: penaliser tydelig akademiske studier litt
+        if er_yrkesfag:
+            er_akademisk = any(kw in navn_lower for kw in _AKADEMISK_STUDIE_NOKKELORD)
+            if er_akademisk:
+                return _penaliser_item(item, 0.80, "akademisk_for_yrkesfag")
+
+        return item
+
+    return {
+        **anbefalinger,
+        "studier": [_behandle(item) for item in anbefalinger.get("studier", [])],
     }
 
 
@@ -354,13 +443,56 @@ def _regel_geografi(anbefalinger: dict[str, Any], filter_data: dict[str, Any]) -
 
 
 # ---------------------------------------------------------------------------
+# TODO-regler (DEL 5) — struktur klar, mangler per-studie metadata
+# ---------------------------------------------------------------------------
+
+def _regel_kravfag(anbefalinger: dict[str, Any], filter_data: dict[str, Any]) -> dict[str, Any]:
+    """
+    TODO: Kravfag-filtrering.
+    Trenger per-studie metadata: hvilke kravfag kreves (R1/R2/Fysikk etc.)
+    Brukerens realfag + programfag skal matches mot dette.
+    Kilde: Samordna opptak / Utdanning.no API
+
+    filter_data-nøkkel: "realfag" (liste), "programfag" (liste)
+    """
+    return anbefalinger   # ikke aktiv ennå
+
+
+def _regel_gradstype(anbefalinger: dict[str, Any], filter_data: dict[str, Any]) -> dict[str, Any]:
+    """
+    TODO: Gradstype-filtrering.
+    Trenger per-studie metadata: bachelor / master / fagskole / yrkesfag / profesjon
+    Kilde: Samordna opptak / Utdanning.no API
+
+    filter_data-nøkkel: "preferred_degree_type"
+    """
+    return anbefalinger   # ikke aktiv ennå
+
+
+def _regel_opptakskrav(anbefalinger: dict[str, Any], filter_data: dict[str, Any]) -> dict[str, Any]:
+    """
+    TODO: Opptakskrav-matching.
+    Kombiner grade_average + realfag + kravfag for å flagge om brukeren
+    sannsynligvis kvalifiserer, basert på historiske poenggrenser.
+    Kilde: Samordna opptak poenggrenser CSV
+
+    filter_data-nøkkel: "grade_average", "realfag", "programfag"
+    Sett item["admission_risk"] = "lav/middels/høy" for LLM-bruk
+    """
+    return anbefalinger   # ikke aktiv ennå
+
+
+# ---------------------------------------------------------------------------
 # Hjelp til pipeline: hvilke filter er aktive
 # ---------------------------------------------------------------------------
 
 def hent_aktive_filterregler(filter_data: dict[str, Any]) -> list[str]:
     aktive: list[str] = []
-    for felt in ["grade_average", "county", "willing_to_move", "study_length",
-                 "preferred_study_region", "education_level"]:
+    for felt in [
+        "grade_average", "program_type", "school_year", "study_certainty",
+        "county", "willing_to_move", "study_length",
+        "preferred_study_region", "education_level",
+    ]:
         if filter_data.get(felt):
             aktive.append(f"{felt}={filter_data[felt]}")
     return aktive

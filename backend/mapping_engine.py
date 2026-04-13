@@ -108,6 +108,36 @@ def _finn_mapping_key(dimension_label: str) -> str | None:
     return None
 
 
+def topp_dims_for_sektor(
+    sektor: str,
+    dimensjon_scores: dict[str, float],
+    n: int = 3,
+) -> list[str]:
+    """
+    Returnerer de n dimensjonene som best forklarer hvorfor en gitt sektor ble anbefalt.
+    Basert på brukerens dimensjonscorer × sektor-vekting i mapping-filen.
+    Brukes av recommendation_engine for å generere match_reasons.
+    """
+    mapping = _last_mapping()
+    sektor_lower = sektor.lower().strip()
+
+    bidrag: list[tuple[str, float]] = []
+
+    for dim_label, user_score in dimensjon_scores.items():
+        if user_score <= 0:
+            continue
+        key = _finn_mapping_key(dim_label)
+        if key is None:
+            continue
+        for s, _underkat, vekt in mapping[key]:
+            if s.lower().strip() == sektor_lower or sektor_lower in s.lower() or s.lower() in sektor_lower:
+                bidrag.append((dim_label, user_score * vekt))
+                break
+
+    bidrag.sort(key=lambda x: x[1], reverse=True)
+    return [dim for dim, _ in bidrag[:n]]
+
+
 def map_til_sektorer(dimensjon_scores: dict[str, float], topp_n: int = 8) -> list[tuple[str, str, float]]:
     mapping = _last_mapping()
     score_map: dict[tuple[str, str], float] = {}
