@@ -149,15 +149,32 @@ const DynamicQuestionnaire: React.FC<DynamicQuestionnaireProps> = ({
             };
             const table = tableMap[apiUserType];
             if (table) {
-              // Update the most recent response for this user with api_results
-              const { data: latest } = await sb
-                .from(table)
-                .select('id')
-                .eq('user_id', user.id)
-                .order('created_at', { ascending: false })
-                .limit(1);
-              if (latest && latest.length > 0) {
-                await sb.from(table).update({ api_results: recommendations } as any).eq('id', latest[0].id);
+              // Use rpc or raw fetch to update api_results (column not yet in generated types)
+              const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://zcfclojzyqezuuwxzrzq.supabase.co';
+              const { data: session } = await sb.auth.getSession();
+              const token = session?.session?.access_token;
+              if (token) {
+                // Find latest response id
+                const res = await fetch(
+                  `${supabaseUrl}/rest/v1/${table}?user_id=eq.${user.id}&order=created_at.desc&limit=1&select=id`,
+                  { headers: { 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '', 'Authorization': `Bearer ${token}` } }
+                );
+                const rows = await res.json();
+                if (rows?.[0]?.id) {
+                  await fetch(
+                    `${supabaseUrl}/rest/v1/${table}?id=eq.${rows[0].id}`,
+                    {
+                      method: 'PATCH',
+                      headers: {
+                        'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '',
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal',
+                      },
+                      body: JSON.stringify({ api_results: recommendations }),
+                    }
+                  );
+                }
               }
             }
           }
