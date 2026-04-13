@@ -356,6 +356,7 @@ export type Database = {
       }
       high_school_responses: {
         Row: {
+          api_results: Json | null
           created_at: string | null
           email: string | null
           id: string
@@ -364,6 +365,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          api_results?: Json | null
           created_at?: string | null
           email?: string | null
           id?: string
@@ -372,6 +374,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          api_results?: Json | null
           created_at?: string | null
           email?: string | null
           id?: string
@@ -824,6 +827,7 @@ export type Database = {
       }
       university_responses: {
         Row: {
+          api_results: Json | null
           created_at: string | null
           email: string | null
           id: string
@@ -832,6 +836,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          api_results?: Json | null
           created_at?: string | null
           email?: string | null
           id?: string
@@ -840,6 +845,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          api_results?: Json | null
           created_at?: string | null
           email?: string | null
           id?: string
@@ -881,6 +887,7 @@ export type Database = {
       }
       worker_responses: {
         Row: {
+          api_results: Json | null
           created_at: string | null
           email: string | null
           id: string
@@ -889,6 +896,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          api_results?: Json | null
           created_at?: string | null
           email?: string | null
           id?: string
@@ -897,6 +905,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          api_results?: Json | null
           created_at?: string | null
           email?: string | null
           id?: string
