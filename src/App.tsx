@@ -100,6 +100,7 @@ const App = () => {
             <Route path="/bedrift/:companySlug" element={<CompanyProfilePage />} />
             <Route path="/utdanning/:universityId/:studiekode" element={<EducationDetailsPage />} />
             <Route path="/karriere/:careerSlug" element={<CareerDetailPageWrapper />} />
+            <Route path="/survey/join/:joinCode" element={<SurveyJoinPage />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
