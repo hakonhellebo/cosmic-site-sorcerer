@@ -135,6 +135,35 @@ const DynamicQuestionnaire: React.FC<DynamicQuestionnaireProps> = ({
       try {
         const recommendations = await getRecommendations(answers, apiUserType);
         localStorage.setItem('edpathResults', JSON.stringify(recommendations));
+
+        // Save API results to Supabase for persistence
+        try {
+          const { supabase: sb } = await import('@/integrations/supabase/client');
+          const { data: { user } } = await sb.auth.getUser();
+          if (user) {
+            const tableMap: Record<string, string> = {
+              elev: 'high_school_responses',
+              student: 'university_responses',
+              worker: 'worker_responses',
+              arbeidstaker: 'worker_responses',
+            };
+            const table = tableMap[apiUserType];
+            if (table) {
+              // Update the most recent response for this user with api_results
+              const { data: latest } = await sb
+                .from(table)
+                .select('id')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false })
+                .limit(1);
+              if (latest && latest.length > 0) {
+                await sb.from(table).update({ api_results: recommendations } as any).eq('id', latest[0].id);
+              }
+            }
+          }
+        } catch (persistErr) {
+          console.warn('Could not persist API results to Supabase:', persistErr);
+        }
       } catch (apiError) {
         console.error('EdPath API error:', apiError);
         toast.warning('Kunne ikke hente anbefalinger fra API', {
