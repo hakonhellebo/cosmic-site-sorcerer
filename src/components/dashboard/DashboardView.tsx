@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserData } from '@/hooks/useUserProfile';
 import FavoritesView from './FavoritesView';
+import RecommendationsView from './RecommendationsView';
 
 interface DashboardViewProps {
   userData: UserData;
@@ -61,11 +62,16 @@ const DashboardView: React.FC<DashboardViewProps> = ({ userData, onResetProfile 
         </p>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+      <Tabs defaultValue="recommendations" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="recommendations">Mine anbefalinger</TabsTrigger>
           <TabsTrigger value="overview">Oversikt</TabsTrigger>
           <TabsTrigger value="favorites">Mine favoritter</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="recommendations">
+          <RecommendationsView />
+        </TabsContent>
         
         <TabsContent value="overview" className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
