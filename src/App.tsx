@@ -37,6 +37,7 @@ import TeacherDashboard from "./pages/TeacherDashboard"
 import SurveyJoinPage from "./pages/SurveyJoinPage"
 import { preloadStatisticsData } from "./pages/Statistics"
 import { useEffect } from "react"
+import { useRestoreResults } from "./hooks/useRestoreResults"
 
 const queryClient = new QueryClient()
 
