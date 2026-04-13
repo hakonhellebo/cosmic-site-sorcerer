@@ -135,6 +135,52 @@ const DynamicQuestionnaire: React.FC<DynamicQuestionnaireProps> = ({
       try {
         const recommendations = await getRecommendations(answers, apiUserType);
         localStorage.setItem('edpathResults', JSON.stringify(recommendations));
+
+        // Save API results to Supabase for persistence
+        try {
+          const { supabase: sb } = await import('@/integrations/supabase/client');
+          const { data: { user } } = await sb.auth.getUser();
+          if (user) {
+            const tableMap: Record<string, string> = {
+              elev: 'high_school_responses',
+              student: 'university_responses',
+              worker: 'worker_responses',
+              arbeidstaker: 'worker_responses',
+            };
+            const table = tableMap[apiUserType];
+            if (table) {
+              // Use rpc or raw fetch to update api_results (column not yet in generated types)
+              const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://zcfclojzyqezuuwxzrzq.supabase.co';
+              const { data: session } = await sb.auth.getSession();
+              const token = session?.session?.access_token;
+              if (token) {
+                // Find latest response id
+                const res = await fetch(
+                  `${supabaseUrl}/rest/v1/${table}?user_id=eq.${user.id}&order=created_at.desc&limit=1&select=id`,
+                  { headers: { 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '', 'Authorization': `Bearer ${token}` } }
+                );
+                const rows = await res.json();
+                if (rows?.[0]?.id) {
+                  await fetch(
+                    `${supabaseUrl}/rest/v1/${table}?id=eq.${rows[0].id}`,
+                    {
+                      method: 'PATCH',
+                      headers: {
+                        'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '',
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal',
+                      },
+                      body: JSON.stringify({ api_results: recommendations }),
+                    }
+                  );
+                }
+              }
+            }
+          }
+        } catch (persistErr) {
+          console.warn('Could not persist API results to Supabase:', persistErr);
+        }
       } catch (apiError) {
         console.error('EdPath API error:', apiError);
         toast.warning('Kunne ikke hente anbefalinger fra API', {
