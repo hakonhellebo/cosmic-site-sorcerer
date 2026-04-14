@@ -25,6 +25,7 @@ from typing import Any
 import pandas as pd
 
 from filter_engine import filtrer_anbefalinger, hent_aktive_filterregler, sorter_etter_score
+from llm_engine import generate_llm_explanation
 from mapping_engine import map_til_sektorer, topp_dims_for_sektor
 from profil_engine import lag_profil_beskrivelse
 from schemas import PreferanseSignaler
@@ -741,6 +742,12 @@ def generer_anbefaling(
         "topp_studier": [s["navn"] for s in anbefalinger.get("studier", [])[:3]],
     }
 
+    # --- 13. LLM-forklaring ---
+    # Kall GPT med den pre-computed llm_context.
+    # Returnerer None hvis OPENAI_API_KEY mangler eller kallet feiler —
+    # anbefalingen returneres uansett.
+    llm_resultat = generate_llm_explanation(llm_context)
+
     return {
         "dimensjoner":   dimensjoner_liste,
         "topp_sektorer": topp_sektorer,
@@ -755,4 +762,6 @@ def generer_anbefaling(
         "profil":        profil.model_dump(),
         "preferanser":   scoring.preferanse_signaler.model_dump(),
         "llm_context":   llm_context,
+        # LLM-forklaring — None hvis API-nøkkel mangler eller kall feiler
+        "llm_resultat":  llm_resultat,
     }

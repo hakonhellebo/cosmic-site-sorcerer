@@ -2,7 +2,7 @@
 schemas.py — Pydantic-modeller for EdPath API v2.1
 """
 
-from typing import Any, Union
+from typing import Any, Optional, Union
 from pydantic import BaseModel, Field
 
 
@@ -92,6 +92,29 @@ class BedriftGruppe(BaseModel):
     bedrifter: list[AnbefalingItem] = Field(default_factory=list)
 
 
+# ---------------------------------------------------------------------------
+# Output: LLM-forklaring
+# ---------------------------------------------------------------------------
+
+class LLMForklaring(BaseModel):
+    """Én anbefaling forklart av LLM-en."""
+    navn: str
+    forklaring: str
+
+
+class LLMResultat(BaseModel):
+    """
+    Strukturert forklaringstekst generert av GPT.
+
+    Legges til som `llm_resultat` i API-responsen.
+    Er None hvis OPENAI_API_KEY ikke er satt eller kallet feiler.
+    """
+    resultat_sammendrag:  str
+    hvorfor_dette_passer: list[LLMForklaring] = Field(default_factory=list)
+    veien_videre:         list[str] = Field(default_factory=list)
+    obs_punkter:          list[str] = Field(default_factory=list)
+
+
 class AnbefalingRespons(BaseModel):
     dimensjoner: list[DimensjonItem]
     topp_sektorer: list[SektorItem]
@@ -105,3 +128,5 @@ class AnbefalingRespons(BaseModel):
     bedrifter_grupper: list[BedriftGruppe] = Field(default_factory=list)
     profil: ProfilBeskrivelse
     preferanser: PreferanseSignaler
+    # LLM-forklaring — valgfri (None hvis API-nøkkel mangler eller kall feiler)
+    llm_resultat: Optional[LLMResultat] = None
