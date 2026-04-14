@@ -22,7 +22,7 @@ export interface SurveyQuestion {
   question_order: number | null;
   text: string | null;
   help_text: string | null;
-  type: 'text' | 'single_select' | 'multi_select' | 'scale_1_5' | 'number';
+  type: 'text' | 'single_select' | 'multi_select' | 'multi_select_search' | 'scale_1_5' | 'number';
   required: boolean | null;
   max_select: number | null;
   min_select: number | null;

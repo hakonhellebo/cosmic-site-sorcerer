@@ -8,9 +8,10 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts';
 import {
-  BookOpen, Briefcase, Building2, TrendingUp, Lightbulb,
-  Check, User, ArrowRight, Sparkles, Target, Compass,
+  BookOpen, Briefcase, Building2, Lightbulb,
+  User, ArrowRight, Sparkles, Target, Compass,
   Heart, Brain, GraduationCap, MapPin, Star, Zap,
+  Award, TrendingUp,
 } from 'lucide-react';
 import CareerJourney from './CareerJourney';
 import type { EdPathApiResponse, EdPathUserType } from '@/services/edpathApi.types';
@@ -141,10 +142,31 @@ const buildCompanyExplanation = (bedrift: string, sektor: string): string => {
   return `${bedrift} opererer innen ${sektor.toLowerCase()} og er en arbeidsgiver der profiler som din ofte finner relevante muligheter. Utforsk bedriften for å se hvilke karriereveier de tilbyr.`;
 };
 
+/* ─── match-score bar ─── */
+const MatchScoreBar: React.FC<{ score?: number; boost?: boolean }> = ({ score, boost }) => {
+  if (score === undefined || score === null) return null;
+  const pct = Math.round(score);
+  const color =
+    pct >= 80 ? 'bg-green-500' :
+    pct >= 60 ? 'bg-primary' :
+    pct >= 40 ? 'bg-yellow-500' : 'bg-muted-foreground';
+  return (
+    <div className="mt-2 space-y-0.5">
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span>Match</span>
+        <span className="font-medium">{pct}%{boost ? ' ⭐' : ''}</span>
+      </div>
+      <div className="h-1.5 w-full rounded-full bg-muted">
+        <div className={`h-1.5 rounded-full ${color}`} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+};
+
 /* ─── component ─── */
 const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answers = {} }) => {
   const navigate = useNavigate();
-  const { dimensjoner = [], topp_sektorer = [], yrker = [], studier = [], bedrifter = [] } = results;
+  const { dimensjoner = [], topp_sektorer = [], yrker = [], studier = [], bedrifter = [], profil, preferanser } = results;
 
   // Try to get answers from localStorage if not passed as prop
   const surveyAnswers = useMemo(() => {
@@ -246,9 +268,9 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answ
       </Card>
 
       {/* ══════════════════════════════════════════════
-          2. WHO YOU ARE
+          2. WHO YOU ARE  (profil from API if available)
          ══════════════════════════════════════════════ */}
-      {hasDimensions && (
+      {(profil || hasDimensions) && (
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
@@ -256,23 +278,86 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answ
               <CardTitle>Hvem du er</CardTitle>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Basert på dimensjonene dine har vi satt sammen en beskrivelse av hvordan du jobber, lærer og hva som motiverer deg.
+              Basert på svarene dine har vi satt sammen en beskrivelse av hvordan du jobber, lærer og hva som motiverer deg.
             </p>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <p className="text-base leading-relaxed text-foreground/90">
-              {buildWhoYouAre(dimensjoner, userType)}
+              {profil?.profil_sammendrag || buildWhoYouAre(dimensjoner, userType)}
             </p>
 
-            {/* Quick dimension badges */}
-            <div className="flex flex-wrap gap-2 mt-4">
-              {topDims.map((dim, i) => (
-                <Badge key={i} variant="secondary" className="text-sm py-1 px-3">
-                  <Sparkles className="h-3 w-3 mr-1" />
-                  {dim.navn}
-                </Badge>
-              ))}
-            </div>
+            {/* Profil detail cards */}
+            {profil && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                {profil.laringsstil && (
+                  <div className="p-3 rounded-lg bg-muted/30 border">
+                    <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">Læringsstil</p>
+                    <p className="text-sm">{profil.laringsstil}</p>
+                  </div>
+                )}
+                {profil.arbeidsstil && (
+                  <div className="p-3 rounded-lg bg-muted/30 border">
+                    <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">Arbeidsstil</p>
+                    <p className="text-sm">{profil.arbeidsstil}</p>
+                  </div>
+                )}
+                {profil.motivasjonsstil && (
+                  <div className="p-3 rounded-lg bg-muted/30 border">
+                    <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">Motivasjon</p>
+                    <p className="text-sm">{profil.motivasjonsstil}</p>
+                  </div>
+                )}
+                {profil.karriere_orientering && (
+                  <div className="p-3 rounded-lg bg-muted/30 border">
+                    <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">Karriereorientering</p>
+                    <p className="text-sm">{profil.karriere_orientering}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Styrker from profil */}
+            {profil?.styrker && profil.styrker.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Dine styrker</p>
+                <div className="flex flex-wrap gap-2">
+                  {profil.styrker.map((s, i) => (
+                    <Badge key={i} variant="secondary" className="text-sm py-1 px-3">
+                      <Award className="h-3 w-3 mr-1" />
+                      {s}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Quick dimension badges (fallback when no profil) */}
+            {!profil && (
+              <div className="flex flex-wrap gap-2 mt-4">
+                {topDims.map((dim, i) => (
+                  <Badge key={i} variant="secondary" className="text-sm py-1 px-3">
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    {dim.navn}
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            {/* Preference signals */}
+            {preferanser && (
+              <div className="mt-2 pt-3 border-t space-y-2">
+                {preferanser.bransje_interesse.length > 0 && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Bransjer du er interessert i:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {preferanser.bransje_interesse.slice(0, 6).map((b, i) => (
+                        <Badge key={i} variant="outline" className="text-xs">{b}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -403,6 +488,9 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answ
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-semibold group-hover:text-primary transition-colors">
                       {studie.navn}
+                      {studie.preferanse_boost && (
+                        <span className="ml-1.5 text-xs text-yellow-500">⭐ Ditt valg</span>
+                      )}
                     </h4>
                     <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                   </div>
@@ -412,8 +500,24 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answ
                       {studie.lærested}
                     </div>
                   )}
-                  <Badge variant="outline" className="mb-3">{studie.sektor}</Badge>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
+                  <Badge variant="outline" className="mb-2">{studie.sektor}</Badge>
+
+                  {/* Match score bar */}
+                  <MatchScoreBar score={studie.match_score} boost={studie.preferanse_boost} />
+
+                  {/* Match reasons */}
+                  {studie.match_reasons && studie.match_reasons.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {studie.match_reasons.slice(0, 3).map((r, j) => (
+                        <Badge key={j} variant="secondary" className="text-xs">
+                          <TrendingUp className="h-2.5 w-2.5 mr-1" />
+                          {r}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+
+                  <p className="text-sm leading-relaxed text-muted-foreground mt-2">
                     {buildStudyExplanation(studie.navn, studie.sektor)}
                   </p>
 
@@ -460,14 +564,35 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answ
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-semibold group-hover:text-primary transition-colors">
                       {yrke.navn}
+                      {yrke.preferanse_boost && (
+                        <span className="ml-1.5 text-xs text-yellow-500">⭐ Ditt valg</span>
+                      )}
                     </h4>
                     <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                   </div>
-                  <Badge variant="outline" className="mb-3">{yrke.sektor}</Badge>
-                  {yrke.underkategori && (
-                    <Badge variant="outline" className="mb-3 ml-1">{yrke.underkategori}</Badge>
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    <Badge variant="outline">{yrke.sektor}</Badge>
+                    {yrke.underkategori && (
+                      <Badge variant="outline">{yrke.underkategori}</Badge>
+                    )}
+                  </div>
+
+                  {/* Match score bar */}
+                  <MatchScoreBar score={yrke.match_score} boost={yrke.preferanse_boost} />
+
+                  {/* Match reasons */}
+                  {yrke.match_reasons && yrke.match_reasons.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {yrke.match_reasons.slice(0, 3).map((r, j) => (
+                        <Badge key={j} variant="secondary" className="text-xs">
+                          <TrendingUp className="h-2.5 w-2.5 mr-1" />
+                          {r}
+                        </Badge>
+                      ))}
+                    </div>
                   )}
-                  <p className="text-sm leading-relaxed text-muted-foreground">
+
+                  <p className="text-sm leading-relaxed text-muted-foreground mt-2">
                     {buildCareerExplanation(yrke.navn, yrke.sektor)}
                   </p>
                 </div>
@@ -502,14 +627,35 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answ
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-semibold text-sm group-hover:text-primary transition-colors">
                       {bedrift.navn}
+                      {bedrift.preferanse_boost && (
+                        <span className="ml-1.5 text-xs text-yellow-500">⭐</span>
+                      )}
                     </h4>
                     <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                   </div>
-                  <Badge variant="outline" className="mb-3">{bedrift.sektor}</Badge>
-                  {bedrift.underkategori && (
-                    <Badge variant="outline" className="mb-3 ml-1 text-xs">{bedrift.underkategori}</Badge>
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    <Badge variant="outline" className="text-xs">{bedrift.sektor}</Badge>
+                    {bedrift.underkategori && (
+                      <Badge variant="outline" className="text-xs">{bedrift.underkategori}</Badge>
+                    )}
+                  </div>
+
+                  {/* Match score bar */}
+                  <MatchScoreBar score={bedrift.match_score} boost={bedrift.preferanse_boost} />
+
+                  {/* Match reasons */}
+                  {bedrift.match_reasons && bedrift.match_reasons.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {bedrift.match_reasons.slice(0, 2).map((r, j) => (
+                        <Badge key={j} variant="secondary" className="text-xs">
+                          <TrendingUp className="h-2.5 w-2.5 mr-1" />
+                          {r}
+                        </Badge>
+                      ))}
+                    </div>
                   )}
-                  <p className="text-xs leading-relaxed text-muted-foreground">
+
+                  <p className="text-xs leading-relaxed text-muted-foreground mt-2">
                     {buildCompanyExplanation(bedrift.navn, bedrift.sektor)}
                   </p>
                 </div>
