@@ -14,6 +14,20 @@ Garantier:
 
 Miljøvariabel:
   OPENAI_API_KEY — settes i Railway/lokalt .env
+
+Output-struktur:
+  {
+    "profil": {
+      "profil_sammendrag":   str,  # hvem eleven er faglig og personlig
+      "laringsstil":         str,  # hvordan eleven lærer best
+      "arbeidsstil":         str,  # hvilken arbeidsform som passer
+      "motivasjonsstil":     str,  # hva som driver og motiverer eleven
+      "karriere_orientering": str, # langsiktig karriereretning
+    },
+    "hvorfor_dette_passer": [{"navn": str, "forklaring": str}, ...],
+    "veien_videre":  [str, ...],
+    "obs_punkter":   [str, ...],
+  }
 """
 
 from __future__ import annotations
@@ -25,25 +39,87 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+
 # ---------------------------------------------------------------------------
 # JSON-schema for strukturert LLM-output (OpenAI strict mode)
+# Alle objekter krever additionalProperties:false + alle keys i required.
 # ---------------------------------------------------------------------------
 
 _OUTPUT_SCHEMA: dict = {
     "type": "object",
     "properties": {
-        "resultat_sammendrag": {
-            "type": "string",
+
+        # ── Personlig profilbeskrivelse (erstatter statiske maler) ──
+        "profil": {
+            "type": "object",
             "description": (
-                "2–3 setninger som oppsummerer elevens profil og hva "
-                "profilens styrker naturlig peker mot"
+                "Personlig profilbeskrivelse generert fra elevens dimensjoner "
+                "og anbefalinger. Hvert felt skal lyde som skrevet av en erfaren "
+                "karriereveileder, ikke som en automatisk mal."
             ),
+            "properties": {
+                "profil_sammendrag": {
+                    "type": "string",
+                    "description": (
+                        "2–3 setninger som oppsummerer hvem eleven er faglig og personlig. "
+                        "Nevn konkrete styrker og hva de naturlig peker mot. "
+                        "Vær spesifikk — unngå fraser som 'du er en allsidig person'."
+                    ),
+                },
+                "laringsstil": {
+                    "type": "string",
+                    "description": (
+                        "Én setning om hvordan denne eleven lærer best, "
+                        "basert på topp-dimensjonene. "
+                        "Eksempel: 'Du lærer best gjennom analyse og systematisk fordypning — "
+                        "forelesninger og pensumlitteratur gir deg mye.'"
+                    ),
+                },
+                "arbeidsstil": {
+                    "type": "string",
+                    "description": (
+                        "Én setning om hvilken type arbeidsmiljø og arbeidsform "
+                        "som passer denne eleven. "
+                        "Eksempel: 'Du trives i strukturerte miljøer der du kan jobbe "
+                        "konsentrert, gjerne med klare mål og faglig dybde.'"
+                    ),
+                },
+                "motivasjonsstil": {
+                    "type": "string",
+                    "description": (
+                        "Én setning om hva som motiverer og driver eleven. "
+                        "Eksempel: 'Du drives av å forstå systemer i dybden og se "
+                        "at løsningene dine faktisk fungerer i praksis.'"
+                    ),
+                },
+                "karriere_orientering": {
+                    "type": "string",
+                    "description": (
+                        "Én setning om langsiktig karriereretning og ambisjoner, "
+                        "koblet til de anbefalte sektorene. "
+                        "Eksempel: 'Profilen din peker tydelig mot en faglig karriere "
+                        "innen teknologi eller analyse, der du kan vokse som spesialist.'"
+                    ),
+                },
+            },
+            "required": [
+                "profil_sammendrag",
+                "laringsstil",
+                "arbeidsstil",
+                "motivasjonsstil",
+                "karriere_orientering",
+            ],
+            "additionalProperties": False,
         },
+
+        # ── Forklaring per anbefalt studie/yrke ──
         "hvorfor_dette_passer": {
             "type": "array",
             "description": (
                 "For hvert av de anbefalte studiene og yrkene: "
-                "konkret forklaring på hvorfor det passer akkurat denne eleven"
+                "konkret forklaring på HVORFOR akkurat det passer denne eleven. "
+                "Nevn spesifikke dimensjoner eller egenskaper. "
+                "Ikke gjenta tittelen — forklar koblingen til elevens profil."
             ),
             "items": {
                 "type": "object",
@@ -55,22 +131,32 @@ _OUTPUT_SCHEMA: dict = {
                 "additionalProperties": False,
             },
         },
+
+        # ── Konkrete neste steg ──
         "veien_videre": {
             "type": "array",
-            "description": "3–5 konkrete råd eleven bør følge nå",
+            "description": (
+                "3–5 konkrete, handlingsrettede råd eleven bør følge nå. "
+                "Hvert råd skal være spesifikt og praktisk — ikke generisk. "
+                "Eksempel: 'Sjekk opptakskrav for Informatikk på samordnaopptak.no' "
+                "ikke 'Søk mer informasjon om studier'."
+            ),
             "items": {"type": "string"},
         },
+
+        # ── Realistiske forbehold ──
         "obs_punkter": {
             "type": "array",
             "description": (
-                "1–3 realistiske forbehold: karakterkrav, konkurranse, "
-                "usikkerhet om veivalg, o.l."
+                "1–3 realistiske forbehold eleven bør være klar over: "
+                "karakterkrav, konkurranse om plasser, usikkerhet om veivalg, "
+                "eller om anbefalingene er brede. Vær ærlig men konstruktiv."
             ),
             "items": {"type": "string"},
         },
     },
     "required": [
-        "resultat_sammendrag",
+        "profil",
         "hvorfor_dette_passer",
         "veien_videre",
         "obs_punkter",
@@ -78,32 +164,43 @@ _OUTPUT_SCHEMA: dict = {
     "additionalProperties": False,
 }
 
+
 # ---------------------------------------------------------------------------
-# System-prompt (stabil instruksjon til LLM-en)
+# System-prompt
 # ---------------------------------------------------------------------------
 
 _DEVELOPER_PROMPT = """\
 Du er en digital karriereveileder for EdPath, en norsk plattform for utdanning \
 og karriereveiledning.
 
-Du mottar strukturert data fra EdPaths anbefalingsmotor om en elev eller student.
+Du mottar strukturert anbefalingsdata om en elev og skal skrive personlig, \
+varm og presis karrieretekst på norsk bokmål.
 
-DU SKAL:
-- forklare elevens profil på en varm, konkret og personlig måte
-- forklare KONKRET hvorfor hvert anbefalt studie og yrke passer denne eleven
-- gi realistisk karriereveiledning
-- foreslå 3–5 konkrete neste steg tilpasset situasjonen
-- nevne 1–3 forbehold eller realistiske begrensninger (obs_punkter)
+PROFIL-FELTENE skal:
+- Lyde som skrevet av en erfaren menneskelig veileder, ikke en algoritme
+- Referere konkret til elevens faktiske topp-dimensjoner og anbefalinger
+- Unngå generiske fraser som "du er en allsidig person" eller "du er flink til mye"
+- Hvert felt: 1–3 setninger. Kortfattet og tydelig.
+
+HVORFOR_DETTE_PASSER skal:
+- Forklare den KONKRETE koblingen mellom elevens profil og hvert studie/yrke
+- Nevne spesifikke dimensjoner (f.eks. analytisk tankegang, teknologiinteresse)
+- Ikke bare gjenta tittelen — forklar HVORFOR det passer akkurat denne eleven
+
+VEIEN_VIDERE skal:
+- Gi 3–5 spesifikke, handlingsrettede råd (ikke generiske)
+- Tilpasses de konkrete anbefalingene og preferansene i dataene
+- Inkludere praktiske neste steg (sjekke opptakskrav, snakke med rådgiver, osv.)
+
+OBS_PUNKTER skal:
+- Nevne realistiske forbehold uten å være nedslående
+- Informere om karakterkrav, konkurranse eller bredde i anbefalingene hvis relevant
 
 DU SKAL IKKE:
-- finne på studier, yrker eller bedrifter som ikke finnes i dataene
-- overstyre anbefalingenes rangering eller scorer
-- finne på opptakskrav som ikke er nevnt i dataene
-- bruke generiske, ukonkrete fraser — vær spesifikk om denne elevens profil
-
-Skriv på norsk bokmål.
-Lyd som en erfaren karriereveileder — varm, konkret og ærlig.
-Hold hvert avsnitt kort (2–4 setninger). Unngå overskrifter inni teksten.
+- Finne på studier, yrker eller bedrifter som ikke finnes i dataene
+- Overstyre anbefalingenes rangering
+- Finne på opptakskrav som ikke er nevnt
+- Bruke overskrifter eller markdown i teksten
 """
 
 
@@ -113,40 +210,30 @@ Hold hvert avsnitt kort (2–4 setninger). Unngå overskrifter inni teksten.
 
 def _bygg_user_prompt(ctx: dict) -> str:
     """
-    Konverterer llm_context-dicten til et fokusert user-prompt.
-    Inkluderer kun felter som faktisk finnes (defensivt).
+    Konverterer llm_context til et fokusert, informasjonstett user-prompt.
+    Kun felter som faktisk finnes inkluderes (defensivt).
     """
-    linjer: list[str] = ["Her er EdPaths anbefalingsdata for denne eleven/studenten:\n"]
+    linjer: list[str] = ["ANBEFALINGSDATA FRA EDPATH:\n"]
 
-    # Brukertype
-    linjer.append(f"Brukertype: {ctx.get('brukertype', 'elev')}")
+    bt = ctx.get("brukertype", "elev")
+    linjer.append(f"Brukertype: {bt}")
 
-    # Profil-sammendrag og styrker
-    sammendrag = ctx.get("profil_sammendrag", "")
-    styrker    = ctx.get("styrker", [])
-    if sammendrag:
-        linjer.append(f"\nProfilsammendrag (fra EdPath): {sammendrag}")
-    if styrker:
-        linjer.append(f"Styrker: {', '.join(styrker)}")
-
-    # Topp karrieredimensjoner
+    # Topp-dimensjoner (det viktigste signalet for profilering)
     dims = ctx.get("topp_dimensjoner", [])
     if dims:
         dims_str = ", ".join(
             f"{d['navn']} ({round(d.get('score_norm', 0))}%)"
-            if isinstance(d, dict)
-            else str(d)
+            if isinstance(d, dict) else str(d)
             for d in dims[:5]
         )
         linjer.append(f"\nTopp karrieredimensjoner: {dims_str}")
 
-    # Topp sektorer
+    # Topp-sektorer
     sektorer = ctx.get("topp_sektorer", [])
     if sektorer:
         sekt_str = ", ".join(
             f"{s['sektor']} ({round(s.get('score_norm', 0))}%)"
-            if isinstance(s, dict)
-            else str(s)
+            if isinstance(s, dict) else str(s)
             for s in sektorer[:3]
         )
         linjer.append(f"Topp sektorer: {sekt_str}")
@@ -155,40 +242,45 @@ def _bygg_user_prompt(ctx: dict) -> str:
     yrker   = ctx.get("topp_yrker", [])
     studier = ctx.get("topp_studier", [])
     if yrker:
-        linjer.append(f"\nAnbefalte yrker:   {', '.join(yrker[:3])}")
+        linjer.append(f"\nAnbefalte yrker (topp 3):   {', '.join(yrker[:3])}")
     if studier:
-        linjer.append(f"Anbefalte studier: {', '.join(studier[:3])}")
+        linjer.append(f"Anbefalte studier (topp 3): {', '.join(studier[:3])}")
+
+    # Styrker fra statisk profil-engine (hjelper LLM å forstå profilen)
+    styrker = ctx.get("styrker", [])
+    if styrker:
+        linjer.append(f"\nIdentifiserte styrker: {', '.join(styrker)}")
 
     # Match-temaer
     temaer = ctx.get("match_temaer", [])
     if temaer:
-        linjer.append(f"\nMatch-temaer som gikk igjen i anbefalingene: {', '.join(temaer[:6])}")
+        linjer.append(f"Match-temaer: {', '.join(temaer[:6])}")
 
-    # Preferanser (eksplisitte signaler fra eleven)
-    pref = ctx.get("preferanser", {}) or {}
-    bransjer      = pref.get("bransjer", []) if isinstance(pref, dict) else []
-    pref_yrker    = pref.get("yrker", [])    if isinstance(pref, dict) else []
-    pref_studier  = pref.get("studier", [])  if isinstance(pref, dict) else []
+    # Preferanser
+    pref         = ctx.get("preferanser", {}) or {}
+    bransjer     = pref.get("bransjer", []) if isinstance(pref, dict) else []
+    pref_yrker   = pref.get("yrker", [])    if isinstance(pref, dict) else []
+    pref_studier = pref.get("studier", [])  if isinstance(pref, dict) else []
 
     if bransjer or pref_yrker or pref_studier:
-        linjer.append("\nElevens egne preferanser (oppgitt i spørreskjemaet):")
+        linjer.append("\nElevens egne preferanser:")
         if bransjer:
-            linjer.append(f"  - Bransjer:  {', '.join(bransjer)}")
+            linjer.append(f"  Bransjer:  {', '.join(bransjer)}")
         if pref_yrker:
-            linjer.append(f"  - Yrker:     {', '.join(pref_yrker)}")
+            linjer.append(f"  Yrker:     {', '.join(pref_yrker)}")
         if pref_studier:
-            linjer.append(f"  - Studier:   {', '.join(pref_studier)}")
+            linjer.append(f"  Studier:   {', '.join(pref_studier)}")
 
-    # Instruksjon
-    alle_anbefalte = list(dict.fromkeys(yrker[:3] + studier[:3]))  # dedup, bevar rekkefølge
+    # Instruksjon til LLM om hva som forventes
+    alle_anbefalte = list(dict.fromkeys(yrker[:3] + studier[:3]))
     if alle_anbefalte:
-        anbefalte_str = ", ".join(alle_anbefalte)
         linjer.append(
-            f"\nLag én forklaring (hvorfor_dette_passer) for hvert av disse: {anbefalte_str}"
+            f"\nLag én 'hvorfor_dette_passer'-forklaring for hvert av disse: "
+            f"{', '.join(alle_anbefalte)}"
         )
 
     linjer.append(
-        "\nGenerer nå et strukturert svar med: resultat_sammendrag, "
+        "\nGenerer nå et JSON-svar med: profil (alle 5 felt), "
         "hvorfor_dette_passer, veien_videre og obs_punkter."
     )
 
@@ -201,27 +293,31 @@ def _bygg_user_prompt(ctx: dict) -> str:
 
 def generate_llm_explanation(llm_context: dict) -> Optional[dict]:
     """
-    Genererer strukturert forklaringstekst fra OpenAI basert på llm_context.
+    Genererer strukturert forklaringstekst og profilbeskrivelse fra OpenAI.
 
-    Returnerer None hvis:
+    Returnerer None (uten krasj) hvis:
       - OPENAI_API_KEY er ikke satt
+      - openai-pakken er ikke installert
       - API-kall feiler (nettverksfeil, rate limit, o.l.)
       - Responsen ikke er gyldig JSON
-      - Annen uventet feil
-
-    Aldri kast exception oppover — anbefalingen skal alltid returneres.
 
     Args:
         llm_context: pre-computed metadata fra recommendation_engine
 
     Returns:
-        dict | None:
-            {
-                "resultat_sammendrag": str,
-                "hvorfor_dette_passer": [{"navn": str, "forklaring": str}, ...],
-                "veien_videre":  [str, ...],
-                "obs_punkter":   [str, ...],
-            }
+        dict | None med struktur:
+          {
+            "profil": {
+              "profil_sammendrag": str,
+              "laringsstil": str,
+              "arbeidsstil": str,
+              "motivasjonsstil": str,
+              "karriere_orientering": str,
+            },
+            "hvorfor_dette_passer": [{"navn": str, "forklaring": str}, ...],
+            "veien_videre":  [str, ...],
+            "obs_punkter":   [str, ...],
+          }
     """
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
@@ -229,12 +325,12 @@ def generate_llm_explanation(llm_context: dict) -> Optional[dict]:
         return None
 
     try:
-        from openai import OpenAI  # lat import — ikke krev openai hvis nøkkel mangler
+        from openai import OpenAI  # lat import — ikke krev pakken hvis nøkkel mangler
 
-        client = OpenAI(api_key=api_key)
+        client      = OpenAI(api_key=api_key)
         user_prompt = _bygg_user_prompt(llm_context)
 
-        logger.debug("LLM user-prompt:\n%s", user_prompt)
+        logger.debug("LLM user-prompt (%d tegn):\n%s", len(user_prompt), user_prompt)
 
         response = client.responses.create(
             model="gpt-4.1-mini",
@@ -255,11 +351,13 @@ def generate_llm_explanation(llm_context: dict) -> Optional[dict]:
         raw_text = response.output_text
         result   = json.loads(raw_text)
 
+        profil = result.get("profil", {})
         logger.info(
-            "LLM-forklaring generert: %d ord, %d anbefalinger forklart, %d neste-steg",
-            len(result.get("resultat_sammendrag", "").split()),
+            "LLM OK — profil: %d ord | forklaringer: %d | neste-steg: %d | obs: %d",
+            len(profil.get("profil_sammendrag", "").split()),
             len(result.get("hvorfor_dette_passer", [])),
             len(result.get("veien_videre", [])),
+            len(result.get("obs_punkter", [])),
         )
         return result
 

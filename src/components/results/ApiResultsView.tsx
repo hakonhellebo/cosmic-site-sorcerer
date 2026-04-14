@@ -14,7 +14,11 @@ import {
   Award, TrendingUp,
 } from 'lucide-react';
 import CareerJourney from './CareerJourney';
-import type { EdPathApiResponse, EdPathUserType } from '@/services/edpathApi.types';
+import type {
+  EdPathApiResponse,
+  EdPathUserType,
+  EdPathLlmProfil,
+} from '@/services/edpathApi.types';
 
 interface ApiResultsViewProps {
   results: EdPathApiResponse;
@@ -243,6 +247,25 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answ
 
   const topDims = dimensjoner.slice(0, 3);
 
+  // ─── LLM profile — preferred over static engine output ───────────────────
+  // llmProfil is null when OPENAI_API_KEY is not set or the call fails.
+  // All text fields fall back gracefully to the static profil_engine values.
+  const llmProfil: EdPathLlmProfil | null = results.llm_resultat?.profil ?? null;
+
+  const profilSammendrag =
+    llmProfil?.profil_sammendrag ||
+    profil?.profil_sammendrag ||
+    buildWhoYouAre(dimensjoner, userType);
+
+  const profilLaringsstil   = llmProfil?.laringsstil          || profil?.laringsstil;
+  const profilArbeidsstil   = llmProfil?.arbeidsstil           || profil?.arbeidsstil;
+  const profilMotivasjon    = llmProfil?.motivasjonsstil       || profil?.motivasjonsstil;
+  const profilKarriere      = llmProfil?.karriere_orientering  || profil?.karriere_orientering;
+
+  const llmVeienVidere   = results.llm_resultat?.veien_videre   ?? [];
+  const llmObsPunkter    = results.llm_resultat?.obs_punkter    ?? [];
+  const llmForklaringer  = results.llm_resultat?.hvorfor_dette_passer ?? [];
+
   return (
     <div className="space-y-8">
 
@@ -301,9 +324,13 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answ
       </Card>
 
       {/* ══════════════════════════════════════════════
-          2. WHO YOU ARE  (profil from API if available)
+          2. WHO YOU ARE
+          Text source priority:
+            1. llm_resultat.profil.*  (GPT-generated, personalized)
+            2. profil.*               (static profil_engine fallback)
+            3. buildWhoYouAre()       (last-resort narrative)
          ══════════════════════════════════════════════ */}
-      {(profil || hasDimensions) && (
+      {(profil || hasDimensions || llmProfil) && (
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
@@ -311,48 +338,60 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answ
               <CardTitle>Hvem du er</CardTitle>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Basert på svarene dine har vi satt sammen en beskrivelse av hvordan du jobber, lærer og hva som motiverer deg.
+              En personlig beskrivelse basert på svarene dine — hvordan du jobber, lærer og hva som motiverer deg.
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
+
+            {/* Main summary */}
             <p className="text-base leading-relaxed text-foreground/90">
-              {profil?.profil_sammendrag || buildWhoYouAre(dimensjoner, userType)}
+              {profilSammendrag}
             </p>
 
-            {/* Profil detail cards */}
-            {profil && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-                {profil.laringsstil && (
+            {/* Profile detail cards — all four fields */}
+            {(profilLaringsstil || profilArbeidsstil || profilMotivasjon || profilKarriere) && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {profilLaringsstil && (
                   <div className="p-3 rounded-lg bg-muted/30 border">
-                    <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">Læringsstil</p>
-                    <p className="text-sm">{profil.laringsstil}</p>
+                    <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
+                      📖 Læringsstil
+                    </p>
+                    <p className="text-sm leading-relaxed">{profilLaringsstil}</p>
                   </div>
                 )}
-                {profil.arbeidsstil && (
+                {profilArbeidsstil && (
                   <div className="p-3 rounded-lg bg-muted/30 border">
-                    <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">Arbeidsstil</p>
-                    <p className="text-sm">{profil.arbeidsstil}</p>
+                    <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
+                      💼 Arbeidsstil
+                    </p>
+                    <p className="text-sm leading-relaxed">{profilArbeidsstil}</p>
                   </div>
                 )}
-                {profil.motivasjonsstil && (
+                {profilMotivasjon && (
                   <div className="p-3 rounded-lg bg-muted/30 border">
-                    <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">Motivasjon</p>
-                    <p className="text-sm">{profil.motivasjonsstil}</p>
+                    <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
+                      ⚡ Motivasjon
+                    </p>
+                    <p className="text-sm leading-relaxed">{profilMotivasjon}</p>
                   </div>
                 )}
-                {profil.karriere_orientering && (
+                {profilKarriere && (
                   <div className="p-3 rounded-lg bg-muted/30 border">
-                    <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">Karriereorientering</p>
-                    <p className="text-sm">{profil.karriere_orientering}</p>
+                    <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
+                      🧭 Karriereorientering
+                    </p>
+                    <p className="text-sm leading-relaxed">{profilKarriere}</p>
                   </div>
                 )}
               </div>
             )}
 
-            {/* Styrker from profil */}
+            {/* Styrker badges */}
             {profil?.styrker && profil.styrker.length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Dine styrker</p>
+                <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+                  Identifiserte styrker
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {profil.styrker.map((s, i) => (
                     <Badge key={i} variant="secondary" className="text-sm py-1 px-3">
@@ -364,9 +403,9 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answ
               </div>
             )}
 
-            {/* Quick dimension badges (fallback when no profil) */}
-            {!profil && (
-              <div className="flex flex-wrap gap-2 mt-4">
+            {/* Fallback dimension badges when no profil at all */}
+            {!profil && !llmProfil && (
+              <div className="flex flex-wrap gap-2 mt-2">
                 {topDims.map((dim, i) => (
                   <Badge key={i} variant="secondary" className="text-sm py-1 px-3">
                     <Sparkles className="h-3 w-3 mr-1" />
@@ -376,19 +415,15 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answ
               </div>
             )}
 
-            {/* Preference signals */}
-            {preferanser && (
-              <div className="mt-2 pt-3 border-t space-y-2">
-                {preferanser.bransje_interesse.length > 0 && (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Bransjer du er interessert i:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {preferanser.bransje_interesse.slice(0, 6).map((b, i) => (
-                        <Badge key={i} variant="outline" className="text-xs">{b}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
+            {/* Preference interest badges */}
+            {preferanser && preferanser.bransje_interesse.length > 0 && (
+              <div className="pt-3 border-t">
+                <p className="text-xs text-muted-foreground mb-1">Bransjer du er interessert i:</p>
+                <div className="flex flex-wrap gap-1">
+                  {preferanser.bransje_interesse.slice(0, 6).map((b, i) => (
+                    <Badge key={i} variant="outline" className="text-xs">{b}</Badge>
+                  ))}
+                </div>
               </div>
             )}
           </CardContent>
@@ -804,7 +839,35 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answ
       </Card>
 
       {/* ══════════════════════════════════════════════
+          8b. LLM — HVORFOR DETTE PASSER
+          Only rendered when llm_resultat is present
+         ══════════════════════════════════════════════ */}
+      {llmForklaringer.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              <CardTitle>Hvorfor disse anbefalingene passer deg</CardTitle>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Her er en personlig forklaring på koblingen mellom profilen din og de konkrete anbefalingene.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {llmForklaringer.map((item, i) => (
+              <div key={i} className="p-4 rounded-lg border bg-muted/10">
+                <p className="font-semibold text-sm mb-1">{item.navn}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{item.forklaring}</p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ══════════════════════════════════════════════
           9. NEXT STEPS
+          LLM-generated veien_videre when available,
+          static fallback list otherwise
          ══════════════════════════════════════════════ */}
       <Card className="border-primary/20">
         <CardHeader className="pb-3">
@@ -813,25 +876,57 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answ
             <CardTitle>Neste steg for deg</CardTitle>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            Her er konkrete ting du kan gjøre for å utforske mulighetene videre.
+            Konkrete ting du kan gjøre for å utforske mulighetene videre.
           </p>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {[
-              { icon: '💬', text: 'Snakk med en rådgiver — vis dem denne profilen og diskuter mulighetene' },
-              { icon: '🎓', text: 'Utforsk studiene over — klikk deg inn og les mer om opptakskrav og innhold' },
-              { icon: '🏢', text: 'Besøk bedriftene som interesserer deg — se om de har trainee-programmer eller praksis' },
-              { icon: '👥', text: 'Snakk med folk som jobber i yrkene — spør hva de liker og hva som er utfordrende' },
-              { icon: '📊', text: 'Utforsk statistikksiden vår for å sammenligne studier, lønn og jobbmuligheter' },
-              { icon: '🔄', text: 'Ta spørreskjemaet på nytt senere — profilen din utvikler seg over tid' },
-            ].map((step, i) => (
-              <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/20 border">
-                <span className="text-lg flex-shrink-0">{step.icon}</span>
-                <span className="text-sm text-foreground/90">{step.text}</span>
+        <CardContent className="space-y-4">
+          {llmVeienVidere.length > 0 ? (
+            /* LLM-generated, personalised steps */
+            <div className="space-y-2">
+              {llmVeienVidere.map((steg, i) => (
+                <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/20 border">
+                  <span className="flex-shrink-0 h-5 w-5 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center mt-0.5">
+                    {i + 1}
+                  </span>
+                  <span className="text-sm text-foreground/90 leading-relaxed">{steg}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            /* Static fallback */
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {[
+                { icon: '💬', text: 'Snakk med en rådgiver — vis dem denne profilen og diskuter mulighetene' },
+                { icon: '🎓', text: 'Utforsk studiene over — klikk deg inn og les mer om opptakskrav og innhold' },
+                { icon: '🏢', text: 'Besøk bedriftene som interesserer deg — se om de har trainee-programmer eller praksis' },
+                { icon: '👥', text: 'Snakk med folk som jobber i yrkene — spør hva de liker og hva som er utfordrende' },
+                { icon: '📊', text: 'Utforsk statistikksiden vår for å sammenligne studier, lønn og jobbmuligheter' },
+                { icon: '🔄', text: 'Ta spørreskjemaet på nytt senere — profilen din utvikler seg over tid' },
+              ].map((step, i) => (
+                <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/20 border">
+                  <span className="text-lg flex-shrink-0">{step.icon}</span>
+                  <span className="text-sm text-foreground/90">{step.text}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* OBS — realistiske forbehold (kun fra LLM) */}
+          {llmObsPunkter.length > 0 && (
+            <div className="mt-4 pt-4 border-t">
+              <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+                ⚠️ Viktig å vite
+              </p>
+              <div className="space-y-2">
+                {llmObsPunkter.map((obs, i) => (
+                  <div key={i} className="flex items-start gap-2 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800/40">
+                    <span className="text-yellow-600 dark:text-yellow-400 text-xs mt-0.5 flex-shrink-0">●</span>
+                    <p className="text-sm text-foreground/80 leading-relaxed">{obs}</p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

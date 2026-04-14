@@ -68,7 +68,7 @@ export interface EdPathPreferanser {
   bransje_interesse: string[];
 }
 
-/** LLM-ready context block (for future AI explanations) */
+/** LLM-ready context block (input to the LLM engine) */
 export interface EdPathLlmContext {
   brukertype: string;
   topp_dimensjoner: string[];
@@ -79,6 +79,37 @@ export interface EdPathLlmContext {
   preferanser: EdPathPreferanser;
   topp_yrker: string[];
   topp_studier: string[];
+}
+
+// ──────────────────────────────────────────────────────────
+// LLM result types (output from llm_engine — gpt-4.1-mini)
+// ──────────────────────────────────────────────────────────
+
+/**
+ * LLM-generated personal profile text.
+ * Replaces static template text from profil_engine when available.
+ * Frontend should prefer llm_resultat.profil.* over profil.* when present.
+ */
+export interface EdPathLlmProfil {
+  profil_sammendrag:    string;   // 2–3 sentences: who the student is
+  laringsstil:          string;   // how they learn best
+  arbeidsstil:          string;   // preferred work style/environment
+  motivasjonsstil:      string;   // what drives them
+  karriere_orientering: string;   // long-term career direction
+}
+
+/** One recommendation explained by the LLM */
+export interface EdPathLlmForklaring {
+  navn:       string;   // name of study or career
+  forklaring: string;   // why it fits this specific student
+}
+
+/** Full LLM result — attached to API response as llm_resultat */
+export interface EdPathLlmResultat {
+  profil:               EdPathLlmProfil;
+  hvorfor_dette_passer: EdPathLlmForklaring[];
+  veien_videre:         string[];
+  obs_punkter:          string[];
 }
 
 /** A sector group of studies */
@@ -114,6 +145,8 @@ export interface EdPathApiResponse {
   profil?: EdPathProfil;
   preferanser?: EdPathPreferanser;
   llm_context?: EdPathLlmContext;
+  /** LLM-generated explanation. null = OPENAI_API_KEY not set or call failed. */
+  llm_resultat?: EdPathLlmResultat | null;
   // Legacy fields (may still be present)
   topp_dimensjoner?: string[];
 }

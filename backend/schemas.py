@@ -102,14 +102,31 @@ class LLMForklaring(BaseModel):
     forklaring: str
 
 
+class LLMProfil(BaseModel):
+    """
+    Personlig profilbeskrivelse generert av LLM-en.
+    Erstatter de statiske malene fra profil_engine når OPENAI_API_KEY er satt.
+    Frontend bruker disse feltene fremfor ProfilBeskrivelse når de finnes.
+    """
+    profil_sammendrag:    str   # hvem eleven er faglig og personlig (2–3 setninger)
+    laringsstil:          str   # hvordan eleven lærer best (1 setning)
+    arbeidsstil:          str   # hvilken arbeidsform som passer (1 setning)
+    motivasjonsstil:      str   # hva som driver og motiverer eleven (1 setning)
+    karriere_orientering: str   # langsiktig karriereretning (1 setning)
+
+
 class LLMResultat(BaseModel):
     """
     Strukturert forklaringstekst generert av GPT.
 
     Legges til som `llm_resultat` i API-responsen.
     Er None hvis OPENAI_API_KEY ikke er satt eller kallet feiler.
+
+    Frontend-prioritet:
+      Bruk llm_resultat.profil.* hvis tilgjengelig,
+      fall tilbake på profil.* (statisk) ellers.
     """
-    resultat_sammendrag:  str
+    profil:               LLMProfil
     hvorfor_dette_passer: list[LLMForklaring] = Field(default_factory=list)
     veien_videre:         list[str] = Field(default_factory=list)
     obs_punkter:          list[str] = Field(default_factory=list)
