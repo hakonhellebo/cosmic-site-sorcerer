@@ -81,13 +81,36 @@ export interface EdPathLlmContext {
   topp_studier: string[];
 }
 
+/** A sector group of studies */
+export interface EdPathStudieGruppe {
+  kategori: string;
+  studier: EdPathStudie[];
+}
+
+/** A sector group of careers */
+export interface EdPathYrkeGruppe {
+  kategori: string;
+  yrker: EdPathYrke[];
+}
+
+/** A sector group of companies */
+export interface EdPathBedriftGruppe {
+  kategori: string;
+  bedrifter: EdPathBedrift[];
+}
+
 /** Full API response from the EdPath matching engine */
 export interface EdPathApiResponse {
   dimensjoner: EdPathDimension[];
   topp_sektorer: EdPathTopSektor[];
+  // Flat lists (backward compat / fallback)
   yrker: EdPathYrke[];
   studier: EdPathStudie[];
   bedrifter: EdPathBedrift[];
+  // Grouped lists (primary UX structure — one group per sector)
+  studier_grupper?: EdPathStudieGruppe[];
+  yrker_grupper?: EdPathYrkeGruppe[];
+  bedrifter_grupper?: EdPathBedriftGruppe[];
   profil?: EdPathProfil;
   preferanser?: EdPathPreferanser;
   llm_context?: EdPathLlmContext;

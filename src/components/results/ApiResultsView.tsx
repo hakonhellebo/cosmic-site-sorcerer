@@ -163,10 +163,43 @@ const MatchScoreBar: React.FC<{ score?: number; boost?: boolean }> = ({ score, b
   );
 };
 
+/* ─── sector icon map ─── */
+const SEKTOR_IKONER: Record<string, string> = {
+  'IT og teknologi':                    '💻',
+  'Helse og omsorg':                    '🏥',
+  'Økonomi og finans':                  '📊',
+  'Undervisning og pedagogikk':         '🎓',
+  'Ingeniør og teknisk':                '⚙️',
+  'Design, markedsføring og kommun':    '🎨',
+  'Miljø, natur og forskning':          '🌿',
+  'Administrasjon og ledelse':          '🏢',
+  'Samfunnsfag og politikk':            '🏛️',
+  'Jus og rettsvesen':                  '⚖️',
+  'Psykologi og rådgivning':            '🧠',
+  'Kunst og kultur':                    '🎭',
+  'Sikkerhet og beredskap':             '🛡️',
+  'Transport og logistikk':             '🚛',
+  'Sport og kroppsøving':               '🏃',
+  'Religion og livssyn':                '🕊️',
+  'Humaniora og språk':                 '📖',
+};
+const sektorIkon = (sektor: string) => SEKTOR_IKONER[sektor] ?? '🔹';
+
 /* ─── component ─── */
 const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answers = {} }) => {
   const navigate = useNavigate();
-  const { dimensjoner = [], topp_sektorer = [], yrker = [], studier = [], bedrifter = [], profil, preferanser } = results;
+  const {
+    dimensjoner = [],
+    topp_sektorer = [],
+    yrker = [],
+    studier = [],
+    bedrifter = [],
+    studier_grupper = [],
+    yrker_grupper = [],
+    bedrifter_grupper = [],
+    profil,
+    preferanser,
+  } = results;
 
   // Try to get answers from localStorage if not passed as prop
   const surveyAnswers = useMemo(() => {
@@ -464,9 +497,9 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answ
       )}
 
       {/* ══════════════════════════════════════════════
-          5. STUDY PROGRAMMES THAT MATCH
+          5. STUDY PROGRAMMES — grouped by sector
          ══════════════════════════════════════════════ */}
-      {hasStudier && (
+      {(studier_grupper.length > 0 || hasStudier) && (
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
@@ -474,75 +507,100 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answ
               <CardTitle>Studier som matcher deg</CardTitle>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Disse studieprogrammene gir deg kompetansen du trenger for å lykkes i sektorene som passer profilen din. Klikk for å utforske detaljene.
+              Vi har funnet <strong>{studier_grupper.length > 0 ? studier_grupper.length : 1} mulige studieveier</strong> basert på profilen din. Hver vei representerer en annerledes retning — utforsk dem alle.
             </p>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {studier.map((studie, i) => (
-                <div
-                  key={i}
-                  onClick={() => handleStudyClick(studie.navn)}
-                  className="p-5 rounded-lg border cursor-pointer hover:shadow-md hover:border-primary/40 transition-all group"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-semibold group-hover:text-primary transition-colors">
-                      {studie.navn}
-                      {studie.preferanse_boost && (
-                        <span className="ml-1.5 text-xs text-yellow-500">⭐ Ditt valg</span>
-                      )}
-                    </h4>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+          <CardContent className="space-y-6">
+            {studier_grupper.length > 0 ? (
+              studier_grupper.map((gruppe, gi) => (
+                <div key={gi}>
+                  {/* Gruppe-header */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-lg">{sektorIkon(gruppe.kategori)}</span>
+                    <h3 className="font-semibold text-base">{gruppe.kategori}</h3>
+                    <Badge variant="secondary" className="text-xs ml-auto">
+                      {gruppe.studier.length} studie{gruppe.studier.length !== 1 ? 'r' : ''}
+                    </Badge>
                   </div>
-                  {studie.lærested && (
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
-                      <MapPin className="h-3 w-3" />
-                      {studie.lærested}
+                  {/* Items i gruppen */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-0">
+                    {gruppe.studier.map((studie, i) => (
+                      <div
+                        key={i}
+                        onClick={() => handleStudyClick(studie.navn)}
+                        className="p-4 rounded-lg border cursor-pointer hover:shadow-md hover:border-primary/40 transition-all group bg-muted/10"
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <h4 className="font-medium text-sm group-hover:text-primary transition-colors leading-snug">
+                            {studie.navn}
+                            {studie.preferanse_boost && (
+                              <span className="ml-1 text-yellow-500">⭐</span>
+                            )}
+                          </h4>
+                          <ArrowRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-0.5" />
+                        </div>
+                        {studie.lærested && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1.5">
+                            <MapPin className="h-2.5 w-2.5" />
+                            {studie.lærested}
+                          </div>
+                        )}
+                        <MatchScoreBar score={studie.match_score} boost={studie.preferanse_boost} />
+                        {studie.match_reasons && studie.match_reasons.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1.5">
+                            {studie.match_reasons.slice(0, 2).map((r, j) => (
+                              <Badge key={j} variant="secondary" className="text-xs py-0">
+                                <TrendingUp className="h-2.5 w-2.5 mr-0.5" />
+                                {r}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {gi < studier_grupper.length - 1 && <div className="border-b mt-4" />}
+                </div>
+              ))
+            ) : (
+              /* Fallback: flat list */
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {studier.map((studie, i) => (
+                  <div
+                    key={i}
+                    onClick={() => handleStudyClick(studie.navn)}
+                    className="p-5 rounded-lg border cursor-pointer hover:shadow-md hover:border-primary/40 transition-all group"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold group-hover:text-primary transition-colors">
+                        {studie.navn}
+                        {studie.preferanse_boost && <span className="ml-1 text-yellow-500">⭐</span>}
+                      </h4>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                     </div>
-                  )}
-                  <Badge variant="outline" className="mb-2">{studie.sektor}</Badge>
-
-                  {/* Match score bar */}
-                  <MatchScoreBar score={studie.match_score} boost={studie.preferanse_boost} />
-
-                  {/* Match reasons */}
-                  {studie.match_reasons && studie.match_reasons.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {studie.match_reasons.slice(0, 3).map((r, j) => (
-                        <Badge key={j} variant="secondary" className="text-xs">
-                          <TrendingUp className="h-2.5 w-2.5 mr-1" />
-                          {r}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-
-                  <p className="text-sm leading-relaxed text-muted-foreground mt-2">
-                    {buildStudyExplanation(studie.navn, studie.sektor)}
-                  </p>
-
-                  {/* Show related positions if available */}
-                  {studie.stillinger && studie.stillinger.length > 0 && (
-                    <div className="mt-3 pt-3 border-t">
-                      <p className="text-xs text-muted-foreground mb-1">Mulige stillinger:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {studie.stillinger.slice(0, 3).map((s, j) => (
-                          <Badge key={j} variant="secondary" className="text-xs">{s}</Badge>
+                    <Badge variant="outline" className="mb-2">{studie.sektor}</Badge>
+                    <MatchScoreBar score={studie.match_score} boost={studie.preferanse_boost} />
+                    {studie.match_reasons && studie.match_reasons.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {studie.match_reasons.slice(0, 3).map((r, j) => (
+                          <Badge key={j} variant="secondary" className="text-xs">
+                            <TrendingUp className="h-2.5 w-2.5 mr-1" />{r}
+                          </Badge>
                         ))}
                       </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
 
       {/* ══════════════════════════════════════════════
-          6. CAREERS YOU COULD EXPLORE
+          6. CAREERS — grouped by sector
          ══════════════════════════════════════════════ */}
-      {hasYrker && (
+      {(yrker_grupper.length > 0 || hasYrker) && (
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
@@ -550,62 +608,95 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answ
               <CardTitle>Karriereveier du kan utforske</CardTitle>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Disse yrkene matcher profilen din. Klikk på et yrke for å utforske det i detalj — se beskrivelse, kompetansekrav og relaterte muligheter.
+              Vi har identifisert <strong>{yrker_grupper.length > 0 ? yrker_grupper.length : 1} karriereveier</strong> som passer profilen din. Klikk på et yrke for å utforske detaljer.
             </p>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {yrker.map((yrke, i) => (
-                <div
-                  key={i}
-                  onClick={() => navigate(`/karriere/${toCareerSlug(yrke.navn)}`)}
-                  className="p-5 rounded-lg border cursor-pointer hover:shadow-md hover:border-primary/40 transition-all group"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-semibold group-hover:text-primary transition-colors">
-                      {yrke.navn}
-                      {yrke.preferanse_boost && (
-                        <span className="ml-1.5 text-xs text-yellow-500">⭐ Ditt valg</span>
-                      )}
-                    </h4>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+          <CardContent className="space-y-6">
+            {yrker_grupper.length > 0 ? (
+              yrker_grupper.map((gruppe, gi) => (
+                <div key={gi}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-lg">{sektorIkon(gruppe.kategori)}</span>
+                    <h3 className="font-semibold text-base">{gruppe.kategori}</h3>
+                    <Badge variant="secondary" className="text-xs ml-auto">
+                      {gruppe.yrker.length} yrke{gruppe.yrker.length !== 1 ? 'r' : ''}
+                    </Badge>
                   </div>
-                  <div className="flex flex-wrap gap-1 mb-2">
-                    <Badge variant="outline">{yrke.sektor}</Badge>
-                    {yrke.underkategori && (
-                      <Badge variant="outline">{yrke.underkategori}</Badge>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {gruppe.yrker.map((yrke, i) => (
+                      <div
+                        key={i}
+                        onClick={() => navigate(`/karriere/${toCareerSlug(yrke.navn)}`)}
+                        className="p-4 rounded-lg border cursor-pointer hover:shadow-md hover:border-primary/40 transition-all group bg-muted/10"
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <h4 className="font-medium text-sm group-hover:text-primary transition-colors leading-snug">
+                            {yrke.navn}
+                            {yrke.preferanse_boost && <span className="ml-1 text-yellow-500">⭐</span>}
+                          </h4>
+                          <ArrowRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-0.5" />
+                        </div>
+                        {yrke.underkategori && (
+                          <p className="text-xs text-muted-foreground mb-1">{yrke.underkategori}</p>
+                        )}
+                        <MatchScoreBar score={yrke.match_score} boost={yrke.preferanse_boost} />
+                        {yrke.match_reasons && yrke.match_reasons.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1.5">
+                            {yrke.match_reasons.slice(0, 2).map((r, j) => (
+                              <Badge key={j} variant="secondary" className="text-xs py-0">
+                                <TrendingUp className="h-2.5 w-2.5 mr-0.5" />{r}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {gi < yrker_grupper.length - 1 && <div className="border-b mt-4" />}
+                </div>
+              ))
+            ) : (
+              /* Fallback: flat list */
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {yrker.map((yrke, i) => (
+                  <div
+                    key={i}
+                    onClick={() => navigate(`/karriere/${toCareerSlug(yrke.navn)}`)}
+                    className="p-5 rounded-lg border cursor-pointer hover:shadow-md hover:border-primary/40 transition-all group"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold group-hover:text-primary transition-colors">
+                        {yrke.navn}
+                        {yrke.preferanse_boost && <span className="ml-1 text-yellow-500">⭐</span>}
+                      </h4>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                    </div>
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      <Badge variant="outline">{yrke.sektor}</Badge>
+                      {yrke.underkategori && <Badge variant="outline">{yrke.underkategori}</Badge>}
+                    </div>
+                    <MatchScoreBar score={yrke.match_score} boost={yrke.preferanse_boost} />
+                    {yrke.match_reasons && yrke.match_reasons.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {yrke.match_reasons.slice(0, 3).map((r, j) => (
+                          <Badge key={j} variant="secondary" className="text-xs">
+                            <TrendingUp className="h-2.5 w-2.5 mr-1" />{r}
+                          </Badge>
+                        ))}
+                      </div>
                     )}
                   </div>
-
-                  {/* Match score bar */}
-                  <MatchScoreBar score={yrke.match_score} boost={yrke.preferanse_boost} />
-
-                  {/* Match reasons */}
-                  {yrke.match_reasons && yrke.match_reasons.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {yrke.match_reasons.slice(0, 3).map((r, j) => (
-                        <Badge key={j} variant="secondary" className="text-xs">
-                          <TrendingUp className="h-2.5 w-2.5 mr-1" />
-                          {r}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-
-                  <p className="text-sm leading-relaxed text-muted-foreground mt-2">
-                    {buildCareerExplanation(yrke.navn, yrke.sektor)}
-                  </p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
 
       {/* ══════════════════════════════════════════════
-          7. COMPANIES YOU MAY FIND INTERESTING
+          7. COMPANIES — grouped by sector
          ══════════════════════════════════════════════ */}
-      {hasBedrifter && (
+      {(bedrifter_grupper.length > 0 || hasBedrifter) && (
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
@@ -613,54 +704,78 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answ
               <CardTitle>Bedrifter som kan passe deg</CardTitle>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Disse bedriftene opererer i sektorer som matcher profilen din. Klikk for å lese mer og se karrieremuligheter.
+              Disse bedriftene opererer i sektorer som matcher profilen din. Klikk for å utforske karrieremuligheter.
             </p>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {bedrifter.map((bedrift, i) => (
-                <div
-                  key={i}
-                  onClick={() => navigate(`/bedrift/${toCompanySlug(bedrift.navn)}`)}
-                  className="p-5 rounded-lg border cursor-pointer hover:shadow-md hover:border-primary/40 transition-all group"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-semibold text-sm group-hover:text-primary transition-colors">
-                      {bedrift.navn}
-                      {bedrift.preferanse_boost && (
-                        <span className="ml-1.5 text-xs text-yellow-500">⭐</span>
-                      )}
-                    </h4>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+          <CardContent className="space-y-6">
+            {bedrifter_grupper.length > 0 ? (
+              bedrifter_grupper.map((gruppe, gi) => (
+                <div key={gi}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-lg">{sektorIkon(gruppe.kategori)}</span>
+                    <h3 className="font-semibold text-base">{gruppe.kategori}</h3>
+                    <Badge variant="secondary" className="text-xs ml-auto">
+                      {gruppe.bedrifter.length} bedrift{gruppe.bedrifter.length !== 1 ? 'er' : ''}
+                    </Badge>
                   </div>
-                  <div className="flex flex-wrap gap-1 mb-2">
-                    <Badge variant="outline" className="text-xs">{bedrift.sektor}</Badge>
-                    {bedrift.underkategori && (
-                      <Badge variant="outline" className="text-xs">{bedrift.underkategori}</Badge>
-                    )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {gruppe.bedrifter.map((bedrift, i) => (
+                      <div
+                        key={i}
+                        onClick={() => navigate(`/bedrift/${toCompanySlug(bedrift.navn)}`)}
+                        className="p-4 rounded-lg border cursor-pointer hover:shadow-md hover:border-primary/40 transition-all group bg-muted/10"
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <h4 className="font-medium text-sm group-hover:text-primary transition-colors leading-snug">
+                            {bedrift.navn}
+                            {bedrift.preferanse_boost && <span className="ml-1 text-yellow-500">⭐</span>}
+                          </h4>
+                          <ArrowRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-0.5" />
+                        </div>
+                        {bedrift.underkategori && (
+                          <p className="text-xs text-muted-foreground mb-1">{bedrift.underkategori}</p>
+                        )}
+                        <MatchScoreBar score={bedrift.match_score} boost={bedrift.preferanse_boost} />
+                        {bedrift.match_reasons && bedrift.match_reasons.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1.5">
+                            {bedrift.match_reasons.slice(0, 2).map((r, j) => (
+                              <Badge key={j} variant="secondary" className="text-xs py-0">
+                                <TrendingUp className="h-2.5 w-2.5 mr-0.5" />{r}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-
-                  {/* Match score bar */}
-                  <MatchScoreBar score={bedrift.match_score} boost={bedrift.preferanse_boost} />
-
-                  {/* Match reasons */}
-                  {bedrift.match_reasons && bedrift.match_reasons.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {bedrift.match_reasons.slice(0, 2).map((r, j) => (
-                        <Badge key={j} variant="secondary" className="text-xs">
-                          <TrendingUp className="h-2.5 w-2.5 mr-1" />
-                          {r}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-
-                  <p className="text-xs leading-relaxed text-muted-foreground mt-2">
-                    {buildCompanyExplanation(bedrift.navn, bedrift.sektor)}
-                  </p>
+                  {gi < bedrifter_grupper.length - 1 && <div className="border-b mt-4" />}
                 </div>
-              ))}
-            </div>
+              ))
+            ) : (
+              /* Fallback: flat list */
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {bedrifter.map((bedrift, i) => (
+                  <div
+                    key={i}
+                    onClick={() => navigate(`/bedrift/${toCompanySlug(bedrift.navn)}`)}
+                    className="p-5 rounded-lg border cursor-pointer hover:shadow-md hover:border-primary/40 transition-all group"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold text-sm group-hover:text-primary transition-colors">
+                        {bedrift.navn}
+                        {bedrift.preferanse_boost && <span className="ml-1 text-yellow-500">⭐</span>}
+                      </h4>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                    </div>
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      <Badge variant="outline" className="text-xs">{bedrift.sektor}</Badge>
+                      {bedrift.underkategori && <Badge variant="outline" className="text-xs">{bedrift.underkategori}</Badge>}
+                    </div>
+                    <MatchScoreBar score={bedrift.match_score} boost={bedrift.preferanse_boost} />
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

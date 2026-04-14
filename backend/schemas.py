@@ -70,11 +70,38 @@ class AnbefalingItem(BaseModel):
     match_reasons: list[str] = Field(default_factory=list)  # topp-dimensjoner bak anbefalingen
 
 
+# ---------------------------------------------------------------------------
+# Output: grupperte anbefalinger (én gruppe per sektor)
+# ---------------------------------------------------------------------------
+
+class StudieGruppe(BaseModel):
+    """Én sektorgruppe med studier."""
+    kategori: str                           # sektornavn (f.eks. "IT og teknologi")
+    studier: list[AnbefalingItem] = Field(default_factory=list)
+
+
+class YrkeGruppe(BaseModel):
+    """Én sektorgruppe med yrker."""
+    kategori: str
+    yrker: list[AnbefalingItem] = Field(default_factory=list)
+
+
+class BedriftGruppe(BaseModel):
+    """Én sektorgruppe med bedrifter."""
+    kategori: str
+    bedrifter: list[AnbefalingItem] = Field(default_factory=list)
+
+
 class AnbefalingRespons(BaseModel):
     dimensjoner: list[DimensjonItem]
     topp_sektorer: list[SektorItem]
+    # Flate lister — bakoverkompatible
     yrker: list[AnbefalingItem]
     studier: list[AnbefalingItem]
     bedrifter: list[AnbefalingItem]
+    # Grupperte lister — primær UX-struktur (én gruppe per sektor)
+    studier_grupper: list[StudieGruppe] = Field(default_factory=list)
+    yrker_grupper: list[YrkeGruppe] = Field(default_factory=list)
+    bedrifter_grupper: list[BedriftGruppe] = Field(default_factory=list)
     profil: ProfilBeskrivelse
     preferanser: PreferanseSignaler

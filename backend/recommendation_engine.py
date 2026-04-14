@@ -519,6 +519,70 @@ def _normaliser_match_score(items: list[dict], maks_score: float) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
+# Grupperingslogikk
+# ---------------------------------------------------------------------------
+
+# Konfigurasjon for gruppert output
+_MAKS_GRUPPER_STUDIER    = 4   # maks antall sektorgrupper for studier
+_MAKS_GRUPPER_YRKER      = 4   # maks antall sektorgrupper for yrker
+_MAKS_GRUPPER_BEDRIFTER  = 3   # litt færre for bedrifter
+_ITEMS_PER_GRUPPE        = 4   # maks items per gruppe
+_KANDIDAT_POOL           = 40  # hent dette mange kandidater (pool for groupering)
+
+
+def _grupper_etter_sektor(
+    items: list[dict],
+    maks_grupper: int,
+    items_per_gruppe: int = _ITEMS_PER_GRUPPE,
+) -> list[dict]:
+    """
+    Grupperer en score-sortert liste av items etter sektor.
+
+    Returnerer opptil maks_grupper grupper, sortert etter høyeste match_score
+    innad i gruppen. Hver sektor representeres maks én gang.
+
+    Resultatstruktur: [{"kategori": str, "items": [...]}, ...]
+
+    Design-valg:
+      - Én gruppe per sektor → brukeren ser tydelig ULIKE karriereveier
+      - Items innad i gruppen sortert etter match_score (høyest først)
+      - Grupper med < 2 items ekskluderes for å unngå tynne sektorer
+        (én item er bare støy — men vi beholder det hvis totalt < 3 grupper finnes)
+    """
+    sektor_map: dict[str, list[dict]] = {}
+
+    for item in items:
+        sektor = item.get("sektor") or "Annet"
+        if sektor not in sektor_map:
+            sektor_map[sektor] = []
+        if len(sektor_map[sektor]) < items_per_gruppe:
+            sektor_map[sektor].append(item)
+
+    # Bygg grupper og sorter etter toppscore
+    grupper = [
+        {"kategori": sektor, "items": gruppe_items}
+        for sektor, gruppe_items in sektor_map.items()
+        if gruppe_items
+    ]
+    grupper.sort(
+        key=lambda g: g["items"][0].get("match_score", 0) if g["items"] else 0,
+        reverse=True,
+    )
+
+    # Fjern grupper med bare 1 item — med mindre vi ellers ville hatt < 3 grupper
+    rike_grupper   = [g for g in grupper if len(g["items"]) >= 2]
+    tynne_grupper  = [g for g in grupper if len(g["items"]) < 2]
+
+    if len(rike_grupper) >= 2:
+        grupper = rike_grupper
+    else:
+        # Ta med tynne grupper for å nå minst 2 grupper
+        grupper = (rike_grupper + tynne_grupper)
+
+    return grupper[:maks_grupper]
+
+
+# ---------------------------------------------------------------------------
 # Hoved-funksjon
 # ---------------------------------------------------------------------------
 
@@ -554,8 +618,9 @@ def generer_anbefaling(
 
     # --- 4. Hent candidates fra connections (med base match_score = sektor_score) ---
     connections = _hent_connections()
-    # Hent litt ekstra (n_resultater * 3) for å ha margin etter boost + dedup
-    kandidater_n = n_resultater * 3
+    # Hent stor pool: nok til å fylle 4 grupper × 4 items = 16, pluss buffer.
+    # _KANDIDAT_POOL = 40 sikrer at sektorer med lavere score også er representert.
+    kandidater_n = max(_KANDIDAT_POOL, n_resultater * 8)
     anbefalinger = connections.hent_scoret(sektor_tupler, n=kandidater_n)
 
     # --- 5. Appliser preferanseboost ---
@@ -572,7 +637,7 @@ def generer_anbefaling(
     for kat in ["yrker", "studier", "bedrifter"]:
         anbefalinger[kat] = sorter_etter_score(anbefalinger[kat])
 
-    # --- 8. Normaliser match_score til 0–100 og trim til n_resultater ---
+    # --- 8. Normaliser match_score til 0–100 (full pool — ikke trimmet ennå) ---
     alle_scores = [
         item.get("match_score", 0)
         for kat in ["yrker", "studier", "bedrifter"]
@@ -582,13 +647,40 @@ def generer_anbefaling(
 
     for kat in ["yrker", "studier", "bedrifter"]:
         anbefalinger[kat] = _normaliser_match_score(anbefalinger[kat], global_maks)
-        anbefalinger[kat] = anbefalinger[kat][:n_resultater]
+        # Ikke trim ennå — vi trenger hele poolen for groupering
 
-    # --- 8b. Generer match_reasons per item ---
+    # --- 8b. Generer match_reasons per item (full pool) ---
     for kat in ["yrker", "studier", "bedrifter"]:
         for item in anbefalinger[kat]:
             _dims = topp_dims_for_sektor(item.get("sektor", ""), scoring.dimensjon_scores, n=3)
             item["match_reasons"] = [_dim_til_etikett(d) for d in _dims]
+
+    # --- 8c. Grupper etter sektor (primær UX-struktur) ---
+    # Gruppering skjer FØR trimming, slik at vi har nok pool til å fylle alle sektorer.
+    _raw_studier_grupper  = _grupper_etter_sektor(
+        anbefalinger["studier"],
+        maks_grupper=_MAKS_GRUPPER_STUDIER,
+        items_per_gruppe=_ITEMS_PER_GRUPPE,
+    )
+    _raw_yrker_grupper = _grupper_etter_sektor(
+        anbefalinger["yrker"],
+        maks_grupper=_MAKS_GRUPPER_YRKER,
+        items_per_gruppe=_ITEMS_PER_GRUPPE,
+    )
+    _raw_bedrifter_grupper = _grupper_etter_sektor(
+        anbefalinger["bedrifter"],
+        maks_grupper=_MAKS_GRUPPER_BEDRIFTER,
+        items_per_gruppe=_ITEMS_PER_GRUPPE,
+    )
+
+    # Konverter til riktig nøkkelstruktur for frontend
+    studier_grupper  = [{"kategori": g["kategori"], "studier":   g["items"]} for g in _raw_studier_grupper]
+    yrker_grupper    = [{"kategori": g["kategori"], "yrker":     g["items"]} for g in _raw_yrker_grupper]
+    bedrifter_grupper = [{"kategori": g["kategori"], "bedrifter": g["items"]} for g in _raw_bedrifter_grupper]
+
+    # --- 8d. Trim flate lister til n_resultater (bakoverkompatibel) ---
+    for kat in ["yrker", "studier", "bedrifter"]:
+        anbefalinger[kat] = anbefalinger[kat][:n_resultater]
 
     # --- 9. Bygg dimensjon-liste (topp 5, normalisert) ---
     norm_scores = normaliser_scores(scoring.dimensjon_scores)
@@ -652,9 +744,14 @@ def generer_anbefaling(
     return {
         "dimensjoner":   dimensjoner_liste,
         "topp_sektorer": topp_sektorer,
+        # Flate lister (bakoverkompatible — brukes som fallback i frontend)
         "yrker":         anbefalinger.get("yrker", []),
         "studier":       anbefalinger.get("studier", []),
         "bedrifter":     anbefalinger.get("bedrifter", []),
+        # Grupperte lister (primær UX-struktur — én gruppe per sektor)
+        "studier_grupper":   studier_grupper,
+        "yrker_grupper":     yrker_grupper,
+        "bedrifter_grupper": bedrifter_grupper,
         "profil":        profil.model_dump(),
         "preferanser":   scoring.preferanse_signaler.model_dump(),
         "llm_context":   llm_context,
