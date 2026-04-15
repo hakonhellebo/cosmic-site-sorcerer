@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,7 +12,9 @@ import {
   User, ArrowRight, Sparkles, Target, Compass,
   Heart, Brain, GraduationCap, MapPin, Star, Zap,
   Award, TrendingUp, CheckCircle2, AlertCircle, GitBranch, ChevronRight,
+  ChevronDown,
 } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import type {
   EdPathApiResponse,
   EdPathUserType,
@@ -163,7 +165,7 @@ const SEKTOR_IKONER: Record<string, string> = {
 const sektorIkon = (sektor: string) => SEKTOR_IKONER[sektor] ?? '🔹';
 
 /* ─── Extended LLM result type (fields added after initial version) ─── */
-interface LlmResultatExtended extends EdPathLlmResultat {
+interface LlmResultatExtended extends Omit<EdPathLlmResultat, 'styrker_forklart' | 'hvorfor_anbefalinger' | 'karriereveier'> {
   styrker_forklart?:      Array<{ dimensjon: string; forklaring: string }>;
   hvorfor_anbefalinger?:  Array<{ type: string; navn: string; forklaring: string }>;
   karriereveier?:         Array<{
