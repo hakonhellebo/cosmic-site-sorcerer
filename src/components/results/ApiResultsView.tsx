@@ -165,7 +165,8 @@ const SEKTOR_IKONER: Record<string, string> = {
 const sektorIkon = (sektor: string) => SEKTOR_IKONER[sektor] ?? '🔹';
 
 /* ─── Extended LLM result type (fields added after initial version) ─── */
-interface LlmResultatExtended extends Omit<EdPathLlmResultat, 'styrker_forklart' | 'hvorfor_anbefalinger' | 'karriereveier'> {
+interface LlmResultatExtended {
+  profil:                EdPathLlmResultat['profil'];
   styrker_forklart?:      Array<{ dimensjon: string; forklaring: string }>;
   hvorfor_anbefalinger?:  Array<{ type: string; navn: string; forklaring: string }>;
   karriereveier?:         Array<{
@@ -175,6 +176,8 @@ interface LlmResultatExtended extends Omit<EdPathLlmResultat, 'styrker_forklart'
     forklaring: string;
   }>;
   alternative_retninger?: Array<{ sektor: string; forklaring: string }>;
+  veien_videre?:          string[];
+  obs_punkter?:           string[];
 }
 
 /* ─── component ─── */
