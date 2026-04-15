@@ -183,6 +183,8 @@ interface LlmResultatExtended {
 /* ─── component ─── */
 const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answers = {} }) => {
   const navigate = useNavigate();
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  const toggleGroup = (key: string) => setOpenGroups(prev => ({ ...prev, [key]: !prev[key] }));
   const {
     dimensjoner = [],
     topp_sektorer = [],
