@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,7 +12,9 @@ import {
   User, ArrowRight, Sparkles, Target, Compass,
   Heart, Brain, GraduationCap, MapPin, Star, Zap,
   Award, TrendingUp, CheckCircle2, AlertCircle, GitBranch, ChevronRight,
+  ChevronDown,
 } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import type {
   EdPathApiResponse,
   EdPathUserType,
@@ -163,7 +165,8 @@ const SEKTOR_IKONER: Record<string, string> = {
 const sektorIkon = (sektor: string) => SEKTOR_IKONER[sektor] ?? '🔹';
 
 /* ─── Extended LLM result type (fields added after initial version) ─── */
-interface LlmResultatExtended extends EdPathLlmResultat {
+interface LlmResultatExtended {
+  profil:                EdPathLlmResultat['profil'];
   styrker_forklart?:      Array<{ dimensjon: string; forklaring: string }>;
   hvorfor_anbefalinger?:  Array<{ type: string; navn: string; forklaring: string }>;
   karriereveier?:         Array<{
@@ -173,11 +176,15 @@ interface LlmResultatExtended extends EdPathLlmResultat {
     forklaring: string;
   }>;
   alternative_retninger?: Array<{ sektor: string; forklaring: string }>;
+  veien_videre?:          string[];
+  obs_punkter?:           string[];
 }
 
 /* ─── component ─── */
 const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answers = {} }) => {
   const navigate = useNavigate();
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  const toggleGroup = (key: string) => setOpenGroups(prev => ({ ...prev, [key]: !prev[key] }));
   const {
     dimensjoner = [],
     topp_sektorer = [],
@@ -590,54 +597,63 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answ
           </CardHeader>
           <CardContent className="space-y-6">
             {studier_grupper.length > 0 ? (
-              studier_grupper.map((gruppe, gi) => (
-                <div key={gi}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-lg">{sektorIkon(gruppe.kategori)}</span>
-                    <h3 className="font-semibold text-base">{gruppe.kategori}</h3>
-                    <Badge variant="secondary" className="text-xs ml-auto">
-                      {gruppe.studier.length} studie{gruppe.studier.length !== 1 ? 'r' : ''}
-                    </Badge>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-0">
-                    {gruppe.studier.map((studie, i) => (
-                      <div
-                        key={i}
-                        onClick={() => handleStudyClick(studie.navn)}
-                        className="p-4 rounded-lg border cursor-pointer hover:shadow-md hover:border-primary/40 transition-all group bg-muted/10"
-                      >
-                        <div className="flex items-start justify-between gap-2 mb-1">
-                          <h4 className="font-medium text-sm group-hover:text-primary transition-colors leading-snug">
-                            {studie.navn}
-                            {studie.preferanse_boost && (
-                              <span className="ml-1 text-yellow-500">⭐</span>
-                            )}
-                          </h4>
-                          <ArrowRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-0.5" />
-                        </div>
-                        {studie.lærested && (
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1.5">
-                            <MapPin className="h-2.5 w-2.5" />
-                            {studie.lærested}
-                          </div>
-                        )}
-                        <MatchScoreBar score={studie.match_score} boost={studie.preferanse_boost} />
-                        {studie.match_reasons && studie.match_reasons.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-1.5">
-                            {studie.match_reasons.slice(0, 2).map((r, j) => (
-                              <Badge key={j} variant="secondary" className="text-xs py-0">
-                                <TrendingUp className="h-2.5 w-2.5 mr-0.5" />
-                                {r}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
+              studier_grupper.map((gruppe, gi) => {
+                const key = `studier-${gi}`;
+                const isOpen = !!openGroups[key];
+                return (
+                  <Collapsible key={gi} open={isOpen} onOpenChange={() => toggleGroup(key)}>
+                    <CollapsibleTrigger className="w-full">
+                      <div className="flex items-center gap-2 p-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
+                        <span className="text-lg">{sektorIkon(gruppe.kategori)}</span>
+                        <h3 className="font-semibold text-base">{gruppe.kategori}</h3>
+                        <Badge variant="secondary" className="text-xs ml-auto mr-2">
+                          {gruppe.studier.length} studie{gruppe.studier.length !== 1 ? 'r' : ''}
+                        </Badge>
+                        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                       </div>
-                    ))}
-                  </div>
-                  {gi < studier_grupper.length - 1 && <div className="border-b mt-4" />}
-                </div>
-              ))
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 pb-2">
+                        {gruppe.studier.map((studie, i) => (
+                          <div
+                            key={i}
+                            onClick={() => handleStudyClick(studie.navn)}
+                            className="p-4 rounded-lg border cursor-pointer hover:shadow-md hover:border-primary/40 transition-all group bg-muted/10"
+                          >
+                            <div className="flex items-start justify-between gap-2 mb-1">
+                              <h4 className="font-medium text-sm group-hover:text-primary transition-colors leading-snug">
+                                {studie.navn}
+                                {studie.preferanse_boost && (
+                                  <span className="ml-1 text-yellow-500">⭐</span>
+                                )}
+                              </h4>
+                              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-0.5" />
+                            </div>
+                            {studie.lærested && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1.5">
+                                <MapPin className="h-2.5 w-2.5" />
+                                {studie.lærested}
+                              </div>
+                            )}
+                            <MatchScoreBar score={studie.match_score} boost={studie.preferanse_boost} />
+                            {studie.match_reasons && studie.match_reasons.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-1.5">
+                                {studie.match_reasons.slice(0, 2).map((r, j) => (
+                                  <Badge key={j} variant="secondary" className="text-xs py-0">
+                                    <TrendingUp className="h-2.5 w-2.5 mr-0.5" />
+                                    {r}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                    {gi < studier_grupper.length - 1 && <div className="border-b mt-2" />}
+                  </Collapsible>
+                );
+              })
             ) : (
               /* Fallback: flat list */
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -689,48 +705,57 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answ
           </CardHeader>
           <CardContent className="space-y-6">
             {yrker_grupper.length > 0 ? (
-              yrker_grupper.map((gruppe, gi) => (
-                <div key={gi}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-lg">{sektorIkon(gruppe.kategori)}</span>
-                    <h3 className="font-semibold text-base">{gruppe.kategori}</h3>
-                    <Badge variant="secondary" className="text-xs ml-auto">
-                      {gruppe.yrker.length} yrke{gruppe.yrker.length !== 1 ? 'r' : ''}
-                    </Badge>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {gruppe.yrker.map((yrke, i) => (
-                      <div
-                        key={i}
-                        onClick={() => navigate(`/karriere/${toCareerSlug(yrke.navn)}`)}
-                        className="p-4 rounded-lg border cursor-pointer hover:shadow-md hover:border-primary/40 transition-all group bg-muted/10"
-                      >
-                        <div className="flex items-start justify-between gap-2 mb-1">
-                          <h4 className="font-medium text-sm group-hover:text-primary transition-colors leading-snug">
-                            {yrke.navn}
-                            {yrke.preferanse_boost && <span className="ml-1 text-yellow-500">⭐</span>}
-                          </h4>
-                          <ArrowRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-0.5" />
-                        </div>
-                        {yrke.underkategori && (
-                          <p className="text-xs text-muted-foreground mb-1">{yrke.underkategori}</p>
-                        )}
-                        <MatchScoreBar score={yrke.match_score} boost={yrke.preferanse_boost} />
-                        {yrke.match_reasons && yrke.match_reasons.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-1.5">
-                            {yrke.match_reasons.slice(0, 2).map((r, j) => (
-                              <Badge key={j} variant="secondary" className="text-xs py-0">
-                                <TrendingUp className="h-2.5 w-2.5 mr-0.5" />{r}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
+              yrker_grupper.map((gruppe, gi) => {
+                const key = `yrker-${gi}`;
+                const isOpen = !!openGroups[key];
+                return (
+                  <Collapsible key={gi} open={isOpen} onOpenChange={() => toggleGroup(key)}>
+                    <CollapsibleTrigger className="w-full">
+                      <div className="flex items-center gap-2 p-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
+                        <span className="text-lg">{sektorIkon(gruppe.kategori)}</span>
+                        <h3 className="font-semibold text-base">{gruppe.kategori}</h3>
+                        <Badge variant="secondary" className="text-xs ml-auto mr-2">
+                          {gruppe.yrker.length} yrke{gruppe.yrker.length !== 1 ? 'r' : ''}
+                        </Badge>
+                        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                       </div>
-                    ))}
-                  </div>
-                  {gi < yrker_grupper.length - 1 && <div className="border-b mt-4" />}
-                </div>
-              ))
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 pb-2">
+                        {gruppe.yrker.map((yrke, i) => (
+                          <div
+                            key={i}
+                            onClick={() => navigate(`/karriere/${toCareerSlug(yrke.navn)}`)}
+                            className="p-4 rounded-lg border cursor-pointer hover:shadow-md hover:border-primary/40 transition-all group bg-muted/10"
+                          >
+                            <div className="flex items-start justify-between gap-2 mb-1">
+                              <h4 className="font-medium text-sm group-hover:text-primary transition-colors leading-snug">
+                                {yrke.navn}
+                                {yrke.preferanse_boost && <span className="ml-1 text-yellow-500">⭐</span>}
+                              </h4>
+                              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-0.5" />
+                            </div>
+                            {yrke.underkategori && (
+                              <p className="text-xs text-muted-foreground mb-1">{yrke.underkategori}</p>
+                            )}
+                            <MatchScoreBar score={yrke.match_score} boost={yrke.preferanse_boost} />
+                            {yrke.match_reasons && yrke.match_reasons.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-1.5">
+                                {yrke.match_reasons.slice(0, 2).map((r, j) => (
+                                  <Badge key={j} variant="secondary" className="text-xs py-0">
+                                    <TrendingUp className="h-2.5 w-2.5 mr-0.5" />{r}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                    {gi < yrker_grupper.length - 1 && <div className="border-b mt-2" />}
+                  </Collapsible>
+                );
+              })
             ) : (
               /* Fallback: flat list */
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -785,48 +810,57 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answ
           </CardHeader>
           <CardContent className="space-y-6">
             {bedrifter_grupper.length > 0 ? (
-              bedrifter_grupper.map((gruppe, gi) => (
-                <div key={gi}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-lg">{sektorIkon(gruppe.kategori)}</span>
-                    <h3 className="font-semibold text-base">{gruppe.kategori}</h3>
-                    <Badge variant="secondary" className="text-xs ml-auto">
-                      {gruppe.bedrifter.length} bedrift{gruppe.bedrifter.length !== 1 ? 'er' : ''}
-                    </Badge>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {gruppe.bedrifter.map((bedrift, i) => (
-                      <div
-                        key={i}
-                        onClick={() => navigate(`/bedrift/${toCompanySlug(bedrift.navn)}`)}
-                        className="p-4 rounded-lg border cursor-pointer hover:shadow-md hover:border-primary/40 transition-all group bg-muted/10"
-                      >
-                        <div className="flex items-start justify-between gap-2 mb-1">
-                          <h4 className="font-medium text-sm group-hover:text-primary transition-colors leading-snug">
-                            {bedrift.navn}
-                            {bedrift.preferanse_boost && <span className="ml-1 text-yellow-500">⭐</span>}
-                          </h4>
-                          <ArrowRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-0.5" />
-                        </div>
-                        {bedrift.underkategori && (
-                          <p className="text-xs text-muted-foreground mb-1">{bedrift.underkategori}</p>
-                        )}
-                        <MatchScoreBar score={bedrift.match_score} boost={bedrift.preferanse_boost} />
-                        {bedrift.match_reasons && bedrift.match_reasons.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-1.5">
-                            {bedrift.match_reasons.slice(0, 2).map((r, j) => (
-                              <Badge key={j} variant="secondary" className="text-xs py-0">
-                                <TrendingUp className="h-2.5 w-2.5 mr-0.5" />{r}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
+              bedrifter_grupper.map((gruppe, gi) => {
+                const key = `bedrifter-${gi}`;
+                const isOpen = !!openGroups[key];
+                return (
+                  <Collapsible key={gi} open={isOpen} onOpenChange={() => toggleGroup(key)}>
+                    <CollapsibleTrigger className="w-full">
+                      <div className="flex items-center gap-2 p-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
+                        <span className="text-lg">{sektorIkon(gruppe.kategori)}</span>
+                        <h3 className="font-semibold text-base">{gruppe.kategori}</h3>
+                        <Badge variant="secondary" className="text-xs ml-auto mr-2">
+                          {gruppe.bedrifter.length} bedrift{gruppe.bedrifter.length !== 1 ? 'er' : ''}
+                        </Badge>
+                        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                       </div>
-                    ))}
-                  </div>
-                  {gi < bedrifter_grupper.length - 1 && <div className="border-b mt-4" />}
-                </div>
-              ))
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-2 pb-2">
+                        {gruppe.bedrifter.map((bedrift, i) => (
+                          <div
+                            key={i}
+                            onClick={() => navigate(`/bedrift/${toCompanySlug(bedrift.navn)}`)}
+                            className="p-4 rounded-lg border cursor-pointer hover:shadow-md hover:border-primary/40 transition-all group bg-muted/10"
+                          >
+                            <div className="flex items-start justify-between gap-2 mb-1">
+                              <h4 className="font-medium text-sm group-hover:text-primary transition-colors leading-snug">
+                                {bedrift.navn}
+                                {bedrift.preferanse_boost && <span className="ml-1 text-yellow-500">⭐</span>}
+                              </h4>
+                              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-0.5" />
+                            </div>
+                            {bedrift.underkategori && (
+                              <p className="text-xs text-muted-foreground mb-1">{bedrift.underkategori}</p>
+                            )}
+                            <MatchScoreBar score={bedrift.match_score} boost={bedrift.preferanse_boost} />
+                            {bedrift.match_reasons && bedrift.match_reasons.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-1.5">
+                                {bedrift.match_reasons.slice(0, 2).map((r, j) => (
+                                  <Badge key={j} variant="secondary" className="text-xs py-0">
+                                    <TrendingUp className="h-2.5 w-2.5 mr-0.5" />{r}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                    {gi < bedrifter_grupper.length - 1 && <div className="border-b mt-2" />}
+                  </Collapsible>
+                );
+              })
             ) : (
               /* Fallback: flat list */
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
