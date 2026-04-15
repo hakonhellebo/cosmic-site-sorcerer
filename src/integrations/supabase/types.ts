@@ -101,6 +101,20 @@ export type Database = {
           Sektor: string | null
           Selskap: string | null
           sub_sektor: string | null
+          // Enriched columns (added via enrich_bedrifter.py)
+          organisasjonsnummer: string | null
+          stiftelsesaar: number | null
+          nace_kode: string | null
+          nace_beskrivelse: string | null
+          antall_ansatte_tall: number | null
+          driftsresultat_mnok: number | null
+          regnskapsaar: number | null
+          ansetter_til_yrker: string | null
+          ansetter_fra_studier: string | null
+          ai_beskrivelse: string | null
+          noekkelord: string | null
+          brreg_hentet: boolean | null
+          sist_oppdatert: string | null
         }
         Insert: {
           Ansatte?: string | null
@@ -113,6 +127,19 @@ export type Database = {
           Sektor?: string | null
           Selskap?: string | null
           sub_sektor?: string | null
+          organisasjonsnummer?: string | null
+          stiftelsesaar?: number | null
+          nace_kode?: string | null
+          nace_beskrivelse?: string | null
+          antall_ansatte_tall?: number | null
+          driftsresultat_mnok?: number | null
+          regnskapsaar?: number | null
+          ansetter_til_yrker?: string | null
+          ansetter_fra_studier?: string | null
+          ai_beskrivelse?: string | null
+          noekkelord?: string | null
+          brreg_hentet?: boolean | null
+          sist_oppdatert?: string | null
         }
         Update: {
           Ansatte?: string | null
@@ -125,6 +152,19 @@ export type Database = {
           Sektor?: string | null
           Selskap?: string | null
           sub_sektor?: string | null
+          organisasjonsnummer?: string | null
+          stiftelsesaar?: number | null
+          nace_kode?: string | null
+          nace_beskrivelse?: string | null
+          antall_ansatte_tall?: number | null
+          driftsresultat_mnok?: number | null
+          regnskapsaar?: number | null
+          ansetter_til_yrker?: string | null
+          ansetter_fra_studier?: string | null
+          ai_beskrivelse?: string | null
+          noekkelord?: string | null
+          brreg_hentet?: boolean | null
+          sist_oppdatert?: string | null
         }
         Relationships: []
       }
