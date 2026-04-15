@@ -597,54 +597,63 @@ const ApiResultsView: React.FC<ApiResultsViewProps> = ({ results, userType, answ
           </CardHeader>
           <CardContent className="space-y-6">
             {studier_grupper.length > 0 ? (
-              studier_grupper.map((gruppe, gi) => (
-                <div key={gi}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-lg">{sektorIkon(gruppe.kategori)}</span>
-                    <h3 className="font-semibold text-base">{gruppe.kategori}</h3>
-                    <Badge variant="secondary" className="text-xs ml-auto">
-                      {gruppe.studier.length} studie{gruppe.studier.length !== 1 ? 'r' : ''}
-                    </Badge>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-0">
-                    {gruppe.studier.map((studie, i) => (
-                      <div
-                        key={i}
-                        onClick={() => handleStudyClick(studie.navn)}
-                        className="p-4 rounded-lg border cursor-pointer hover:shadow-md hover:border-primary/40 transition-all group bg-muted/10"
-                      >
-                        <div className="flex items-start justify-between gap-2 mb-1">
-                          <h4 className="font-medium text-sm group-hover:text-primary transition-colors leading-snug">
-                            {studie.navn}
-                            {studie.preferanse_boost && (
-                              <span className="ml-1 text-yellow-500">⭐</span>
-                            )}
-                          </h4>
-                          <ArrowRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-0.5" />
-                        </div>
-                        {studie.lærested && (
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1.5">
-                            <MapPin className="h-2.5 w-2.5" />
-                            {studie.lærested}
-                          </div>
-                        )}
-                        <MatchScoreBar score={studie.match_score} boost={studie.preferanse_boost} />
-                        {studie.match_reasons && studie.match_reasons.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-1.5">
-                            {studie.match_reasons.slice(0, 2).map((r, j) => (
-                              <Badge key={j} variant="secondary" className="text-xs py-0">
-                                <TrendingUp className="h-2.5 w-2.5 mr-0.5" />
-                                {r}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
+              studier_grupper.map((gruppe, gi) => {
+                const key = `studier-${gi}`;
+                const isOpen = !!openGroups[key];
+                return (
+                  <Collapsible key={gi} open={isOpen} onOpenChange={() => toggleGroup(key)}>
+                    <CollapsibleTrigger className="w-full">
+                      <div className="flex items-center gap-2 p-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
+                        <span className="text-lg">{sektorIkon(gruppe.kategori)}</span>
+                        <h3 className="font-semibold text-base">{gruppe.kategori}</h3>
+                        <Badge variant="secondary" className="text-xs ml-auto mr-2">
+                          {gruppe.studier.length} studie{gruppe.studier.length !== 1 ? 'r' : ''}
+                        </Badge>
+                        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                       </div>
-                    ))}
-                  </div>
-                  {gi < studier_grupper.length - 1 && <div className="border-b mt-4" />}
-                </div>
-              ))
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 pb-2">
+                        {gruppe.studier.map((studie, i) => (
+                          <div
+                            key={i}
+                            onClick={() => handleStudyClick(studie.navn)}
+                            className="p-4 rounded-lg border cursor-pointer hover:shadow-md hover:border-primary/40 transition-all group bg-muted/10"
+                          >
+                            <div className="flex items-start justify-between gap-2 mb-1">
+                              <h4 className="font-medium text-sm group-hover:text-primary transition-colors leading-snug">
+                                {studie.navn}
+                                {studie.preferanse_boost && (
+                                  <span className="ml-1 text-yellow-500">⭐</span>
+                                )}
+                              </h4>
+                              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-0.5" />
+                            </div>
+                            {studie.lærested && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1.5">
+                                <MapPin className="h-2.5 w-2.5" />
+                                {studie.lærested}
+                              </div>
+                            )}
+                            <MatchScoreBar score={studie.match_score} boost={studie.preferanse_boost} />
+                            {studie.match_reasons && studie.match_reasons.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-1.5">
+                                {studie.match_reasons.slice(0, 2).map((r, j) => (
+                                  <Badge key={j} variant="secondary" className="text-xs py-0">
+                                    <TrendingUp className="h-2.5 w-2.5 mr-0.5" />
+                                    {r}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                    {gi < studier_grupper.length - 1 && <div className="border-b mt-2" />}
+                  </Collapsible>
+                );
+              })
             ) : (
               /* Fallback: flat list */
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
