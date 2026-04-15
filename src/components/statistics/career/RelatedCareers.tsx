@@ -22,7 +22,7 @@ interface RelatedCareersProps {
   sourceCompany?: {
     Selskap: string;
     Sektor: string;
-    sub_sektor: string;
+    sub_sektor?: string;
   };
 }
 
