@@ -1,33 +1,19 @@
 """
 llm_engine.py
 =============
-OpenAI-basert forklaringsmotor for EdPath anbefalingssystemet.
+OpenAI-basert karriereveiledningsmotor for EdPath.
 
-Mottar en ferdig `llm_context` fra recommendation_engine og genererer
-strukturert norsk karriereveiledning via GPT-4.1-mini.
+Mottar `llm_context` (pre-computed metadata) fra recommendation_engine og
+genererer komplett, strukturert norsk karriereveiledning via GPT-4.1-mini.
 
 Garantier:
-  - Genererer ALDRI nye studier, yrker eller bedrifter
+  - Genererer ALDRI nye studier, yrker eller bedrifter utover hva som finnes
+    i anbefalingsdataene
   - Overstyrer ALDRI match_score eller rangering
-  - Leser ALDRI rå spørreskjemasvar — kun pre-computed metadata
   - Returnerer None ved manglende API-nøkkel eller feil (aldri krasj)
 
 Miljøvariabel:
   OPENAI_API_KEY — settes i Railway/lokalt .env
-
-Output-struktur:
-  {
-    "profil": {
-      "profil_sammendrag":   str,  # hvem eleven er faglig og personlig
-      "laringsstil":         str,  # hvordan eleven lærer best
-      "arbeidsstil":         str,  # hvilken arbeidsform som passer
-      "motivasjonsstil":     str,  # hva som driver og motiverer eleven
-      "karriere_orientering": str, # langsiktig karriereretning
-    },
-    "hvorfor_dette_passer": [{"navn": str, "forklaring": str}, ...],
-    "veien_videre":  [str, ...],
-    "obs_punkter":   [str, ...],
-  }
 """
 
 from __future__ import annotations
@@ -45,121 +31,216 @@ logger = logging.getLogger(__name__)
 # Alle objekter krever additionalProperties:false + alle keys i required.
 # ---------------------------------------------------------------------------
 
+_PROFIL_SCHEMA = {
+    "type": "object",
+    "description": (
+        "Personlig profilbeskrivelse for eleven. "
+        "Hvert felt: 1–3 setninger, lyd som en menneskelig veileder. "
+        "Referér elevens konkrete topp-dimensjoner — ikke generiske fraser."
+    ),
+    "properties": {
+        "profil_sammendrag": {
+            "type": "string",
+            "description": (
+                "2–3 setninger: hvem er eleven faglig og som person? "
+                "Hva peker styrkesettet mot? Nevn konkrete dimensjoner. "
+                "Unngå 'du er en allsidig person'."
+            ),
+        },
+        "laringsstil": {
+            "type": "string",
+            "description": (
+                "Én setning om hvordan denne eleven lærer best, "
+                "koblet til topp-dimensjonene. "
+                "Eks: 'Du lærer best gjennom systematisk analyse og teori — "
+                "dybdelesing og forelesninger gir deg mye.'"
+            ),
+        },
+        "arbeidsstil": {
+            "type": "string",
+            "description": (
+                "Én setning om hvilken arbeidsform som passer. "
+                "Eks: 'Du trives i strukturerte miljøer med klare mål "
+                "og rom for faglig fordypning.'"
+            ),
+        },
+        "motivasjonsstil": {
+            "type": "string",
+            "description": (
+                "Én setning om hva som driver og motiverer eleven. "
+                "Eks: 'Du drives av å forstå komplekse systemer i dybden "
+                "og se at løsningene dine fungerer i praksis.'"
+            ),
+        },
+        "karriere_orientering": {
+            "type": "string",
+            "description": (
+                "Én setning om langsiktig karriereretning koblet til "
+                "anbefalte sektorer. "
+                "Eks: 'Profilen din peker tydelig mot en spesialistkarriere "
+                "innen teknologi eller analyse.'"
+            ),
+        },
+    },
+    "required": [
+        "profil_sammendrag", "laringsstil", "arbeidsstil",
+        "motivasjonsstil", "karriere_orientering",
+    ],
+    "additionalProperties": False,
+}
+
 _OUTPUT_SCHEMA: dict = {
     "type": "object",
     "properties": {
 
-        # ── Personlig profilbeskrivelse (erstatter statiske maler) ──
-        "profil": {
-            "type": "object",
-            "description": (
-                "Personlig profilbeskrivelse generert fra elevens dimensjoner "
-                "og anbefalinger. Hvert felt skal lyde som skrevet av en erfaren "
-                "karriereveileder, ikke som en automatisk mal."
-            ),
-            "properties": {
-                "profil_sammendrag": {
-                    "type": "string",
-                    "description": (
-                        "2–3 setninger som oppsummerer hvem eleven er faglig og personlig. "
-                        "Nevn konkrete styrker og hva de naturlig peker mot. "
-                        "Vær spesifikk — unngå fraser som 'du er en allsidig person'."
-                    ),
-                },
-                "laringsstil": {
-                    "type": "string",
-                    "description": (
-                        "Én setning om hvordan denne eleven lærer best, "
-                        "basert på topp-dimensjonene. "
-                        "Eksempel: 'Du lærer best gjennom analyse og systematisk fordypning — "
-                        "forelesninger og pensumlitteratur gir deg mye.'"
-                    ),
-                },
-                "arbeidsstil": {
-                    "type": "string",
-                    "description": (
-                        "Én setning om hvilken type arbeidsmiljø og arbeidsform "
-                        "som passer denne eleven. "
-                        "Eksempel: 'Du trives i strukturerte miljøer der du kan jobbe "
-                        "konsentrert, gjerne med klare mål og faglig dybde.'"
-                    ),
-                },
-                "motivasjonsstil": {
-                    "type": "string",
-                    "description": (
-                        "Én setning om hva som motiverer og driver eleven. "
-                        "Eksempel: 'Du drives av å forstå systemer i dybden og se "
-                        "at løsningene dine faktisk fungerer i praksis.'"
-                    ),
-                },
-                "karriere_orientering": {
-                    "type": "string",
-                    "description": (
-                        "Én setning om langsiktig karriereretning og ambisjoner, "
-                        "koblet til de anbefalte sektorene. "
-                        "Eksempel: 'Profilen din peker tydelig mot en faglig karriere "
-                        "innen teknologi eller analyse, der du kan vokse som spesialist.'"
-                    ),
-                },
-            },
-            "required": [
-                "profil_sammendrag",
-                "laringsstil",
-                "arbeidsstil",
-                "motivasjonsstil",
-                "karriere_orientering",
-            ],
-            "additionalProperties": False,
-        },
+        # ── 1. Personlig profil ──
+        "profil": _PROFIL_SCHEMA,
 
-        # ── Forklaring per anbefalt studie/yrke ──
-        "hvorfor_dette_passer": {
+        # ── 2. Styrker forklart ──
+        "styrker_forklart": {
             "type": "array",
             "description": (
-                "For hvert av de anbefalte studiene og yrkene: "
-                "konkret forklaring på HVORFOR akkurat det passer denne eleven. "
-                "Nevn spesifikke dimensjoner eller egenskaper. "
-                "Ikke gjenta tittelen — forklar koblingen til elevens profil."
+                "For hvert av elevens topp-dimensjoner: forklar KONKRET hva den "
+                "dimensjonen betyr for akkurat denne eleven — ikke generell "
+                "definisjon. Maks 4 dimensjoner."
             ),
             "items": {
                 "type": "object",
                 "properties": {
-                    "navn":       {"type": "string"},
-                    "forklaring": {"type": "string"},
+                    "dimensjon":  {"type": "string"},
+                    "forklaring": {
+                        "type": "string",
+                        "description": (
+                            "2–3 setninger. Forklar hva styrken betyr i praksis "
+                            "for eleven og hvilke situasjoner den kommer til nytte."
+                        ),
+                    },
                 },
-                "required": ["navn", "forklaring"],
+                "required": ["dimensjon", "forklaring"],
                 "additionalProperties": False,
             },
         },
 
-        # ── Konkrete neste steg ──
+        # ── 3. Anbefalinger forklart ──
+        "hvorfor_anbefalinger": {
+            "type": "array",
+            "description": (
+                "For hvert anbefalt studie og yrke: KONKRET forklaring på "
+                "HVORFOR det passer denne eleven. Referér spesifikke dimensjoner. "
+                "Ikke bare gjenfortell tittelen."
+            ),
+            "items": {
+                "type": "object",
+                "properties": {
+                    "navn":  {"type": "string"},
+                    "type":  {
+                        "type": "string",
+                        "description": "Enten 'studie' eller 'yrke'",
+                    },
+                    "forklaring": {
+                        "type": "string",
+                        "description": (
+                            "2–3 setninger om KOBLINGEN mellom elevens profil "
+                            "og denne anbefalingen. Vær spesifikk."
+                        ),
+                    },
+                },
+                "required": ["navn", "type", "forklaring"],
+                "additionalProperties": False,
+            },
+        },
+
+        # ── 4. Karriereveier ──
+        "karriereveier": {
+            "type": "array",
+            "description": (
+                "3–4 konkrete karriereveier fra anbefalingsdataene. "
+                "Bygg veier av faktiske studier → yrker → bedrifter som "
+                "finnes i dataene. Ikke finn på nye."
+            ),
+            "items": {
+                "type": "object",
+                "properties": {
+                    "studie": {
+                        "type": "string",
+                        "description": "Navn på studiet (fra anbefalte studier)",
+                    },
+                    "yrke": {
+                        "type": "string",
+                        "description": "Navn på yrket (fra anbefalte yrker)",
+                    },
+                    "bedrifter": {
+                        "type": "array",
+                        "description": "2–3 eksempel-arbeidsgivere fra anbefalingsdataene",
+                        "items": {"type": "string"},
+                    },
+                    "forklaring": {
+                        "type": "string",
+                        "description": "Én setning om denne karriereveienes relevans for eleven",
+                    },
+                },
+                "required": ["studie", "yrke", "bedrifter", "forklaring"],
+                "additionalProperties": False,
+            },
+        },
+
+        # ── 5. Veien videre ──
         "veien_videre": {
             "type": "array",
             "description": (
-                "3–5 konkrete, handlingsrettede råd eleven bør følge nå. "
-                "Hvert råd skal være spesifikt og praktisk — ikke generisk. "
-                "Eksempel: 'Sjekk opptakskrav for Informatikk på samordnaopptak.no' "
-                "ikke 'Søk mer informasjon om studier'."
+                "4–6 konkrete, handlingsrettede råd for eleven akkurat nå. "
+                "Tilpass til de faktiske anbefalingene (nevn spesifikke studier, "
+                "yrker eller bedrifter). Ikke generiske råd."
             ),
             "items": {"type": "string"},
         },
 
-        # ── Realistiske forbehold ──
+        # ── 6. Obs-punkter ──
         "obs_punkter": {
             "type": "array",
             "description": (
-                "1–3 realistiske forbehold eleven bør være klar over: "
-                "karakterkrav, konkurranse om plasser, usikkerhet om veivalg, "
-                "eller om anbefalingene er brede. Vær ærlig men konstruktiv."
+                "2–3 realistiske forbehold: karakterkrav, konkurranse om plasser, "
+                "usikkerhet om veivalg, o.l. Vær ærlig men konstruktiv."
             ),
             "items": {"type": "string"},
+        },
+
+        # ── 7. Alternative retninger ──
+        "alternative_retninger": {
+            "type": "array",
+            "description": (
+                "2–3 sektorer eller retninger eleven OGSÅ kan vurdere, "
+                "utover de primære anbefalingene. Basert på sekundære "
+                "dimensjoner i profilen."
+            ),
+            "items": {
+                "type": "object",
+                "properties": {
+                    "sektor": {
+                        "type": "string",
+                        "description": "Sektornavn på norsk",
+                    },
+                    "forklaring": {
+                        "type": "string",
+                        "description": (
+                            "1–2 setninger om hvorfor denne sektoren "
+                            "kan passe eleven som et alternativ"
+                        ),
+                    },
+                },
+                "required": ["sektor", "forklaring"],
+                "additionalProperties": False,
+            },
         },
     },
     "required": [
         "profil",
-        "hvorfor_dette_passer",
+        "styrker_forklart",
+        "hvorfor_anbefalinger",
+        "karriereveier",
         "veien_videre",
         "obs_punkter",
+        "alternative_retninger",
     ],
     "additionalProperties": False,
 }
@@ -171,36 +252,36 @@ _OUTPUT_SCHEMA: dict = {
 
 _DEVELOPER_PROMPT = """\
 Du er en digital karriereveileder for EdPath, en norsk plattform for utdanning \
-og karriereveiledning.
+og karriereveiledning rettet mot elever og studenter.
 
-Du mottar strukturert anbefalingsdata om en elev og skal skrive personlig, \
-varm og presis karrieretekst på norsk bokmål.
+Du mottar strukturert anbefalingsdata og skal generere komplett, personlig \
+karriereveiledning på norsk bokmål.
 
-PROFIL-FELTENE skal:
-- Lyde som skrevet av en erfaren menneskelig veileder, ikke en algoritme
-- Referere konkret til elevens faktiske topp-dimensjoner og anbefalinger
-- Unngå generiske fraser som "du er en allsidig person" eller "du er flink til mye"
-- Hvert felt: 1–3 setninger. Kortfattet og tydelig.
+GRUNNLEGGENDE REGLER:
+- Bruk KUN studier, yrker og bedrifter som finnes i dataene — finn aldri på nye
+- Referér konkret til elevens topp-dimensjoner i alle forklaringer
+- Skriv som en erfaren menneskelig karriereveileder — varm, konkret, ærlig
+- Unngå generiske fraser som "du er en allsidig person" eller "du liker å jobbe"
+- Hold hvert felt kort: 1–3 setninger per felt, 2–3 per forklaring
 
-HVORFOR_DETTE_PASSER skal:
-- Forklare den KONKRETE koblingen mellom elevens profil og hvert studie/yrke
-- Nevne spesifikke dimensjoner (f.eks. analytisk tankegang, teknologiinteresse)
-- Ikke bare gjenta tittelen — forklar HVORFOR det passer akkurat denne eleven
+PROFIL-FELTENE:
+Hvert felt skal føles personlig og skrevet for akkurat denne eleven.
+Referér til faktiske dimensjoner og sektorer.
 
-VEIEN_VIDERE skal:
-- Gi 3–5 spesifikke, handlingsrettede råd (ikke generiske)
-- Tilpasses de konkrete anbefalingene og preferansene i dataene
-- Inkludere praktiske neste steg (sjekke opptakskrav, snakke med rådgiver, osv.)
+STYRKER_FORKLART:
+Forklar hva styrken betyr I PRAKSIS for eleven — ikke definisjoner.
 
-OBS_PUNKTER skal:
-- Nevne realistiske forbehold uten å være nedslående
-- Informere om karakterkrav, konkurranse eller bredde i anbefalingene hvis relevant
+HVORFOR_ANBEFALINGER:
+Forklar KOBLINGEN mellom elevens profil og anbefalingen — ikke bare beskriv.
 
-DU SKAL IKKE:
-- Finne på studier, yrker eller bedrifter som ikke finnes i dataene
-- Overstyre anbefalingenes rangering
-- Finne på opptakskrav som ikke er nevnt
-- Bruke overskrifter eller markdown i teksten
+KARRIEREVEIER:
+Bygg realistiske veier fra studier til yrke. Bruk faktiske bedrifter fra dataene.
+
+VEIEN_VIDERE:
+Gi spesifikke råd — nevn faktiske studier, yrker, bedrifter fra dataene.
+
+ALTERNATIVE_RETNINGER:
+Basér alternativer på sekundære dimensjoner (score 40–70%).
 """
 
 
@@ -210,78 +291,100 @@ DU SKAL IKKE:
 
 def _bygg_user_prompt(ctx: dict) -> str:
     """
-    Konverterer llm_context til et fokusert, informasjonstett user-prompt.
-    Kun felter som faktisk finnes inkluderes (defensivt).
+    Konverterer llm_context til et strukturert, informasjonstett prompt.
+    Inkluderer bare felter som faktisk finnes.
     """
-    linjer: list[str] = ["ANBEFALINGSDATA FRA EDPATH:\n"]
+    linjer: list[str] = [
+        "ANBEFALINGSDATA FRA EDPATH — bruk KUN disse dataene:\n"
+    ]
 
     bt = ctx.get("brukertype", "elev")
-    linjer.append(f"Brukertype: {bt}")
+    linjer.append(f"Brukertype: {bt}\n")
 
-    # Topp-dimensjoner (det viktigste signalet for profilering)
+    # Topp-dimensjoner med score
     dims = ctx.get("topp_dimensjoner", [])
     if dims:
-        dims_str = ", ".join(
-            f"{d['navn']} ({round(d.get('score_norm', 0))}%)"
-            if isinstance(d, dict) else str(d)
-            for d in dims[:5]
-        )
-        linjer.append(f"\nTopp karrieredimensjoner: {dims_str}")
+        linjer.append("TOPP-DIMENSJONER (styrker):")
+        for d in dims[:5]:
+            if isinstance(d, dict):
+                linjer.append(f"  - {d['navn']}: {round(d.get('score_norm', 0))}%")
+            else:
+                linjer.append(f"  - {d}")
+        linjer.append("")
 
     # Topp-sektorer
     sektorer = ctx.get("topp_sektorer", [])
     if sektorer:
-        sekt_str = ", ".join(
-            f"{s['sektor']} ({round(s.get('score_norm', 0))}%)"
-            if isinstance(s, dict) else str(s)
-            for s in sektorer[:3]
-        )
-        linjer.append(f"Topp sektorer: {sekt_str}")
+        linjer.append("TOPP-SEKTORER:")
+        for s in sektorer[:3]:
+            if isinstance(s, dict):
+                linjer.append(f"  - {s['sektor']}: {round(s.get('score_norm', 0))}%")
+            else:
+                linjer.append(f"  - {s}")
+        linjer.append("")
 
-    # Anbefalte yrker og studier
-    yrker   = ctx.get("topp_yrker", [])
-    studier = ctx.get("topp_studier", [])
-    if yrker:
-        linjer.append(f"\nAnbefalte yrker (topp 3):   {', '.join(yrker[:3])}")
-    if studier:
-        linjer.append(f"Anbefalte studier (topp 3): {', '.join(studier[:3])}")
+    # Anbefalte studier (med sektor)
+    alle_studier = ctx.get("alle_studier", [])
+    if alle_studier:
+        linjer.append("ANBEFALTE STUDIER:")
+        for s in alle_studier[:5]:
+            if isinstance(s, dict):
+                linjer.append(f"  - {s['navn']} ({s.get('sektor', '')})")
+            else:
+                linjer.append(f"  - {s}")
+        linjer.append("")
 
-    # Styrker fra statisk profil-engine (hjelper LLM å forstå profilen)
+    # Anbefalte yrker (med sektor)
+    alle_yrker = ctx.get("alle_yrker", [])
+    if alle_yrker:
+        linjer.append("ANBEFALTE YRKER:")
+        for y in alle_yrker[:5]:
+            if isinstance(y, dict):
+                linjer.append(f"  - {y['navn']} ({y.get('sektor', '')})")
+            else:
+                linjer.append(f"  - {y}")
+        linjer.append("")
+
+    # Anbefalte bedrifter (med sektor)
+    alle_bedrifter = ctx.get("alle_bedrifter", [])
+    if alle_bedrifter:
+        linjer.append("TILGJENGELIGE BEDRIFTER (bruk disse i karriereveier):")
+        for b in alle_bedrifter[:5]:
+            if isinstance(b, dict):
+                linjer.append(f"  - {b['navn']} ({b.get('sektor', '')})")
+            else:
+                linjer.append(f"  - {b}")
+        linjer.append("")
+
+    # Styrker fra statisk profil
     styrker = ctx.get("styrker", [])
     if styrker:
-        linjer.append(f"\nIdentifiserte styrker: {', '.join(styrker)}")
+        linjer.append(f"Identifiserte styrker: {', '.join(styrker)}")
 
     # Match-temaer
     temaer = ctx.get("match_temaer", [])
     if temaer:
-        linjer.append(f"Match-temaer: {', '.join(temaer[:6])}")
+        linjer.append(f"Match-temaer på tvers: {', '.join(temaer[:6])}")
 
     # Preferanser
-    pref         = ctx.get("preferanser", {}) or {}
-    bransjer     = pref.get("bransjer", []) if isinstance(pref, dict) else []
-    pref_yrker   = pref.get("yrker", [])    if isinstance(pref, dict) else []
-    pref_studier = pref.get("studier", [])  if isinstance(pref, dict) else []
-
-    if bransjer or pref_yrker or pref_studier:
-        linjer.append("\nElevens egne preferanser:")
-        if bransjer:
-            linjer.append(f"  Bransjer:  {', '.join(bransjer)}")
-        if pref_yrker:
-            linjer.append(f"  Yrker:     {', '.join(pref_yrker)}")
-        if pref_studier:
-            linjer.append(f"  Studier:   {', '.join(pref_studier)}")
-
-    # Instruksjon til LLM om hva som forventes
-    alle_anbefalte = list(dict.fromkeys(yrker[:3] + studier[:3]))
-    if alle_anbefalte:
-        linjer.append(
-            f"\nLag én 'hvorfor_dette_passer'-forklaring for hvert av disse: "
-            f"{', '.join(alle_anbefalte)}"
-        )
+    pref = ctx.get("preferanser", {}) or {}
+    if isinstance(pref, dict):
+        bransjer     = pref.get("bransjer", [])
+        pref_yrker   = pref.get("yrker", [])
+        pref_studier = pref.get("studier", [])
+        if bransjer or pref_yrker or pref_studier:
+            linjer.append("\nElevens egne preferanser:")
+            if bransjer:
+                linjer.append(f"  Bransjer: {', '.join(bransjer)}")
+            if pref_yrker:
+                linjer.append(f"  Yrker: {', '.join(pref_yrker)}")
+            if pref_studier:
+                linjer.append(f"  Studier: {', '.join(pref_studier)}")
 
     linjer.append(
-        "\nGenerer nå et JSON-svar med: profil (alle 5 felt), "
-        "hvorfor_dette_passer, veien_videre og obs_punkter."
+        "\nGenerer nå komplett karriereveiledning med alle 7 felt: "
+        "profil, styrker_forklart, hvorfor_anbefalinger, karriereveier, "
+        "veien_videre, obs_punkter, alternative_retninger."
     )
 
     return "\n".join(linjer)
@@ -293,7 +396,7 @@ def _bygg_user_prompt(ctx: dict) -> str:
 
 def generate_llm_explanation(llm_context: dict) -> Optional[dict]:
     """
-    Genererer strukturert forklaringstekst og profilbeskrivelse fra OpenAI.
+    Genererer komplett AI-karriereveiledning fra OpenAI basert på llm_context.
 
     Returnerer None (uten krasj) hvis:
       - OPENAI_API_KEY er ikke satt
@@ -305,32 +408,22 @@ def generate_llm_explanation(llm_context: dict) -> Optional[dict]:
         llm_context: pre-computed metadata fra recommendation_engine
 
     Returns:
-        dict | None med struktur:
-          {
-            "profil": {
-              "profil_sammendrag": str,
-              "laringsstil": str,
-              "arbeidsstil": str,
-              "motivasjonsstil": str,
-              "karriere_orientering": str,
-            },
-            "hvorfor_dette_passer": [{"navn": str, "forklaring": str}, ...],
-            "veien_videre":  [str, ...],
-            "obs_punkter":   [str, ...],
-          }
+        dict | None med 7 felter:
+          profil, styrker_forklart, hvorfor_anbefalinger,
+          karriereveier, veien_videre, obs_punkter, alternative_retninger
     """
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
-        logger.info("OPENAI_API_KEY ikke satt — hopper over LLM-forklaring")
+        logger.info("OPENAI_API_KEY ikke satt — hopper over LLM")
         return None
 
     try:
-        from openai import OpenAI  # lat import — ikke krev pakken hvis nøkkel mangler
+        from openai import OpenAI  # lat import
 
         client      = OpenAI(api_key=api_key)
         user_prompt = _bygg_user_prompt(llm_context)
 
-        logger.debug("LLM user-prompt (%d tegn):\n%s", len(user_prompt), user_prompt)
+        logger.debug("LLM prompt (%d tegn)", len(user_prompt))
 
         response = client.responses.create(
             model="gpt-4.1-mini",
@@ -348,25 +441,26 @@ def generate_llm_explanation(llm_context: dict) -> Optional[dict]:
             },
         )
 
-        raw_text = response.output_text
-        result   = json.loads(raw_text)
+        result = json.loads(response.output_text)
 
-        profil = result.get("profil", {})
         logger.info(
-            "LLM OK — profil: %d ord | forklaringer: %d | neste-steg: %d | obs: %d",
-            len(profil.get("profil_sammendrag", "").split()),
-            len(result.get("hvorfor_dette_passer", [])),
+            "LLM OK — styrker: %d | anbefalinger: %d | karriereveier: %d | "
+            "neste-steg: %d | obs: %d | alternativer: %d",
+            len(result.get("styrker_forklart", [])),
+            len(result.get("hvorfor_anbefalinger", [])),
+            len(result.get("karriereveier", [])),
             len(result.get("veien_videre", [])),
             len(result.get("obs_punkter", [])),
+            len(result.get("alternative_retninger", [])),
         )
         return result
 
     except ImportError:
-        logger.warning("openai-pakken er ikke installert — hopper over LLM")
+        logger.warning("openai-pakken ikke installert — hopper over LLM")
         return None
     except json.JSONDecodeError as exc:
         logger.warning("LLM returnerte ugyldig JSON: %s", exc)
         return None
     except Exception as exc:
-        logger.warning("LLM-forklaring feilet (%s): %s", type(exc).__name__, exc)
+        logger.warning("LLM feilet (%s): %s", type(exc).__name__, exc)
         return None

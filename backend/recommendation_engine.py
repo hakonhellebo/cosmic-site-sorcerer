@@ -740,6 +740,9 @@ def generer_anbefaling(
         },
         "topp_yrker":   [y["navn"] for y in anbefalinger.get("yrker", [])[:3]],
         "topp_studier": [s["navn"] for s in anbefalinger.get("studier", [])[:3]],
+        "alle_yrker":    [{"navn": y["navn"], "sektor": y["sektor"]} for y in anbefalinger.get("yrker", [])[:5]],
+        "alle_studier":  [{"navn": s["navn"], "sektor": s["sektor"]} for s in anbefalinger.get("studier", [])[:5]],
+        "alle_bedrifter":[{"navn": b["navn"], "sektor": b["sektor"]} for b in anbefalinger.get("bedrifter", [])[:5]],
     }
 
     # --- 13. LLM-forklaring ---

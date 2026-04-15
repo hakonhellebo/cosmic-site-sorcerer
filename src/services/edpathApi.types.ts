@@ -98,18 +98,42 @@ export interface EdPathLlmProfil {
   karriere_orientering: string;   // long-term career direction
 }
 
-/** One recommendation explained by the LLM */
-export interface EdPathLlmForklaring {
+/** One strength dimension explained personally by the LLM */
+export interface EdPathLlmStyrkForklart {
+  dimensjon:  string;   // dimension name (e.g. "Analytisk")
+  forklaring: string;   // concrete explanation for this specific student
+}
+
+/** One recommended study or career explained by the LLM */
+export interface EdPathLlmAnbefaling {
   navn:       string;   // name of study or career
-  forklaring: string;   // why it fits this specific student
+  type:       string;   // "studie" | "yrke"
+  forklaring: string;   // concrete explanation of why it fits this student
+}
+
+/** One complete career path: study → career → employers */
+export interface EdPathLlmKarrierevei {
+  studie:     string;    // recommended study
+  yrke:       string;    // career the study leads to
+  bedrifter:  string[];  // example employers from the data
+  forklaring: string;    // one sentence on relevance for this student
+}
+
+/** One alternative sector/direction the student could also consider */
+export interface EdPathLlmAlternativRetning {
+  sektor:     string;   // sector name in Norwegian
+  forklaring: string;   // brief explanation of why it could fit
 }
 
 /** Full LLM result — attached to API response as llm_resultat */
 export interface EdPathLlmResultat {
-  profil:               EdPathLlmProfil;
-  hvorfor_dette_passer: EdPathLlmForklaring[];
-  veien_videre:         string[];
-  obs_punkter:          string[];
+  profil:                EdPathLlmProfil;
+  styrker_forklart:      EdPathLlmStyrkForklart[];
+  hvorfor_anbefalinger:  EdPathLlmAnbefaling[];
+  karriereveier:         EdPathLlmKarrierevei[];
+  veien_videre:          string[];
+  obs_punkter:           string[];
+  alternative_retninger: EdPathLlmAlternativRetning[];
 }
 
 /** A sector group of studies */

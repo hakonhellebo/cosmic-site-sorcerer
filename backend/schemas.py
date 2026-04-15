@@ -96,12 +96,6 @@ class BedriftGruppe(BaseModel):
 # Output: LLM-forklaring
 # ---------------------------------------------------------------------------
 
-class LLMForklaring(BaseModel):
-    """Én anbefaling forklart av LLM-en."""
-    navn: str
-    forklaring: str
-
-
 class LLMProfil(BaseModel):
     """
     Personlig profilbeskrivelse generert av LLM-en.
@@ -115,21 +109,50 @@ class LLMProfil(BaseModel):
     karriere_orientering: str   # langsiktig karriereretning (1 setning)
 
 
+class LLMStyrkForklart(BaseModel):
+    """Én dimensjon forklart personlig av LLM-en."""
+    dimensjon:  str   # dimensjonsnavn (f.eks. "Analytisk")
+    forklaring: str   # konkret forklaring på hva det betyr for denne eleven
+
+
+class LLMAnbefaling(BaseModel):
+    """Én anbefalt studie eller yrke forklart av LLM-en."""
+    navn:       str   # navn på studiet eller yrket
+    type:       str   # "studie" eller "yrke"
+    forklaring: str   # KONKRET forklaring på hvorfor det passer denne eleven
+
+
+class LLMKarrierevei(BaseModel):
+    """Én komplett karrierevei: studie → yrke → arbeidsgivere."""
+    studie:     str              # anbefalt studie
+    yrke:       str              # yrke studiet leder til
+    bedrifter:  list[str] = Field(default_factory=list)  # eksempel-arbeidsgivere
+    forklaring: str              # én setning om denne karriereveien
+
+
+class LLMAlternativRetning(BaseModel):
+    """Én alternativ sektor/retning eleven også kan vurdere."""
+    sektor:     str   # sektornavn
+    forklaring: str   # kort forklaring på hvorfor det kan passe
+
+
 class LLMResultat(BaseModel):
     """
-    Strukturert forklaringstekst generert av GPT.
+    Komplett AI-generert karriereveiledning.
 
     Legges til som `llm_resultat` i API-responsen.
     Er None hvis OPENAI_API_KEY ikke er satt eller kallet feiler.
 
     Frontend-prioritet:
-      Bruk llm_resultat.profil.* hvis tilgjengelig,
-      fall tilbake på profil.* (statisk) ellers.
+      Bruk llm_resultat.profil.* fremfor profil.* (statisk) når tilgjengelig.
     """
-    profil:               LLMProfil
-    hvorfor_dette_passer: list[LLMForklaring] = Field(default_factory=list)
-    veien_videre:         list[str] = Field(default_factory=list)
-    obs_punkter:          list[str] = Field(default_factory=list)
+    profil:                LLMProfil
+    styrker_forklart:      list[LLMStyrkForklart]      = Field(default_factory=list)
+    hvorfor_anbefalinger:  list[LLMAnbefaling]          = Field(default_factory=list)
+    karriereveier:         list[LLMKarrierevei]         = Field(default_factory=list)
+    veien_videre:          list[str]                    = Field(default_factory=list)
+    obs_punkter:           list[str]                    = Field(default_factory=list)
+    alternative_retninger: list[LLMAlternativRetning]   = Field(default_factory=list)
 
 
 class AnbefalingRespons(BaseModel):
