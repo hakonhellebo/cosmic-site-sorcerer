@@ -35,6 +35,9 @@ import EducationDetailsPage from "./pages/EducationDetailsPage"
 import CareerDetailPageWrapper from "./pages/CareerDetailPage"
 import TeacherDashboard from "./pages/TeacherDashboard"
 import SurveyJoinPage from "./pages/SurveyJoinPage"
+import YrkePage from "./pages/YrkePage"
+import SektorPage from "./pages/SektorPage"
+import SektorOversikt from "./pages/SektorOversikt"
 import { preloadStatisticsData } from "./pages/Statistics"
 import { useEffect } from "react"
 import { useRestoreResults } from "./hooks/useRestoreResults"
@@ -105,6 +108,9 @@ const App = () => {
             <Route path="/utdanning/:universityId/:studiekode" element={<EducationDetailsPage />} />
             <Route path="/karriere/:careerSlug" element={<CareerDetailPageWrapper />} />
             <Route path="/survey/join/:joinCode" element={<SurveyJoinPage />} />
+            <Route path="/yrke/:unoId" element={<YrkePage />} />
+            <Route path="/sektor/:slug" element={<SektorPage />} />
+            <Route path="/sektorer" element={<SektorOversikt />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

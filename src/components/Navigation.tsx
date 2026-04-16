@@ -24,6 +24,7 @@ const Navigation: React.FC = () => {
   const navItems = [
     { name: 'Hjem', href: '/' },
     { name: 'Statistikk', href: '/statistikk' },
+    { name: 'Sektorer', href: '/sektorer' },
     { name: 'Lærer', href: '/laerer' },
     { name: 'Hvordan det fungerer', href: '#how-it-works' },
     { name: 'Fordeler', href: '#features' },
