@@ -954,6 +954,135 @@ export type Database = {
         }
         Relationships: []
       }
+      yrke_bedrifter: {
+        Row: {
+          bedrift: string
+          fylke: string | null
+          id: number
+          kommune: string | null
+          rang: number | null
+          stillinger: number | null
+          uno_id: string
+        }
+        Insert: {
+          bedrift: string
+          fylke?: string | null
+          id?: number
+          kommune?: string | null
+          rang?: number | null
+          stillinger?: number | null
+          uno_id: string
+        }
+        Update: {
+          bedrift?: string
+          fylke?: string | null
+          id?: number
+          kommune?: string | null
+          rang?: number | null
+          stillinger?: number | null
+          uno_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "yrke_bedrifter_uno_id_fkey"
+            columns: ["uno_id"]
+            isOneToOne: false
+            referencedRelation: "yrker"
+            referencedColumns: ["uno_id"]
+          },
+        ]
+      }
+      yrke_nus_map: {
+        Row: {
+          id: number
+          nus_kode: string
+          uno_id: string
+        }
+        Insert: {
+          id?: number
+          nus_kode: string
+          uno_id: string
+        }
+        Update: {
+          id?: number
+          nus_kode?: string
+          uno_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "yrke_nus_map_uno_id_fkey"
+            columns: ["uno_id"]
+            isOneToOne: false
+            referencedRelation: "yrker"
+            referencedColumns: ["uno_id"]
+          },
+        ]
+      }
+      yrke_utdanning: {
+        Row: {
+          antall: number | null
+          id: number
+          prosent: number | null
+          rang: number | null
+          uno_id: string
+          utdanning: string
+        }
+        Insert: {
+          antall?: number | null
+          id?: number
+          prosent?: number | null
+          rang?: number | null
+          uno_id: string
+          utdanning: string
+        }
+        Update: {
+          antall?: number | null
+          id?: number
+          prosent?: number | null
+          rang?: number | null
+          uno_id?: string
+          utdanning?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "yrke_utdanning_uno_id_fkey"
+            columns: ["uno_id"]
+            isOneToOne: false
+            referencedRelation: "yrker"
+            referencedColumns: ["uno_id"]
+          },
+        ]
+      }
+      yrker: {
+        Row: {
+          antall_ledige: number | null
+          antall_sysselsatte: number | null
+          kilde_dato: string | null
+          ledighetsrate: number | null
+          sist_oppdatert: string | null
+          tittel: string
+          uno_id: string
+        }
+        Insert: {
+          antall_ledige?: number | null
+          antall_sysselsatte?: number | null
+          kilde_dato?: string | null
+          ledighetsrate?: number | null
+          sist_oppdatert?: string | null
+          tittel: string
+          uno_id: string
+        }
+        Update: {
+          antall_ledige?: number | null
+          antall_sysselsatte?: number | null
+          kilde_dato?: string | null
+          ledighetsrate?: number | null
+          sist_oppdatert?: string | null
+          tittel?: string
+          uno_id?: string
+        }
+        Relationships: []
+      }
       Yrker_database: {
         Row: {
           "Detaljert beskrivelse": string | null
