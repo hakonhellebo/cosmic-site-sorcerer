@@ -13,14 +13,16 @@ interface YrkeSalaryChartProps {
 
 interface ÅrData { year: number; [jobKey: string]: number; }
 
-const ÅR = [2018, 2019, 2020, 2021, 2022, 2023, 2024];
+const ALLE_ÅR = [2018, 2019, 2020, 2021, 2022, 2023, 2024];
 const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'];
 
 const YrkeSalaryChart: React.FC<YrkeSalaryChartProps> = ({ yrkeTittel, linkedTittel }) => {
   const [data, setData] = useState<ÅrData[]>([]);
   const [ssbJobs, setSsbJobs] = useState<string[]>([]);
-  const [kilde, setKilde] = useState<string>(''); // Yrket vi brukte for oppslag
-  const [kjonn, setKjonn] = useState<'all'|'Menn'|'Kvinner'|'Begge kjønn'>('all');
+  const [kilde, setKilde] = useState<string>('');
+  const [kjonn, setKjonn] = useState<'Begge kjønn'|'Menn'|'Kvinner'>('Begge kjønn');
+  const [fraÅr, setFraÅr] = useState<number>(2018);
+  const [tilÅr, setTilÅr] = useState<number>(2024);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,19 +57,17 @@ const YrkeSalaryChart: React.FC<YrkeSalaryChartProps> = ({ yrkeTittel, linkedTit
         .filter(j => j && j.toLowerCase() !== 'na');
       setSsbJobs(jobs);
 
-      // Hent lønn for alle år parallelt
-      const promises = ÅR.map(async (år) => {
-        let q = supabase.from('Clean_11418')
+      // Hent lønn for valgt år-range parallelt
+      const valgteÅr = ALLE_ÅR.filter(å => å >= fraÅr && å <= tilÅr);
+      const promises = valgteÅr.map(async (år) => {
+        const { data: rader } = await supabase.from('Clean_11418')
           .select('value, Yrke')
           .in('Yrke', jobs)
           .eq('Tid', år)
+          .eq('Kjonn', kjonn)
           .eq('MaaleMetode', 'Median')
           .eq('ContentsCode', 'Månedslønn (kr)')
           .not('value', 'is', null);
-        if (kjonn !== 'all') q = q.eq('Kjonn', kjonn);
-        else q = q.eq('Kjonn', 'Begge kjønn');
-
-        const { data: rader } = await q;
         if (!rader?.length) return null;
 
         const yearData: ÅrData = { year: år };
@@ -82,40 +82,61 @@ const YrkeSalaryChart: React.FC<YrkeSalaryChartProps> = ({ yrkeTittel, linkedTit
       });
 
       const results = (await Promise.all(promises)).filter(Boolean) as ÅrData[];
-      if (!results.length) setError("Ingen lønnsdata funnet");
+      if (!results.length) setError(`Ingen lønnsdata for ${kjonn.toLowerCase()}`);
       else setData(results.sort((a, b) => a.year - b.year));
       setLoading(false);
     };
     hent();
-  }, [yrkeTittel, linkedTittel, kjonn]);
+  }, [yrkeTittel, linkedTittel, kjonn, fraÅr, tilÅr]);
 
   const dataKeys = data.length ? Object.keys(data[0]).filter(k => k !== 'year') : [];
 
   return (
     <Card className="mb-6">
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-3 flex-wrap">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <TrendingUp className="h-4 w-4" />
+          Lønnsutvikling {fraÅr}–{tilÅr}
+        </CardTitle>
+        <CardDescription>
+          {kilde && kilde !== yrkeTittel
+            ? `Basert på ${kilde} (lignende yrke) — median årslønn`
+            : 'Median årslønn basert på SSB-data'}
+        </CardDescription>
+        <div className="grid grid-cols-3 gap-2 mt-3">
           <div>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <TrendingUp className="h-4 w-4" />
-              Lønnsutvikling 2018–2024
-            </CardTitle>
-            <CardDescription>
-              {kilde && kilde !== yrkeTittel
-                ? `Basert på ${kilde} (lignende yrke) — median årslønn`
-                : 'Median årslønn basert på SSB-data'}
-            </CardDescription>
+            <label className="text-[10px] font-medium text-muted-foreground mb-1 block">Fra år</label>
+            <Select value={String(fraÅr)} onValueChange={v => setFraÅr(+v)}>
+              <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {ALLE_ÅR.filter(å => å <= tilÅr).map(å => (
+                  <SelectItem key={å} value={String(å)}>{å}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <Select value={kjonn} onValueChange={v => setKjonn(v as any)}>
-            <SelectTrigger className="w-[140px] h-8 text-xs">
-              <SelectValue placeholder="Kjønn" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Begge kjønn</SelectItem>
-              <SelectItem value="Menn">Menn</SelectItem>
-              <SelectItem value="Kvinner">Kvinner</SelectItem>
-            </SelectContent>
-          </Select>
+          <div>
+            <label className="text-[10px] font-medium text-muted-foreground mb-1 block">Til år</label>
+            <Select value={String(tilÅr)} onValueChange={v => setTilÅr(+v)}>
+              <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {ALLE_ÅR.filter(å => å >= fraÅr).map(å => (
+                  <SelectItem key={å} value={String(å)}>{å}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-[10px] font-medium text-muted-foreground mb-1 block">Kjønn</label>
+            <Select value={kjonn} onValueChange={v => setKjonn(v as any)}>
+              <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Begge kjønn">Begge kjønn</SelectItem>
+                <SelectItem value="Menn">Menn</SelectItem>
+                <SelectItem value="Kvinner">Kvinner</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
