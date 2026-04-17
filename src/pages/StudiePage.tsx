@@ -30,6 +30,7 @@ interface LinketYrke {
   uno_id: string;
   tittel: string;
   sektor?: string;
+  antall_sysselsatte?: number;
   ledighetsrate?: number;
   gjennomsnitt_lonn?: number;
 }
@@ -82,28 +83,34 @@ const StudiePage = () => {
       if (!s) { setLoading(false); return; }
       setStudie(s);
 
-      // Hent yrke_studier (kun høyt-rangerte for fordeling)
+      // Hent yrke_studier (kun rang 1-3 = høyest signal)
       const { data: ysData } = await supabase
         .from('yrke_studier')
         .select('uno_id, rang')
         .eq('studie_navn', decoded)
-        .lte('rang', 10)
+        .lte('rang', 3)
         .order('rang', { ascending: true });
 
       if (ysData?.length) {
         const unoIds = ysData.map(y => y.uno_id);
         const { data: yrkeInfo } = await supabase
           .from('yrker')
-          .select('uno_id, tittel, sektor, ledighetsrate, gjennomsnitt_lonn')
+          .select('uno_id, tittel, sektor, antall_sysselsatte, ledighetsrate, gjennomsnitt_lonn')
           .in('uno_id', unoIds);
         const info = new Map((yrkeInfo || []).map(y => [y.uno_id, y]));
         const alleYrker = ysData.map(y => info.get(y.uno_id)).filter(Boolean) as LinketYrke[];
-        setYrker(alleYrker.slice(0, 12));
 
-        // Sektor-fordeling
+        // Sorter yrker på antall_sysselsatte (størst først) for visning
+        const sorterte = [...alleYrker].sort((a, b) => (b.antall_sysselsatte || 0) - (a.antall_sysselsatte || 0));
+        setYrker(sorterte.slice(0, 12));
+
+        // Sektor-fordeling VEKTET med antall_sysselsatte (minimum 1 per yrke for
+        // å inkludere yrker uten tall)
         const teller: Record<string, number> = {};
         for (const y of alleYrker) {
-          if (y.sektor) teller[y.sektor] = (teller[y.sektor] || 0) + 1;
+          if (!y.sektor) continue;
+          const vekt = Math.max(y.antall_sysselsatte || 1, 1);
+          teller[y.sektor] = (teller[y.sektor] || 0) + vekt;
         }
         const total = Object.values(teller).reduce((a, b) => a + b, 0);
         const fordeling = Object.entries(teller)
@@ -450,7 +457,7 @@ const StudiePage = () => {
                 <CardDescription>
                   {studie.studie_navn} gir jobbmuligheter i mange bransjer — ikke bare i{' '}
                   {studie.sektor && <span className="font-medium">{studie.sektor}</span>}.
-                  Her er hvordan sysselsatte med denne utdanningen fordeler seg.
+                  Fordelingen er vektet etter antall sysselsatte.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -461,7 +468,7 @@ const StudiePage = () => {
                         <span className={f.sektor === studie.sektor ? 'font-semibold text-primary' : ''}>
                           {f.sektor}
                         </span>
-                        <span className="text-muted-foreground">{f.prosent}% ({f.antall})</span>
+                        <span className="text-muted-foreground">{f.prosent}%</span>
                       </div>
                       <div className="h-2 bg-muted rounded-full overflow-hidden">
                         <div
