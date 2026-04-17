@@ -136,7 +136,7 @@ const YrkePage = () => {
       if (yrkeData.sektor) {
         let query = supabase
           .from('yrker')
-          .select('uno_id, tittel, sektor, under_sektor, ledighetsrate, antall_sysselsatte')
+          .select('uno_id, tittel, sektor, under_sektor, ledighetsrate, antall_sysselsatte, gjennomsnitt_lonn, lonn_menn, lonn_kvinner')
           .neq('uno_id', unoId)
           .limit(6);
 
@@ -178,13 +178,30 @@ const YrkePage = () => {
   );
 
   // ── Derived ───────────────────────────────────────────
-  const ledPct = yrke.ledighetsrate != null
-    ? `${(Number(yrke.ledighetsrate) * 100).toFixed(1)}%`
+  // Estimerte verdier fra lignende yrker (brukes om yrket mangler egne tall)
+  const caLonn = yrke.gjennomsnitt_lonn == null
+    ? (() => {
+        const vals = lignende.map(l => l.gjennomsnitt_lonn).filter((v): v is number => v != null);
+        return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
+      })()
     : null;
 
-  const ledFarge = yrke.ledighetsrate != null
-    ? Number(yrke.ledighetsrate) < 0.03 ? 'text-green-600'
-    : Number(yrke.ledighetsrate) < 0.06 ? 'text-yellow-600'
+  const caLed = yrke.ledighetsrate == null
+    ? (() => {
+        const vals = lignende.map(l => l.ledighetsrate).filter((v): v is number => v != null);
+        return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+      })()
+    : null;
+
+  const ledPct = yrke.ledighetsrate != null
+    ? `${(Number(yrke.ledighetsrate) * 100).toFixed(1)}%`
+    : caLed != null
+    ? `ca. ${(caLed * 100).toFixed(1)}%`
+    : null;
+
+  const ledFarge = (yrke.ledighetsrate ?? caLed) != null
+    ? (yrke.ledighetsrate ?? caLed)! < 0.03 ? 'text-green-600'
+    : (yrke.ledighetsrate ?? caLed)! < 0.06 ? 'text-yellow-600'
     : 'text-red-500'
     : '';
 
@@ -265,13 +282,31 @@ const YrkePage = () => {
                 label="Ledighetsrate"
                 value={ledPct ?? '—'}
                 color={ledFarge}
-                sub="andel arbeidsledige"
+                sub={
+                  yrke.ledighetsrate != null
+                    ? 'andel arbeidsledige'
+                    : caLed != null
+                    ? 'arbeidsledighet i lignende yrker'
+                    : undefined
+                }
               />
               <StatCard
                 icon={TrendingUp}
                 label="Gj.snitt lønn"
-                value={yrke.gjennomsnitt_lonn ? `${fmt(yrke.gjennomsnitt_lonn)} kr` : '—'}
-                sub="månedlig heltid, 2024"
+                value={
+                  yrke.gjennomsnitt_lonn
+                    ? `${fmt(yrke.gjennomsnitt_lonn)} kr`
+                    : caLonn
+                    ? `ca. ${fmt(caLonn)} kr`
+                    : '—'
+                }
+                sub={
+                  yrke.gjennomsnitt_lonn
+                    ? 'månedlig heltid, 2024'
+                    : caLonn
+                    ? 'lønn i lignende yrker'
+                    : undefined
+                }
               />
               <StatCard
                 icon={BarChart3}
