@@ -169,15 +169,22 @@ const StudiePage = () => {
     else if (ratio > 5)  { niv = "Moderat";      fargekl = "bg-yellow-100 text-yellow-800"; }
   }
 
-  // Poeng-range fra per-inst-data (mer ærlig enn aggregert snitt)
-  const poengArr = instListe
-    .map(i => i.opptakspoeng)
-    .filter((p): p is number => p != null && p > 0);
-  const minPoeng = poengArr.length ? Math.min(...poengArr) : null;
-  const maxPoeng = poengArr.length ? Math.max(...poengArr) : null;
-  const poengVisning = minPoeng != null && maxPoeng != null
-    ? (minPoeng === maxPoeng ? `${minPoeng}` : `${minPoeng}–${maxPoeng}`)
-    : (studie.opptakspoeng != null && studie.opptakspoeng > 0 ? `ca. ${studie.opptakspoeng}` : '—');
+  // Range-visning per statistikk (mer ærlig enn aggregerte verdier)
+  const rangeAv = (getter: (i: StudieInst) => number | undefined): string | null => {
+    const arr = instListe.map(getter).filter((v): v is number => v != null && v > 0);
+    if (!arr.length) return null;
+    const min = Math.min(...arr), max = Math.max(...arr);
+    return min === max ? `${min}` : `${min}–${max}`;
+  };
+
+  const poengRange    = rangeAv(i => i.opptakspoeng);
+  const plasserRange  = rangeAv(i => i.studieplasser);
+  const møttRange     = rangeAv(i => i.sokere_mott);
+  const kvalifRange   = rangeAv(i => i.sokere_kvalifisert);
+
+  const poengVisning = poengRange
+    ?? (studie.opptakspoeng != null && studie.opptakspoeng > 0 ? `ca. ${studie.opptakspoeng}` : '—');
+  const harFlereLærested = instListe.length > 1;
 
   return (
     <Layout>
@@ -209,7 +216,7 @@ const StudiePage = () => {
                     {studie.under_sektor && <Badge variant="secondary">{studie.under_sektor}</Badge>}
                   </div>
                 </div>
-                {poengArr.length > 0 && (
+                {poengRange && (
                   <div className="rounded-full bg-primary/10 px-4 py-2 font-semibold text-primary flex items-center gap-2 flex-shrink-0">
                     <GraduationCap className="h-5 w-5" />
                     <span className="text-lg">{poengVisning}</span>
@@ -220,27 +227,34 @@ const StudiePage = () => {
               {/* Quick stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t">
                 <div>
-                  <div className="text-xs text-muted-foreground mb-1">
-                    {minPoeng !== maxPoeng ? 'Karaktersnitt-range' : 'Karaktersnitt'}
-                  </div>
+                  <div className="text-xs text-muted-foreground mb-1">Karaktersnitt</div>
                   <div className="font-semibold text-lg">{poengVisning}</div>
-                  {poengArr.length > 1 && (
-                    <div className="text-[10px] text-muted-foreground mt-0.5">varierer mellom lærested</div>
+                  {harFlereLærested && poengRange && poengRange.includes('–') && (
+                    <div className="text-[10px] text-muted-foreground mt-0.5">per lærested</div>
                   )}
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground mb-1">Studieplasser</div>
                   <div className="font-semibold text-lg">{studie.studieplasser ?? '—'}</div>
+                  {harFlereLærested && plasserRange && plasserRange.includes('–') && (
+                    <div className="text-[10px] text-muted-foreground mt-0.5">{plasserRange} per lærested</div>
+                  )}
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground mb-1">Søkere møtt</div>
                   <div className="font-semibold text-lg">{studie.sokere_mott ?? '—'}</div>
+                  {harFlereLærested && møttRange && møttRange.includes('–') && (
+                    <div className="text-[10px] text-muted-foreground mt-0.5">{møttRange} per lærested</div>
+                  )}
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground mb-1">Konkurransenivå</div>
                   {ratio != null ? (
                     <div className={`text-xs px-2 py-0.5 rounded-full w-fit ${fargekl} font-medium`}>{niv}</div>
                   ) : <span className="text-muted-foreground">—</span>}
+                  {harFlereLærested && (
+                    <div className="text-[10px] text-muted-foreground mt-0.5">varierer per lærested</div>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -254,28 +268,55 @@ const StudiePage = () => {
                 <CardDescription>Oversikt over søkertall og opptaksstatistikk</CardDescription>
               </CardHeader>
               <CardContent>
+                {harFlereLærested && (
+                  <p className="text-xs text-muted-foreground mb-4 -mt-2">
+                    Totaltall for alle {instListe.length} læresteder — range viser variasjon.
+                    Klikk på et lærested under for detaljert statistikk for det spesifikke programmet.
+                  </p>
+                )}
                 <div className="space-y-3">
                   {studie.sokere_kvalifisert != null && (
                     <div className="flex justify-between border-b pb-2">
                       <span className="text-muted-foreground">Kvalifiserte søkere:</span>
-                      <span className="font-medium">{fmt(studie.sokere_kvalifisert)}</span>
+                      <div className="text-right">
+                        <span className="font-medium">{fmt(studie.sokere_kvalifisert)}</span>
+                        {harFlereLærested && kvalifRange && kvalifRange.includes('–') && (
+                          <div className="text-xs text-muted-foreground">{kvalifRange} per lærested</div>
+                        )}
+                      </div>
                     </div>
                   )}
                   {studie.studieplasser != null && (
                     <div className="flex justify-between border-b pb-2">
                       <span className="text-muted-foreground">Studieplasser:</span>
-                      <span className="font-medium">{fmt(studie.studieplasser)}</span>
+                      <div className="text-right">
+                        <span className="font-medium">{fmt(studie.studieplasser)}</span>
+                        {harFlereLærested && plasserRange && plasserRange.includes('–') && (
+                          <div className="text-xs text-muted-foreground">{plasserRange} per lærested</div>
+                        )}
+                      </div>
                     </div>
                   )}
                   {studie.sokere_mott != null && (
                     <div className="flex justify-between border-b pb-2">
                       <span className="text-muted-foreground">Søkere som møtte:</span>
-                      <span className="font-medium">{fmt(studie.sokere_mott)}</span>
+                      <div className="text-right">
+                        <span className="font-medium">{fmt(studie.sokere_mott)}</span>
+                        {harFlereLærested && møttRange && møttRange.includes('–') && (
+                          <div className="text-xs text-muted-foreground">{møttRange} per lærested</div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {poengRange && (
+                    <div className="flex justify-between border-b pb-2">
+                      <span className="text-muted-foreground">Karaktersnitt:</span>
+                      <span className="font-medium">{poengVisning}{harFlereLærested && poengRange.includes('–') ? ' (range)' : ''}</span>
                     </div>
                   )}
                   {ratio != null && (
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Søkere per studieplass:</span>
+                      <span className="text-muted-foreground">Søkere per studieplass (gjennomsnitt):</span>
                       <span className="font-medium">{ratio.toFixed(1)}</span>
                     </div>
                   )}
