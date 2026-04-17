@@ -26,8 +26,6 @@ const Navigation: React.FC = () => {
     { name: 'Hjem', href: '/' },
     { name: 'Statistikk', href: '/statistikk' },
     { name: 'Lærer', href: '/laerer' },
-    { name: 'Hvordan det fungerer', href: '#how-it-works' },
-    { name: 'Fordeler', href: '#features' },
     { name: 'Tilbakemeldinger', href: '#testimonials' },
     { name: 'Kontakt', href: '#contact' },
   ];
