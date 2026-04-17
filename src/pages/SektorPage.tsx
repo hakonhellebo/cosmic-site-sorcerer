@@ -137,15 +137,17 @@ const SektorPage = () => {
           .from('Bedrifter_ny')
           .select('Selskap, sub_sektor, Lokasjon, Ansatte, antall_ansatte_tall')
           .eq('Sektor', sektorNavn)
+          .order('sub_sektor',          { ascending: true, nullsFirst: false })
           .order('antall_ansatte_tall', { ascending: false, nullsFirst: false })
-          .limit(60),
+          .limit(200),
 
         supabase
           .from('studier')
-          .select('studie_navn, antall_inst')
+          .select('studie_navn, antall_inst, under_sektor, opptakspoeng')
           .eq('sektor', sektorNavn)
-          .order('antall_inst', { ascending: false, nullsFirst: false })
-          .limit(60),
+          .order('under_sektor', { ascending: true, nullsFirst: false })
+          .order('antall_inst',  { ascending: false, nullsFirst: false })
+          .limit(200),
       ]);
 
       setYrker(yrkeRes.data || []);
@@ -280,86 +282,124 @@ const SektorPage = () => {
           )}
 
           {/* ── BEDRIFTER ────────────────────────────────── */}
-          {aktiv === 'bedrifter' && (
-            <div className="grid md:grid-cols-2 gap-3">
-              {bedrifter.map((b) => (
-                <button
-                  key={b.Selskap}
-                  onClick={() => navigate(
-                    `/bedrift/${encodeURIComponent(b.Selskap.toLowerCase().replace(/\s+/g, '-'))}`,
-                    { state: { company: b } }
-                  )}
-                  className="text-left rounded-xl border bg-card hover:bg-primary/5 hover:border-primary/30 transition-all p-4 group"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0 flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <Building2 className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-medium text-sm truncate">{b.Selskap}</div>
-                        <div className="flex gap-2 text-xs text-muted-foreground mt-0.5">
-                          {b.sub_sektor && <span>{b.sub_sektor}</span>}
-                          {b.Lokasjon && (
-                            <span className="flex items-center gap-1">
-                              <MapPin className="h-3 w-3 flex-shrink-0" />{b.Lokasjon}
-                            </span>
-                          )}
-                          {(b.antall_ansatte_tall || b.Ansatte) && (
-                            <span className="flex items-center gap-1">
-                              <Users className="h-3 w-3 flex-shrink-0" />
-                              {b.antall_ansatte_tall ? fmt(b.antall_ansatte_tall) : b.Ansatte}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+          {aktiv === 'bedrifter' && (() => {
+            const grupper: Record<string, typeof bedrifter> = {};
+            for (const b of bedrifter) {
+              const k = b.sub_sektor || 'Andre';
+              (grupper[k] = grupper[k] || []).push(b);
+            }
+            const sortert = Object.entries(grupper).sort(([a], [b]) =>
+              a === 'Andre' ? 1 : b === 'Andre' ? -1 : a.localeCompare(b, 'nb')
+            );
+            return (
+              <div className="space-y-6">
+                {sortert.map(([kat, liste]) => (
+                  <div key={kat}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{kat}</h3>
+                      <span className="text-xs text-muted-foreground">({liste.length})</span>
                     </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary flex-shrink-0 mt-1 transition-colors" />
+                    <div className="grid md:grid-cols-2 gap-3">
+                      {liste.map((b) => (
+                        <button
+                          key={b.Selskap}
+                          onClick={() => navigate(
+                            `/bedrift/${encodeURIComponent(b.Selskap.toLowerCase().replace(/\s+/g, '-'))}`,
+                            { state: { company: b } }
+                          )}
+                          className="text-left rounded-xl border bg-card hover:bg-primary/5 hover:border-primary/30 transition-all p-4 group"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                <Building2 className="h-4 w-4 text-primary" />
+                              </div>
+                              <div className="min-w-0">
+                                <div className="font-medium text-sm truncate">{b.Selskap}</div>
+                                <div className="flex gap-2 text-xs text-muted-foreground mt-0.5">
+                                  {b.Lokasjon && (
+                                    <span className="flex items-center gap-1">
+                                      <MapPin className="h-3 w-3 flex-shrink-0" />{b.Lokasjon}
+                                    </span>
+                                  )}
+                                  {(b.antall_ansatte_tall || b.Ansatte) && (
+                                    <span className="flex items-center gap-1">
+                                      <Users className="h-3 w-3 flex-shrink-0" />
+                                      {b.antall_ansatte_tall ? fmt(b.antall_ansatte_tall) : b.Ansatte}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary flex-shrink-0 mt-1 transition-colors" />
+                          </div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </button>
-              ))}
-              {bedrifter.length === 0 && (
-                <p className="col-span-2 text-center text-muted-foreground py-12">
-                  Ingen bedrifter funnet i denne sektoren
-                </p>
-              )}
-            </div>
-          )}
+                ))}
+                {bedrifter.length === 0 && (
+                  <p className="text-center text-muted-foreground py-12">
+                    Ingen bedrifter funnet i denne sektoren
+                  </p>
+                )}
+              </div>
+            );
+          })()}
 
           {/* ── STUDIER ──────────────────────────────────── */}
-          {aktiv === 'studier' && (
-            <div className="grid md:grid-cols-2 gap-3">
-              {studier.map((s) => (
-                <button
-                  key={s.studie_navn}
-                  onClick={() => navigate(`/studie/${encodeURIComponent(s.studie_navn)}`)}
-                  className="text-left rounded-xl border bg-card hover:bg-violet-500/5 hover:border-violet-500/30 transition-all p-4 group"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0 flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center flex-shrink-0">
-                        <GraduationCap className="h-4 w-4 text-violet-600" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-medium text-sm truncate">{s.studie_navn}</div>
-                        {s.antall_inst != null && (
-                          <div className="text-xs text-muted-foreground mt-0.5">
-                            {s.antall_inst} læresteder
-                          </div>
-                        )}
-                      </div>
+          {aktiv === 'studier' && (() => {
+            const grupper: Record<string, typeof studier> = {};
+            for (const s of studier) {
+              const k = s.under_sektor || 'Andre';
+              (grupper[k] = grupper[k] || []).push(s);
+            }
+            const sortert = Object.entries(grupper).sort(([a], [b]) =>
+              a === 'Andre' ? 1 : b === 'Andre' ? -1 : a.localeCompare(b, 'nb')
+            );
+            return (
+              <div className="space-y-6">
+                {sortert.map(([kat, liste]) => (
+                  <div key={kat}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{kat}</h3>
+                      <span className="text-xs text-muted-foreground">({liste.length})</span>
                     </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-violet-600 flex-shrink-0 mt-1 transition-colors" />
+                    <div className="grid md:grid-cols-2 gap-3">
+                      {liste.map((s) => (
+                        <button
+                          key={s.studie_navn}
+                          onClick={() => navigate(`/studie/${encodeURIComponent(s.studie_navn)}`)}
+                          className="text-left rounded-xl border bg-card hover:bg-violet-500/5 hover:border-violet-500/30 transition-all p-4 group"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center flex-shrink-0">
+                                <GraduationCap className="h-4 w-4 text-violet-600" />
+                              </div>
+                              <div className="min-w-0">
+                                <div className="font-medium text-sm truncate">{s.studie_navn}</div>
+                                <div className="flex gap-2 text-xs text-muted-foreground mt-0.5">
+                                  {s.antall_inst != null && <span>{s.antall_inst} læresteder</span>}
+                                  {s.opptakspoeng != null && s.opptakspoeng > 0 && <span>· {s.opptakspoeng} poeng</span>}
+                                </div>
+                              </div>
+                            </div>
+                            <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-violet-600 flex-shrink-0 mt-1 transition-colors" />
+                          </div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </button>
-              ))}
-              {studier.length === 0 && (
-                <p className="col-span-2 text-center text-muted-foreground py-12">
-                  Ingen studier funnet i denne sektoren
-                </p>
-              )}
-            </div>
-          )}
+                ))}
+                {studier.length === 0 && (
+                  <p className="text-center text-muted-foreground py-12">
+                    Ingen studier funnet i denne sektoren
+                  </p>
+                )}
+              </div>
+            );
+          })()}
 
         </div>
       </div>
