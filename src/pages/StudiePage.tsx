@@ -97,7 +97,7 @@ const StudiePage = () => {
           .select('uno_id, tittel, sektor, ledighetsrate, gjennomsnitt_lonn')
           .in('uno_id', unoIds);
         const info = new Map((yrkeInfo || []).map(y => [y.uno_id, y]));
-        const alleYrker = ysData.map(y => info.get(y.uno_id)).filter((y): y is LinketYrke => !!y);
+        const alleYrker = ysData.map(y => info.get(y.uno_id)).filter(Boolean) as LinketYrke[];
         setYrker(alleYrker.slice(0, 12));
 
         // Sektor-fordeling
