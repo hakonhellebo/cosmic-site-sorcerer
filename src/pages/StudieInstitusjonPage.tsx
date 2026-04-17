@@ -8,6 +8,7 @@ import {
   ArrowLeft, GraduationCap, Building2, ExternalLink, MapPin,
 } from "lucide-react";
 import { supabase } from '@/lib/supabase';
+import FeedbackButton from '@/components/FeedbackButton';
 
 interface InstData {
   studie_navn: string;
@@ -98,9 +99,16 @@ const StudieInstitusjonPage = () => {
       <div className="min-h-screen">
         <div className="container mx-auto px-4 py-8 pt-24 max-w-4xl">
 
-          <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6 -ml-2">
-            <ArrowLeft className="mr-2 h-4 w-4" /> Tilbake
-          </Button>
+          <div className="flex items-center justify-between mb-6 -ml-2">
+            <Button variant="ghost" onClick={() => navigate(-1)}>
+              <ArrowLeft className="mr-2 h-4 w-4" /> Tilbake
+            </Button>
+            <FeedbackButton
+              type="institusjon"
+              entityId={`${data.studie_navn}|${data.institusjon}`}
+              entityLabel={`${data.studie_navn} ved ${data.institusjon}`}
+            />
+          </div>
 
           {/* ── HERO ──────────────────────────────────── */}
           <Card className="border-l-4 border-l-primary mb-6">
