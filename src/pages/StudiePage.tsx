@@ -29,8 +29,15 @@ interface Studie {
 interface LinketYrke {
   uno_id: string;
   tittel: string;
+  sektor?: string;
   ledighetsrate?: number;
   gjennomsnitt_lonn?: number;
+}
+
+interface SektorAndel {
+  sektor: string;
+  antall: number;
+  prosent: number;
 }
 
 interface RelatertStudie {
@@ -59,6 +66,7 @@ const StudiePage = () => {
 
   const [studie, setStudie] = useState<Studie | null>(null);
   const [yrker, setYrker] = useState<LinketYrke[]>([]);
+  const [sektorFordeling, setSektorFordeling] = useState<SektorAndel[]>([]);
   const [relaterte, setRelaterte] = useState<RelatertStudie[]>([]);
   const [instListe, setInstListe] = useState<StudieInst[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,21 +82,34 @@ const StudiePage = () => {
       if (!s) { setLoading(false); return; }
       setStudie(s);
 
+      // Hent ALLE yrke_studier (for fordeling), men vis bare topp 12
       const { data: ysData } = await supabase
         .from('yrke_studier')
         .select('uno_id, rang')
         .eq('studie_navn', decoded)
         .order('rang', { ascending: true })
-        .limit(20);
+        .limit(100);
 
       if (ysData?.length) {
         const unoIds = ysData.map(y => y.uno_id);
         const { data: yrkeInfo } = await supabase
           .from('yrker')
-          .select('uno_id, tittel, ledighetsrate, gjennomsnitt_lonn')
+          .select('uno_id, tittel, sektor, ledighetsrate, gjennomsnitt_lonn')
           .in('uno_id', unoIds);
         const info = new Map((yrkeInfo || []).map(y => [y.uno_id, y]));
-        setYrker(ysData.map(y => info.get(y.uno_id)).filter(Boolean).slice(0, 12) as LinketYrke[]);
+        const alleYrker = ysData.map(y => info.get(y.uno_id)).filter((y): y is LinketYrke => !!y);
+        setYrker(alleYrker.slice(0, 12));
+
+        // Sektor-fordeling
+        const teller: Record<string, number> = {};
+        for (const y of alleYrker) {
+          if (y.sektor) teller[y.sektor] = (teller[y.sektor] || 0) + 1;
+        }
+        const total = Object.values(teller).reduce((a, b) => a + b, 0);
+        const fordeling = Object.entries(teller)
+          .map(([sektor, antall]) => ({ sektor, antall, prosent: Math.round((antall / total) * 100) }))
+          .sort((a, b) => b.antall - a.antall);
+        setSektorFordeling(fordeling);
       }
 
       if (s.under_sektor) {
@@ -361,6 +382,40 @@ const StudiePage = () => {
                     ))}
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* ── 4b. BRANSJEFORDELING ─────────────────────── */}
+          {sektorFordeling.length > 1 && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Hvor jobber folk med denne utdanningen?</CardTitle>
+                <CardDescription>
+                  {studie.studie_navn} gir jobbmuligheter i mange bransjer — ikke bare i{' '}
+                  {studie.sektor && <span className="font-medium">{studie.sektor}</span>}.
+                  Her er hvordan sysselsatte med denne utdanningen fordeler seg.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {sektorFordeling.slice(0, 8).map((f) => (
+                    <div key={f.sektor}>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span className={f.sektor === studie.sektor ? 'font-semibold text-primary' : ''}>
+                          {f.sektor}
+                        </span>
+                        <span className="text-muted-foreground">{f.prosent}% ({f.antall})</span>
+                      </div>
+                      <div className="h-2 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${f.sektor === studie.sektor ? 'bg-primary' : 'bg-violet-400/60'}`}
+                          style={{ width: `${Math.max(f.prosent, 2)}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           )}
