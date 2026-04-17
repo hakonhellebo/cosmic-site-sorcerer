@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   ArrowLeft, Briefcase, Building2, GraduationCap, ChevronRight,
   MapPin, Search, Users, TrendingUp,
@@ -382,41 +383,38 @@ const SektorPage = () => {
             return (
               <div>
                 {/* Filter/sort-kontroller */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   <div>
                     <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Sub-sektor</label>
-                    <select
-                      value={filtUnder}
-                      onChange={e => setFiltUnder(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border bg-card text-sm"
-                    >
-                      <option value="alle">Alle sub-sektorer</option>
-                      {alleUnder.map(u => <option key={u} value={u}>{u}</option>)}
-                    </select>
+                    <Select value={filtUnder} onValueChange={setFiltUnder}>
+                      <SelectTrigger><SelectValue placeholder="Alle sub-sektorer" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="alle">Alle sub-sektorer</SelectItem>
+                        {alleUnder.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Universitet</label>
-                    <select
-                      value={filtInst}
-                      onChange={e => setFiltInst(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border bg-card text-sm"
-                    >
-                      <option value="alle">Alle universiteter</option>
-                      {alleInst.map(i => <option key={i} value={i}>{i}</option>)}
-                    </select>
+                    <Select value={filtInst} onValueChange={setFiltInst}>
+                      <SelectTrigger><SelectValue placeholder="Alle universiteter" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="alle">Alle universiteter</SelectItem>
+                        {alleInst.map(i => <SelectItem key={i} value={i}>{i}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Sorter etter</label>
-                    <select
-                      value={sortStudier}
-                      onChange={e => setSortStudier(e.target.value as any)}
-                      className="w-full px-3 py-2 rounded-lg border bg-card text-sm"
-                    >
-                      <option value="karakter">Karaktersnitt</option>
-                      <option value="popularitet">Popularitet (møtt)</option>
-                      <option value="konkurranse">Konkurransenivå</option>
-                      <option value="navn">Navn (A–Å)</option>
-                    </select>
+                    <Select value={sortStudier} onValueChange={v => setSortStudier(v as any)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="karakter">Karaktersnitt</SelectItem>
+                        <SelectItem value="popularitet">Popularitet (møtt)</SelectItem>
+                        <SelectItem value="konkurranse">Konkurransenivå</SelectItem>
+                        <SelectItem value="navn">Navn (A–Å)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
