@@ -82,13 +82,13 @@ const StudiePage = () => {
       if (!s) { setLoading(false); return; }
       setStudie(s);
 
-      // Hent ALLE yrke_studier (for fordeling), men vis bare topp 12
+      // Hent yrke_studier (kun høyt-rangerte for fordeling)
       const { data: ysData } = await supabase
         .from('yrke_studier')
         .select('uno_id, rang')
         .eq('studie_navn', decoded)
-        .order('rang', { ascending: true })
-        .limit(100);
+        .lte('rang', 10)
+        .order('rang', { ascending: true });
 
       if (ysData?.length) {
         const unoIds = ysData.map(y => y.uno_id);
