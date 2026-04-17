@@ -184,30 +184,34 @@ const Navigation: React.FC = () => {
         
         <nav className="hidden md:block">
           <ul className="flex space-x-8 items-center">
-            {navItems.map((item) => (
-              <li key={item.name}>
-                {item.href.startsWith('/') ? (
-                  <Link to={item.href} className="link-hover text-xs font-medium">{item.name}</Link>
-                ) : (
-                  <a href={item.href} className="link-hover text-xs font-medium">{item.name}</a>
+            {navItems.map((item, idx) => (
+              <React.Fragment key={item.name}>
+                <li>
+                  {item.href.startsWith('/') ? (
+                    <Link to={item.href} className="link-hover text-xs font-medium">{item.name}</Link>
+                  ) : (
+                    <a href={item.href} className="link-hover text-xs font-medium">{item.name}</a>
+                  )}
+                </li>
+                {item.name === 'Hjem' && (
+                  <li>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="link-hover text-xs font-medium flex items-center gap-1 outline-none">
+                        Utforsk <ChevronDown className="h-3 w-3" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-64">
+                        {utforskItems.map((u) => (
+                          <DropdownMenuItem key={u.href} onClick={() => navigate(u.href)} className="flex-col items-start gap-0.5 cursor-pointer py-2.5">
+                            <span className="text-sm font-medium">{u.name}</span>
+                            <span className="text-xs text-muted-foreground">{u.beskrivelse}</span>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </li>
                 )}
-              </li>
+              </React.Fragment>
             ))}
-            <li>
-              <DropdownMenu>
-                <DropdownMenuTrigger className="link-hover text-xs font-medium flex items-center gap-1 outline-none">
-                  Utforsk <ChevronDown className="h-3 w-3" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-64">
-                  {utforskItems.map((u) => (
-                    <DropdownMenuItem key={u.href} onClick={() => navigate(u.href)} className="flex-col items-start gap-0.5 cursor-pointer py-2.5">
-                      <span className="text-sm font-medium">{u.name}</span>
-                      <span className="text-xs text-muted-foreground">{u.beskrivelse}</span>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </li>
           </ul>
         </nav>
         
