@@ -139,9 +139,13 @@ const SektorPage = () => {
   const [sortYrker,     setSortYrker]     = useState<'navn' | 'ledighet' | 'lonn' | 'sysselsatte'>('navn');
 
   // Filter/sort for bedrifter-tab
+  const [sokBedr,     setSokBedr]     = useState('');
   const [filtBedSub,  setFiltBedSub]  = useState<string>('alle');
   const [filtBedGeo,  setFiltBedGeo]  = useState<string>('alle');
   const [sortBedr,    setSortBedr]    = useState<'ansatte' | 'inntekter' | 'navn'>('ansatte');
+
+  // Søk for studier-tab
+  const [sokStudie,   setSokStudie]   = useState('');
 
   const sektorNavn = slug ? (SEKTORER[slug] ?? decodeURIComponent(slug)) : '';
   const emoji      = SEKTOR_EMOJI[sektorNavn] ?? '📂';
@@ -362,6 +366,7 @@ const SektorPage = () => {
             const inntekt = (b: Bedrift) => b.driftsresultat_mnok ?? b['Driftsinntekter (MNOK)'] ?? 0;
 
             let filt = bedrifter;
+            if (sokBedr) filt = filt.filter(b => b.Selskap.toLowerCase().includes(sokBedr.toLowerCase()));
             if (filtBedSub !== 'alle') filt = filt.filter(b => b.sub_sektor === filtBedSub);
             if (filtBedGeo !== 'alle') filt = filt.filter(b => (b.Geografi || b.Lokasjon) === filtBedGeo);
 
@@ -374,6 +379,15 @@ const SektorPage = () => {
             return (
               <div>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+                    <Input
+                      placeholder="Søk etter bedrift…"
+                      className="pl-9"
+                      value={sokBedr}
+                      onChange={e => setSokBedr(e.target.value)}
+                    />
+                  </div>
                   <div>
                     <Select value={filtBedSub} onValueChange={setFiltBedSub}>
                       <SelectTrigger><SelectValue placeholder="Alle sub-sektorer" /></SelectTrigger>
@@ -402,10 +416,8 @@ const SektorPage = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="flex items-center text-xs text-muted-foreground">
-                    Viser {filt.length} av {bedrifter.length}
-                  </div>
                 </div>
+                <p className="text-xs text-muted-foreground mb-4">Viser {filt.length} av {bedrifter.length}</p>
 
                 <div className="grid md:grid-cols-2 gap-3">
                   {filt.map((b) => (
@@ -465,6 +477,7 @@ const SektorPage = () => {
 
             // Filtrer
             let filt = studier;
+            if (sokStudie) filt = filt.filter(s => s.studie_navn.toLowerCase().includes(sokStudie.toLowerCase()));
             if (filtUnder !== 'alle') filt = filt.filter(s => s.under_sektor === filtUnder);
             if (filtInst !== 'alle')  filt = filt.filter(s => (s.institusjoner || '').includes(filtInst));
 
@@ -481,9 +494,17 @@ const SektorPage = () => {
             return (
               <div>
                 {/* Filter/sort-kontroller */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+                    <Input
+                      placeholder="Søk etter studie…"
+                      className="pl-9"
+                      value={sokStudie}
+                      onChange={e => setSokStudie(e.target.value)}
+                    />
+                  </div>
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Sub-sektor</label>
                     <Select value={filtUnder} onValueChange={setFiltUnder}>
                       <SelectTrigger><SelectValue placeholder="Alle sub-sektorer" /></SelectTrigger>
                       <SelectContent>
@@ -493,7 +514,6 @@ const SektorPage = () => {
                     </Select>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Universitet</label>
                     <Select value={filtInst} onValueChange={setFiltInst}>
                       <SelectTrigger><SelectValue placeholder="Alle universiteter" /></SelectTrigger>
                       <SelectContent>
@@ -503,14 +523,13 @@ const SektorPage = () => {
                     </Select>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Sorter etter</label>
                     <Select value={sortStudier} onValueChange={v => setSortStudier(v as any)}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="karakter">Karaktersnitt</SelectItem>
-                        <SelectItem value="popularitet">Popularitet (møtt)</SelectItem>
-                        <SelectItem value="konkurranse">Konkurransenivå</SelectItem>
-                        <SelectItem value="navn">Navn (A–Å)</SelectItem>
+                        <SelectItem value="karakter">Sortér: Karaktersnitt</SelectItem>
+                        <SelectItem value="popularitet">Sortér: Popularitet</SelectItem>
+                        <SelectItem value="konkurranse">Sortér: Konkurranse</SelectItem>
+                        <SelectItem value="navn">Sortér: Navn (A–Å)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
