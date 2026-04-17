@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { supabase } from '@/lib/supabase';
 import FeedbackButton from '@/components/FeedbackButton';
+import YrkeSalaryChart from '@/components/YrkeSalaryChart';
 
 // ─── Typer ───────────────────────────────────────────────
 interface Yrke {
@@ -97,6 +98,7 @@ const YrkePage = () => {
   const [utdanning, setUtdanning] = useState<YrkeUtdanning[]>([]);
   const [nus,       setNus]       = useState<YrkeNus[]>([]);
   const [lignende,  setLignende]  = useState<Yrke[]>([]);
+  const [linkedTittel, setLinkedTittel] = useState<string | undefined>();
   const [studier,   setStudier]   = useState<YrkeStudie[]>([]);
   const [loading,   setLoading]   = useState(true);
 
@@ -118,6 +120,16 @@ const YrkePage = () => {
 
       // Bruk linked_uno_id for støttedata hvis er_utvidet
       const dataId = yrkeData.linked_uno_id || unoId;
+
+      // Hent forelder-tittel for salary-chart fallback
+      if (yrkeData.linked_uno_id) {
+        const { data: par } = await supabase
+          .from('yrker')
+          .select('tittel')
+          .eq('uno_id', yrkeData.linked_uno_id)
+          .maybeSingle();
+        if (par?.tittel) setLinkedTittel(par.tittel);
+      }
 
       // 2. Bedrifter + utdanning + NUS + studier — parallelt
       const [bedRes, utdRes, nusRes, studRes] = await Promise.all([
@@ -358,6 +370,9 @@ const YrkePage = () => {
               />
             </div>
           </div>
+
+          {/* ── 3b. LØNNSUTVIKLING ───────────────────────── */}
+          <YrkeSalaryChart yrkeTittel={yrke.tittel} linkedTittel={linkedTittel} />
 
           {/* ── 4. UTDANNING ─────────────────────────────── */}
           {utdanning.length > 0 && (
