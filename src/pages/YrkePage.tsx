@@ -49,6 +49,14 @@ interface YrkeNus {
   nivaa_navn?: string;
 }
 
+interface YrkeStudie {
+  studie_navn: string;
+  rang?: number;
+  institusjoner?: string;
+  antall_inst?: number;
+  opptakspoeng?: number;
+}
+
 // ─── Helpers ─────────────────────────────────────────────
 const fmt = (n?: number | null) =>
   n != null ? n.toLocaleString('nb-NO') : null;
@@ -83,6 +91,7 @@ const YrkePage = () => {
   const [utdanning, setUtdanning] = useState<YrkeUtdanning[]>([]);
   const [nus,       setNus]       = useState<YrkeNus[]>([]);
   const [lignende,  setLignende]  = useState<Yrke[]>([]);
+  const [studier,   setStudier]   = useState<YrkeStudie[]>([]);
   const [loading,   setLoading]   = useState(true);
 
   useEffect(() => {
@@ -104,8 +113,8 @@ const YrkePage = () => {
       // Bruk linked_uno_id for støttedata hvis er_utvidet
       const dataId = yrkeData.linked_uno_id || unoId;
 
-      // 2. Bedrifter + utdanning + NUS — parallelt
-      const [bedRes, utdRes, nusRes] = await Promise.all([
+      // 2. Bedrifter + utdanning + NUS + studier — parallelt
+      const [bedRes, utdRes, nusRes, studRes] = await Promise.all([
         supabase
           .from('yrke_bedrifter')
           .select('bedrift, stillinger, kommune, fylke, rang')
@@ -126,11 +135,31 @@ const YrkePage = () => {
           .eq('uno_id', dataId)
           .not('nus_navn', 'is', null)
           .limit(10),
+
+        supabase
+          .from('yrke_studier')
+          .select('studie_navn, rang')
+          .eq('uno_id', dataId)
+          .order('rang', { ascending: true })
+          .limit(8),
       ]);
 
       setBedrifter(bedRes.data || []);
       setUtdanning(utdRes.data || []);
       setNus(nusRes.data || []);
+
+      // Berik studier-listen med info fra studier-tabellen
+      const studieNavn = (studRes.data || []).map(s => s.studie_navn);
+      if (studieNavn.length > 0) {
+        const { data: studInfo } = await supabase
+          .from('studier')
+          .select('studie_navn, institusjoner, antall_inst, opptakspoeng')
+          .in('studie_navn', studieNavn);
+        const infoMap = new Map((studInfo || []).map(s => [s.studie_navn, s]));
+        setStudier((studRes.data || []).map(s => ({ ...s, ...infoMap.get(s.studie_navn) })));
+      } else {
+        setStudier([]);
+      }
 
       // 3. Lignende yrker i samme under_sektor (faller tilbake til sektor om ingen under_sektor)
       if (yrkeData.sektor) {
@@ -364,6 +393,45 @@ const YrkePage = () => {
                     <BookOpen className="h-3.5 w-3.5 text-violet-600" />
                     {n.fagfelt_navn}
                   </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── 5b. RELEVANTE STUDIER ───────────────────── */}
+          {studier.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold mb-1">Relevante studier</h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                Studier som kan lede til dette yrket — rangert etter hvor vanlig utdanningen er blant sysselsatte
+              </p>
+              <div className="grid md:grid-cols-2 gap-3">
+                {studier.map((s) => (
+                  <button
+                    key={s.studie_navn}
+                    onClick={() => navigate(`/studie/${encodeURIComponent(s.studie_navn)}`)}
+                    className="text-left rounded-xl border bg-card hover:bg-violet-500/5 hover:border-violet-400/50 transition-all p-4 group"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <GraduationCap className="h-4 w-4 text-violet-600" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-medium text-sm leading-tight mb-1">{s.studie_navn}</div>
+                          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                            {s.antall_inst ? (
+                              <span>{s.antall_inst} {s.antall_inst === 1 ? 'institusjon' : 'institusjoner'}</span>
+                            ) : null}
+                            {s.opptakspoeng ? (
+                              <span>· Poenggrense {s.opptakspoeng}</span>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-violet-600 flex-shrink-0 mt-0.5 transition-colors" />
+                    </div>
+                  </button>
                 ))}
               </div>
             </div>
