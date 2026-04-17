@@ -39,6 +39,7 @@ import YrkePage from "./pages/YrkePage"
 import SektorPage from "./pages/SektorPage"
 import SektorOversikt from "./pages/SektorOversikt"
 import StudiePage from "./pages/StudiePage"
+import StudieInstitusjonPage from "./pages/StudieInstitusjonPage"
 import { preloadStatisticsData } from "./pages/Statistics"
 import { useEffect } from "react"
 import { useRestoreResults } from "./hooks/useRestoreResults"
@@ -113,6 +114,7 @@ const App = () => {
             <Route path="/sektor/:slug" element={<SektorPage />} />
             <Route path="/sektorer" element={<SektorOversikt />} />
             <Route path="/studie/:navn" element={<StudiePage />} />
+            <Route path="/studie/:navn/:institusjon" element={<StudieInstitusjonPage />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

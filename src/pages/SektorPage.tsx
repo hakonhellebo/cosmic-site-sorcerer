@@ -70,6 +70,12 @@ interface Bedrift {
 interface Studie {
   studie_navn: string;
   antall_inst?: number;
+  under_sektor?: string;
+  opptakspoeng?: number;
+  studieplasser?: number;
+  sokere_mott?: number;
+  sokere_kvalifisert?: number;
+  institusjoner?: string;
 }
 
 const fmt = (n?: number | null) =>
@@ -118,6 +124,11 @@ const SektorPage = () => {
   const [sokYrke,   setSokYrke]   = useState('');
   const [aktiv,     setAktiv]     = useState<'yrker' | 'bedrifter' | 'studier'>('yrker');
 
+  // Filter/sort state for studier-tab
+  const [filtUnder,   setFiltUnder]   = useState<string>('alle');
+  const [filtInst,    setFiltInst]    = useState<string>('alle');
+  const [sortStudier, setSortStudier] = useState<'karakter' | 'popularitet' | 'konkurranse' | 'navn'>('karakter');
+
   const sektorNavn = slug ? (SEKTORER[slug] ?? decodeURIComponent(slug)) : '';
   const emoji      = SEKTOR_EMOJI[sektorNavn] ?? '📂';
 
@@ -143,11 +154,9 @@ const SektorPage = () => {
 
         supabase
           .from('studier')
-          .select('studie_navn, antall_inst, under_sektor, opptakspoeng')
+          .select('studie_navn, antall_inst, under_sektor, opptakspoeng, studieplasser, sokere_mott, sokere_kvalifisert, institusjoner')
           .eq('sektor', sektorNavn)
-          .order('under_sektor', { ascending: true, nullsFirst: false })
-          .order('antall_inst',  { ascending: false, nullsFirst: false })
-          .limit(200),
+          .limit(500),
       ]);
 
       setYrker(yrkeRes.data || []);
@@ -349,52 +358,110 @@ const SektorPage = () => {
 
           {/* ── STUDIER ──────────────────────────────────── */}
           {aktiv === 'studier' && (() => {
-            const grupper: Record<string, typeof studier> = {};
-            for (const s of studier) {
-              const k = s.under_sektor || 'Andre';
-              (grupper[k] = grupper[k] || []).push(s);
-            }
-            const sortert = Object.entries(grupper).sort(([a], [b]) =>
-              a === 'Andre' ? 1 : b === 'Andre' ? -1 : a.localeCompare(b, 'nb')
-            );
+            // Hent unike under-sektorer og institusjoner for filter
+            const alleUnder = Array.from(new Set(studier.map(s => s.under_sektor).filter(Boolean))).sort() as string[];
+            const alleInst = Array.from(new Set(
+              studier.flatMap(s => (s.institusjoner || '').split(',').map(i => i.trim()).filter(Boolean))
+            )).sort();
+
+            // Filtrer
+            let filt = studier;
+            if (filtUnder !== 'alle') filt = filt.filter(s => s.under_sektor === filtUnder);
+            if (filtInst !== 'alle')  filt = filt.filter(s => (s.institusjoner || '').includes(filtInst));
+
+            // Sorter
+            const konk = (s: Studie) =>
+              s.sokere_kvalifisert && s.studieplasser ? s.sokere_kvalifisert / s.studieplasser : 0;
+            filt = [...filt].sort((a, b) => {
+              if (sortStudier === 'karakter')    return (b.opptakspoeng || 0) - (a.opptakspoeng || 0);
+              if (sortStudier === 'popularitet') return (b.sokere_mott || 0)  - (a.sokere_mott || 0);
+              if (sortStudier === 'konkurranse') return konk(b) - konk(a);
+              return a.studie_navn.localeCompare(b.studie_navn, 'nb');
+            });
+
             return (
-              <div className="space-y-6">
-                {sortert.map(([kat, liste]) => (
-                  <div key={kat}>
-                    <div className="flex items-center gap-2 mb-3">
-                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{kat}</h3>
-                      <span className="text-xs text-muted-foreground">({liste.length})</span>
-                    </div>
-                    <div className="grid md:grid-cols-2 gap-3">
-                      {liste.map((s) => (
-                        <button
-                          key={s.studie_navn}
-                          onClick={() => navigate(`/studie/${encodeURIComponent(s.studie_navn)}`)}
-                          className="text-left rounded-xl border bg-card hover:bg-violet-500/5 hover:border-violet-500/30 transition-all p-4 group"
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0 flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center flex-shrink-0">
-                                <GraduationCap className="h-4 w-4 text-violet-600" />
-                              </div>
-                              <div className="min-w-0">
-                                <div className="font-medium text-sm truncate">{s.studie_navn}</div>
-                                <div className="flex gap-2 text-xs text-muted-foreground mt-0.5">
-                                  {s.antall_inst != null && <span>{s.antall_inst} læresteder</span>}
-                                  {s.opptakspoeng != null && s.opptakspoeng > 0 && <span>· {s.opptakspoeng} poeng</span>}
-                                </div>
+              <div>
+                {/* Filter/sort-kontroller */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Sub-sektor</label>
+                    <select
+                      value={filtUnder}
+                      onChange={e => setFiltUnder(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border bg-card text-sm"
+                    >
+                      <option value="alle">Alle sub-sektorer</option>
+                      {alleUnder.map(u => <option key={u} value={u}>{u}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Universitet</label>
+                    <select
+                      value={filtInst}
+                      onChange={e => setFiltInst(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border bg-card text-sm"
+                    >
+                      <option value="alle">Alle universiteter</option>
+                      {alleInst.map(i => <option key={i} value={i}>{i}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Sorter etter</label>
+                    <select
+                      value={sortStudier}
+                      onChange={e => setSortStudier(e.target.value as any)}
+                      className="w-full px-3 py-2 rounded-lg border bg-card text-sm"
+                    >
+                      <option value="karakter">Karaktersnitt</option>
+                      <option value="popularitet">Popularitet (møtt)</option>
+                      <option value="konkurranse">Konkurransenivå</option>
+                      <option value="navn">Navn (A–Å)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <p className="text-xs text-muted-foreground mb-4">Viser {filt.length} av {studier.length} studier</p>
+
+                <div className="grid md:grid-cols-2 gap-3">
+                  {filt.map((s) => {
+                    const ratio = konk(s);
+                    let niv = '', fargekl = '';
+                    if (ratio > 0) {
+                      if (ratio > 20)      { niv = 'Ekstremt høy'; fargekl = 'bg-red-100 text-red-800'; }
+                      else if (ratio > 15) { niv = 'Veldig høy';   fargekl = 'bg-red-100 text-red-800'; }
+                      else if (ratio > 10) { niv = 'Høy';          fargekl = 'bg-orange-100 text-orange-800'; }
+                      else if (ratio > 5)  { niv = 'Moderat';      fargekl = 'bg-yellow-100 text-yellow-800'; }
+                      else                 { niv = 'Lav';          fargekl = 'bg-green-100 text-green-800'; }
+                    }
+                    return (
+                      <button
+                        key={s.studie_navn}
+                        onClick={() => navigate(`/studie/${encodeURIComponent(s.studie_navn)}`)}
+                        className="text-left rounded-xl border bg-card hover:bg-violet-500/5 hover:border-violet-500/30 transition-all p-4 group"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center flex-shrink-0">
+                              <GraduationCap className="h-4 w-4 text-violet-600" />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="font-medium text-sm truncate">{s.studie_navn}</div>
+                              <div className="flex flex-wrap gap-2 text-xs text-muted-foreground mt-0.5">
+                                {s.antall_inst != null && <span>{s.antall_inst} læresteder</span>}
+                                {s.opptakspoeng != null && s.opptakspoeng > 0 && <span>· {s.opptakspoeng} poeng</span>}
+                                {niv && <span className={`px-1.5 py-0.5 rounded ${fargekl}`}>{niv}</span>}
                               </div>
                             </div>
-                            <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-violet-600 flex-shrink-0 mt-1 transition-colors" />
                           </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-                {studier.length === 0 && (
+                          <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-violet-600 flex-shrink-0 mt-1 transition-colors" />
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+                {filt.length === 0 && (
                   <p className="text-center text-muted-foreground py-12">
-                    Ingen studier funnet i denne sektoren
+                    Ingen studier matcher filtrene
                   </p>
                 )}
               </div>

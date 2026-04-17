@@ -39,6 +39,16 @@ interface RelatertStudie {
   opptakspoeng?: number;
 }
 
+interface StudieInst {
+  institusjon: string;
+  studiested?: string;
+  studiekode?: string;
+  opptakspoeng?: number;
+  studieplasser?: number;
+  sokere_mott?: number;
+  sokere_kvalifisert?: number;
+}
+
 const fmt = (n?: number | null) => n != null ? n.toLocaleString('nb-NO') : null;
 const sektorSlug = (sektor: string) =>
   encodeURIComponent(sektor.toLowerCase().replace(/\s+/g, '-').replace(/[æ]/g, 'ae').replace(/[ø]/g, 'o').replace(/[å]/g, 'a'));
@@ -50,6 +60,7 @@ const StudiePage = () => {
   const [studie, setStudie] = useState<Studie | null>(null);
   const [yrker, setYrker] = useState<LinketYrke[]>([]);
   const [relaterte, setRelaterte] = useState<RelatertStudie[]>([]);
+  const [instListe, setInstListe] = useState<StudieInst[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -89,6 +100,14 @@ const StudiePage = () => {
           .limit(8);
         setRelaterte(rel || []);
       }
+
+      // Per-lærested data
+      const { data: instData } = await supabase
+        .from('studie_institusjoner')
+        .select('institusjon, studiested, studiekode, opptakspoeng, studieplasser, sokere_mott, sokere_kvalifisert')
+        .eq('studie_navn', decoded)
+        .order('opptakspoeng', { ascending: false, nullsFirst: false });
+      setInstListe(instData || []);
 
       setLoading(false);
     };
@@ -260,25 +279,88 @@ const StudiePage = () => {
             </Card>
           )}
 
-          {/* ── 4. INSTITUSJONER ─────────────────────────── */}
-          {institusjonsListe.length > 0 && (
+          {/* ── 4. LÆRESTED MED STATISTIKK ──────────────── */}
+          {(instListe.length > 0 || institusjonsListe.length > 0) && (
             <Card className="mb-6">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Building2 className="h-5 w-5" />
-                  Lærested ({institusjonsListe.length})
+                  Lærested ({instListe.length || institusjonsListe.length})
                 </CardTitle>
-                <CardDescription>Institusjoner som tilbyr dette studiet</CardDescription>
+                <CardDescription>Klikk på et lærested for å se detaljert statistikk</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {institusjonsListe.map((inst) => (
-                    <span key={inst} className="flex items-center gap-1.5 px-3 py-2 rounded-lg border bg-card text-sm font-medium">
-                      <MapPin className="h-3.5 w-3.5 text-violet-600" />
-                      {inst}
-                    </span>
-                  ))}
-                </div>
+                {instListe.length > 0 ? (
+                  <div className="grid md:grid-cols-2 gap-3">
+                    {instListe.map((inst, idx) => {
+                      const ratio = inst.sokere_kvalifisert && inst.studieplasser
+                        ? inst.sokere_kvalifisert / inst.studieplasser : null;
+                      let niv = '', fargekl = '';
+                      if (ratio != null) {
+                        if (ratio > 20)      { niv = 'Ekstremt høy'; fargekl = 'bg-red-100 text-red-800'; }
+                        else if (ratio > 15) { niv = 'Veldig høy';   fargekl = 'bg-red-100 text-red-800'; }
+                        else if (ratio > 10) { niv = 'Høy';          fargekl = 'bg-orange-100 text-orange-800'; }
+                        else if (ratio > 5)  { niv = 'Moderat';      fargekl = 'bg-yellow-100 text-yellow-800'; }
+                        else                 { niv = 'Lav';          fargekl = 'bg-green-100 text-green-800'; }
+                      }
+                      return (
+                        <button
+                          key={`${inst.institusjon}-${inst.studiekode}-${idx}`}
+                          onClick={() => navigate(
+                            `/studie/${encodeURIComponent(studie.studie_navn)}/${encodeURIComponent(inst.institusjon)}${inst.studiekode ? `?kode=${encodeURIComponent(inst.studiekode)}` : ''}`
+                          )}
+                          className="text-left rounded-xl border bg-card hover:bg-violet-500/5 hover:border-violet-400/50 transition-all p-4 group"
+                        >
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <div className="min-w-0 flex-1">
+                              <div className="font-medium text-sm mb-0.5">{inst.institusjon}</div>
+                              <div className="text-xs text-muted-foreground flex flex-wrap gap-x-2">
+                                {inst.studiested && <span>{inst.studiested}</span>}
+                                {inst.studiekode && <span>· Kode {inst.studiekode}</span>}
+                              </div>
+                            </div>
+                            {inst.opptakspoeng != null && inst.opptakspoeng > 0 && (
+                              <div className="rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary text-xs flex items-center gap-1 flex-shrink-0">
+                                <GraduationCap className="h-3 w-3" />
+                                {inst.opptakspoeng}
+                              </div>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-3 gap-2 text-xs">
+                            <div>
+                              <div className="text-muted-foreground">Plasser</div>
+                              <div className="font-medium">{inst.studieplasser ?? '—'}</div>
+                            </div>
+                            <div>
+                              <div className="text-muted-foreground">Møtt</div>
+                              <div className="font-medium">{inst.sokere_mott ?? '—'}</div>
+                            </div>
+                            <div>
+                              <div className="text-muted-foreground">Konkurranse</div>
+                              {niv ? (
+                                <div className={`text-[10px] px-1.5 py-0.5 rounded w-fit ${fargekl} font-medium`}>{niv}</div>
+                              ) : '—'}
+                            </div>
+                          </div>
+                          <div className="flex justify-end mt-2">
+                            <span className="text-xs text-primary flex items-center gap-1">
+                              Se detaljer <ChevronRight className="h-3 w-3" />
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {institusjonsListe.map((inst) => (
+                      <span key={inst} className="flex items-center gap-1.5 px-3 py-2 rounded-lg border bg-card text-sm font-medium">
+                        <MapPin className="h-3.5 w-3.5 text-violet-600" />
+                        {inst}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
