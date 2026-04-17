@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   ArrowLeft, Briefcase, Building2, GraduationCap, ChevronRight,
   MapPin, Search, Users, TrendingUp,
@@ -12,58 +11,56 @@ import { supabase } from '@/lib/supabase';
 
 // ─── Konstanter ──────────────────────────────────────────
 const SEKTORER: Record<string, string> = {
-  'administrasjon-og-ledelse':           'Administrasjon og ledelse',
-  'helse-og-omsorg':                     'Helse og omsorg',
-  'humaniora-og-sprak':                  'Humaniora og språk',
-  'ingenior-og-teknisk':                 'Ingeniør og teknisk',
-  'it-og-teknologi':                     'IT og teknologi',
-  'jus-og-rettsvesen':                   'Jus og rettsvesen',
-  'kunst-og-kultur':                     'Kunst og kultur',
-  'design-markedsforing-og-kommunikasjon': 'Design, markedsføring og kommunikasjon',
-  'miljo-natur-og-forskning':            'Miljø, natur og forskning',
-  'okonomi-og-finans':                   'Økonomi og finans',
-  'psykologi-og-radgivning':             'Psykologi og rådgivning',
-  'religion-og-livssyn':                 'Religion og livssyn',
-  'samfunnsfag-og-politikk':             'Samfunnsfag og politikk',
-  'sikkerhet-og-beredskap':              'Sikkerhet og beredskap',
-  'sport-og-kroppsoving':                'Sport og kroppsøving',
-  'transport-og-logistikk':              'Transport og logistikk',
-  'undervisning-og-pedagogikk':          'Undervisning og pedagogikk',
+  'administrasjon-og-ledelse':              'Administrasjon og ledelse',
+  'helse-og-omsorg':                        'Helse og omsorg',
+  'humaniora-og-sprak':                     'Humaniora og språk',
+  'ingenior-og-teknisk':                    'Ingeniør og teknisk',
+  'it-og-teknologi':                        'IT og teknologi',
+  'jus-og-rettsvesen':                      'Jus og rettsvesen',
+  'kunst-og-kultur':                        'Kunst og kultur',
+  'design-markedsforing-og-kommunikasjon':  'Design, markedsføring og kommunikasjon',
+  'miljo-natur-og-forskning':               'Miljø, natur og forskning',
+  'okonomi-og-finans':                      'Økonomi og finans',
+  'psykologi-og-radgivning':                'Psykologi og rådgivning',
+  'religion-og-livssyn':                    'Religion og livssyn',
+  'samfunnsfag-og-politikk':                'Samfunnsfag og politikk',
+  'sikkerhet-og-beredskap':                 'Sikkerhet og beredskap',
+  'sport-og-kroppsoving':                   'Sport og kroppsøving',
+  'transport-og-logistikk':                 'Transport og logistikk',
+  'undervisning-og-pedagogikk':             'Undervisning og pedagogikk',
 };
 
-// Emoji per sektor
 const SEKTOR_EMOJI: Record<string, string> = {
-  'Administrasjon og ledelse':                '🏢',
-  'Helse og omsorg':                          '🏥',
-  'Humaniora og språk':                       '📚',
-  'Ingeniør og teknisk':                      '⚙️',
-  'IT og teknologi':                          '💻',
-  'Jus og rettsvesen':                        '⚖️',
-  'Kunst og kultur':                          '🎨',
-  'Design, markedsføring og kommunikasjon':   '📣',
-  'Miljø, natur og forskning':                '🌿',
-  'Økonomi og finans':                        '💰',
-  'Psykologi og rådgivning':                  '🧠',
-  'Religion og livssyn':                      '🕊️',
-  'Samfunnsfag og politikk':                  '🏛️',
-  'Sikkerhet og beredskap':                   '🛡️',
-  'Sport og kroppsøving':                     '⚽',
-  'Transport og logistikk':                   '🚛',
-  'Undervisning og pedagogikk':               '🎓',
+  'Administrasjon og ledelse':               '🏢',
+  'Helse og omsorg':                         '🏥',
+  'Humaniora og språk':                      '📚',
+  'Ingeniør og teknisk':                     '⚙️',
+  'IT og teknologi':                         '💻',
+  'Jus og rettsvesen':                       '⚖️',
+  'Kunst og kultur':                         '🎨',
+  'Design, markedsføring og kommunikasjon':  '📣',
+  'Miljø, natur og forskning':               '🌿',
+  'Økonomi og finans':                       '💰',
+  'Psykologi og rådgivning':                 '🧠',
+  'Religion og livssyn':                     '🕊️',
+  'Samfunnsfag og politikk':                 '🏛️',
+  'Sikkerhet og beredskap':                  '🛡️',
+  'Sport og kroppsøving':                    '⚽',
+  'Transport og logistikk':                  '🚛',
+  'Undervisning og pedagogikk':              '🎓',
 };
 
 // ─── Typer ───────────────────────────────────────────────
 interface Yrke {
   uno_id: string;
   tittel: string;
+  under_sektor?: string;
   ledighetsrate?: number;
   antall_sysselsatte?: number;
-  beskrivelse?: string;
 }
 
 interface Bedrift {
   Selskap: string;
-  Sektor?: string;
   sub_sektor?: string;
   Lokasjon?: string;
   Ansatte?: string;
@@ -72,52 +69,80 @@ interface Bedrift {
 
 interface Studie {
   studie_navn: string;
-  sektor?: string;
   antall_inst?: number;
 }
 
 const fmt = (n?: number | null) =>
   n != null ? n.toLocaleString('nb-NO') : null;
 
+// ─── YrkeKort ────────────────────────────────────────────
+const YrkeKort = ({ y, onClick }: { y: Yrke; onClick: () => void }) => (
+  <button
+    onClick={onClick}
+    className="w-full text-left rounded-xl border bg-card hover:bg-primary/5 hover:border-primary/30 transition-all p-4 group"
+  >
+    <div className="flex items-start justify-between gap-2">
+      <div className="min-w-0">
+        <div className="font-medium text-sm leading-tight mb-1">{y.tittel}</div>
+        <div className="flex gap-3 text-xs text-muted-foreground">
+          {y.antall_sysselsatte != null && (
+            <span className="flex items-center gap-1">
+              <Users className="h-3 w-3" />{fmt(y.antall_sysselsatte)} sysselsatte
+            </span>
+          )}
+          {y.ledighetsrate != null && (
+            <span className={`flex items-center gap-1 ${
+              Number(y.ledighetsrate) < 0.03 ? 'text-green-600' :
+              Number(y.ledighetsrate) < 0.06 ? 'text-yellow-600' : 'text-red-500'
+            }`}>
+              <TrendingUp className="h-3 w-3" />
+              {(Number(y.ledighetsrate) * 100).toFixed(1)}% ledighet
+            </span>
+          )}
+        </div>
+      </div>
+      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary flex-shrink-0 mt-0.5 transition-colors" />
+    </div>
+  </button>
+);
+
 // ─── Hoved-komponent ─────────────────────────────────────
 const SektorPage = () => {
-  const { slug }   = useParams<{ slug: string }>();
-  const navigate   = useNavigate();
+  const { slug }  = useParams<{ slug: string }>();
+  const navigate  = useNavigate();
 
-  const [yrker,    setYrker]    = useState<Yrke[]>([]);
-  const [bedrifter,setBedrifter]= useState<Bedrift[]>([]);
-  const [studier,  setStudier]  = useState<Studie[]>([]);
-  const [loading,  setLoading]  = useState(true);
-  const [sokYrke,  setSokYrke]  = useState('');
-  const [aktiv,    setAktiv]    = useState<'yrker' | 'bedrifter' | 'studier'>('yrker');
+  const [yrker,     setYrker]     = useState<Yrke[]>([]);
+  const [bedrifter, setBedrifter] = useState<Bedrift[]>([]);
+  const [studier,   setStudier]   = useState<Studie[]>([]);
+  const [loading,   setLoading]   = useState(true);
+  const [sokYrke,   setSokYrke]   = useState('');
+  const [aktiv,     setAktiv]     = useState<'yrker' | 'bedrifter' | 'studier'>('yrker');
 
-  // Normaliser slug → sektor-navn
   const sektorNavn = slug ? (SEKTORER[slug] ?? decodeURIComponent(slug)) : '';
-  const emoji = SEKTOR_EMOJI[sektorNavn] ?? '📂';
+  const emoji      = SEKTOR_EMOJI[sektorNavn] ?? '📂';
 
   useEffect(() => {
     if (!sektorNavn) return;
-
     const hent = async () => {
       setLoading(true);
-
       const [yrkeRes, bedriftRes, studieRes] = await Promise.all([
         supabase
           .from('yrker')
-          .select('uno_id, tittel, ledighetsrate, antall_sysselsatte, beskrivelse')
+          .select('uno_id, tittel, under_sektor, ledighetsrate, antall_sysselsatte')
           .eq('sektor', sektorNavn)
-          .order('tittel', { ascending: true }),
+          .order('under_sektor', { ascending: true, nullsFirst: false })
+          .order('tittel',       { ascending: true }),
 
         supabase
           .from('Bedrifter_ny')
-          .select('Selskap, Sektor, sub_sektor, Lokasjon, Ansatte, antall_ansatte_tall')
+          .select('Selskap, sub_sektor, Lokasjon, Ansatte, antall_ansatte_tall')
           .eq('Sektor', sektorNavn)
           .order('antall_ansatte_tall', { ascending: false, nullsFirst: false })
           .limit(60),
 
         supabase
           .from('studier')
-          .select('studie_navn, sektor, antall_inst')
+          .select('studie_navn, antall_inst')
           .eq('sektor', sektorNavn)
           .order('antall_inst', { ascending: false, nullsFirst: false })
           .limit(60),
@@ -128,7 +153,6 @@ const SektorPage = () => {
       setStudier(studieRes.data || []);
       setLoading(false);
     };
-
     hent();
   }, [sektorNavn]);
 
@@ -141,8 +165,19 @@ const SektorPage = () => {
     </Layout>
   );
 
-  const filtrertYrker = yrker.filter(y =>
-    y.tittel.toLowerCase().includes(sokYrke.toLowerCase())
+  // Grupper yrker etter under_sektor
+  const filtrert = sokYrke
+    ? yrker.filter(y => y.tittel.toLowerCase().includes(sokYrke.toLowerCase()))
+    : yrker;
+
+  const grupper: Record<string, Yrke[]> = {};
+  for (const y of filtrert) {
+    const kat = y.under_sektor || 'Andre';
+    if (!grupper[kat]) grupper[kat] = [];
+    grupper[kat].push(y);
+  }
+  const sorterteGrupper = Object.entries(grupper).sort(([a], [b]) =>
+    a === 'Andre' ? 1 : b === 'Andre' ? -1 : a.localeCompare(b, 'nb')
   );
 
   return (
@@ -183,24 +218,24 @@ const SektorPage = () => {
               <button
                 key={tab}
                 onClick={() => setAktiv(tab)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   aktiv === tab
                     ? 'bg-background shadow text-foreground'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                {tab === 'yrker' && `Yrker (${yrker.length})`}
-                {tab === 'bedrifter' && `Bedrifter (${bedrifter.length})`}
-                {tab === 'studier' && `Studier (${studier.length})`}
+                {tab === 'yrker'    && `Yrker (${yrker.length})`}
+                {tab === 'bedrifter'&& `Bedrifter (${bedrifter.length})`}
+                {tab === 'studier'  && `Studier (${studier.length})`}
               </button>
             ))}
           </div>
 
-          {/* ── YRKER ────────────────────────────────────── */}
+          {/* ── YRKER — gruppert etter under_sektor ──────── */}
           {aktiv === 'yrker' && (
             <div>
               {yrker.length > 8 && (
-                <div className="relative mb-4">
+                <div className="relative mb-6">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Søk etter yrke…"
@@ -210,45 +245,36 @@ const SektorPage = () => {
                   />
                 </div>
               )}
-              <div className="grid md:grid-cols-2 gap-3">
-                {filtrertYrker.map((y) => (
-                  <button
-                    key={y.uno_id}
-                    onClick={() => navigate(`/yrke/${y.uno_id}`)}
-                    className="text-left rounded-xl border bg-card hover:bg-primary/5 hover:border-primary/30 transition-all p-4 group"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="font-medium text-sm leading-tight mb-1 line-clamp-2">
-                          {y.tittel}
-                        </div>
-                        <div className="flex gap-3 text-xs text-muted-foreground">
-                          {y.antall_sysselsatte != null && (
-                            <span className="flex items-center gap-1">
-                              <Users className="h-3 w-3" />
-                              {fmt(y.antall_sysselsatte)} sysselsatte
-                            </span>
-                          )}
-                          {y.ledighetsrate != null && (
-                            <span className={`flex items-center gap-1 ${
-                              Number(y.ledighetsrate) < 0.03 ? 'text-green-600' :
-                              Number(y.ledighetsrate) < 0.06 ? 'text-yellow-600' : 'text-red-500'
-                            }`}>
-                              <TrendingUp className="h-3 w-3" />
-                              {(Number(y.ledighetsrate) * 100).toFixed(1)}% ledighet
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary flex-shrink-0 mt-0.5 transition-colors" />
-                    </div>
-                  </button>
-                ))}
-              </div>
-              {filtrertYrker.length === 0 && (
+
+              {filtrert.length === 0 ? (
                 <p className="text-center text-muted-foreground py-12">
                   Ingen yrker matcher «{sokYrke}»
                 </p>
+              ) : (
+                <div className="space-y-8">
+                  {sorterteGrupper.map(([underSektor, liste]) => (
+                    <div key={underSektor}>
+                      {/* Underkategori-overskrift */}
+                      <div className="flex items-center gap-3 mb-3">
+                        <h2 className="text-base font-semibold">{underSektor}</h2>
+                        <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                          {liste.length}
+                        </span>
+                        <div className="flex-1 h-px bg-border" />
+                      </div>
+
+                      <div className="grid md:grid-cols-2 gap-2">
+                        {liste.map((y) => (
+                          <YrkeKort
+                            key={y.uno_id}
+                            y={y}
+                            onClick={() => navigate(`/yrke/${y.uno_id}`)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           )}
@@ -318,7 +344,7 @@ const SektorPage = () => {
                         <div className="font-medium text-sm truncate">{s.studie_navn}</div>
                         {s.antall_inst != null && (
                           <div className="text-xs text-muted-foreground mt-0.5">
-                            {s.antall_inst} lærestedre
+                            {s.antall_inst} læresteder
                           </div>
                         )}
                       </div>
