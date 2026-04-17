@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  ArrowLeft, GraduationCap, Building2, TrendingUp, Users,
-  Briefcase, MapPin, ChevronRight, Sparkles, BookOpen,
+  ArrowLeft, GraduationCap, Building2, TrendingUp,
+  Briefcase, MapPin, ChevronRight, Sparkles, ExternalLink,
 } from "lucide-react";
 import { supabase } from '@/lib/supabase';
 
-// ─── Typer ───────────────────────────────────────────────
 interface Studie {
   studie_navn: string;
   sektor?: string;
@@ -19,6 +18,10 @@ interface Studie {
   antall_inst?: number;
   nus_koder?: string;
   opptakspoeng?: number;
+  studiekoder?: string;
+  studieplasser?: number;
+  sokere_mott?: number;
+  sokere_kvalifisert?: number;
   beskrivelse?: string;
   ai_generert?: boolean;
 }
@@ -26,8 +29,6 @@ interface Studie {
 interface LinketYrke {
   uno_id: string;
   tittel: string;
-  sektor?: string;
-  under_sektor?: string;
   ledighetsrate?: number;
   gjennomsnitt_lonn?: number;
 }
@@ -38,31 +39,10 @@ interface RelatertStudie {
   opptakspoeng?: number;
 }
 
-// ─── Helpers ─────────────────────────────────────────────
-const fmt = (n?: number | null) =>
-  n != null ? n.toLocaleString('nb-NO') : null;
-
+const fmt = (n?: number | null) => n != null ? n.toLocaleString('nb-NO') : null;
 const sektorSlug = (sektor: string) =>
   encodeURIComponent(sektor.toLowerCase().replace(/\s+/g, '-').replace(/[æ]/g, 'ae').replace(/[ø]/g, 'o').replace(/[å]/g, 'a'));
 
-const StatCard = ({
-  icon: Icon, label, value, sub, color = '',
-}: {
-  icon: any; label: string; value: React.ReactNode; sub?: string; color?: string;
-}) => (
-  <Card>
-    <CardContent className="pt-5">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-        <Icon className="h-4 w-4" />
-        {label}
-      </div>
-      <div className={`text-2xl font-bold ${color}`}>{value ?? '—'}</div>
-      {sub && <div className="text-xs text-muted-foreground mt-0.5">{sub}</div>}
-    </CardContent>
-  </Card>
-);
-
-// ─── Hoved-komponent ─────────────────────────────────────
 const StudiePage = () => {
   const { navn } = useParams<{ navn: string }>();
   const navigate = useNavigate();
@@ -75,21 +55,14 @@ const StudiePage = () => {
   useEffect(() => {
     if (!navn) return;
     const decoded = decodeURIComponent(navn);
-
     const hent = async () => {
       setLoading(true);
 
-      // 1. Hent studie
       const { data: s } = await supabase
-        .from('studier')
-        .select('*')
-        .eq('studie_navn', decoded)
-        .maybeSingle();
-
+        .from('studier').select('*').eq('studie_navn', decoded).maybeSingle();
       if (!s) { setLoading(false); return; }
       setStudie(s);
 
-      // 2. Hent yrker som linker til dette studiet
       const { data: ysData } = await supabase
         .from('yrke_studier')
         .select('uno_id, rang')
@@ -97,20 +70,16 @@ const StudiePage = () => {
         .order('rang', { ascending: true })
         .limit(20);
 
-      if (ysData && ysData.length > 0) {
+      if (ysData?.length) {
         const unoIds = ysData.map(y => y.uno_id);
         const { data: yrkeInfo } = await supabase
           .from('yrker')
-          .select('uno_id, tittel, sektor, under_sektor, ledighetsrate, gjennomsnitt_lonn')
+          .select('uno_id, tittel, ledighetsrate, gjennomsnitt_lonn')
           .in('uno_id', unoIds);
         const info = new Map((yrkeInfo || []).map(y => [y.uno_id, y]));
-        const ordnet = ysData
-          .map(y => info.get(y.uno_id))
-          .filter((y): y is LinketYrke => !!y);
-        setYrker(ordnet.slice(0, 12));
+        setYrker(ysData.map(y => info.get(y.uno_id)).filter((y): y is LinketYrke => !!y).slice(0, 12));
       }
 
-      // 3. Relaterte studier i samme under_sektor
       if (s.under_sektor) {
         const { data: rel } = await supabase
           .from('studier')
@@ -123,11 +92,9 @@ const StudiePage = () => {
 
       setLoading(false);
     };
-
     hent();
   }, [navn]);
 
-  // ── Guards ────────────────────────────────────────────
   if (loading) return (
     <Layout>
       <div className="container mx-auto py-20 text-center">
@@ -148,10 +115,19 @@ const StudiePage = () => {
     </Layout>
   );
 
-  // ── Derived ───────────────────────────────────────────
   const institusjonsListe = studie.institusjoner
-    ? studie.institusjoner.split(',').map(i => i.trim()).filter(Boolean)
-    : [];
+    ? studie.institusjoner.split(',').map(i => i.trim()).filter(Boolean) : [];
+  const førstekode = studie.studiekoder?.split(',')[0]?.trim();
+
+  const ratio = studie.sokere_kvalifisert && studie.studieplasser
+    ? studie.sokere_kvalifisert / studie.studieplasser : null;
+  let niv = "Lav", fargekl = "bg-green-100 text-green-800";
+  if (ratio != null) {
+    if (ratio > 20)      { niv = "Ekstremt høy"; fargekl = "bg-red-100 text-red-800"; }
+    else if (ratio > 15) { niv = "Veldig høy";   fargekl = "bg-red-100 text-red-800"; }
+    else if (ratio > 10) { niv = "Høy";          fargekl = "bg-orange-100 text-orange-800"; }
+    else if (ratio > 5)  { niv = "Moderat";      fargekl = "bg-yellow-100 text-yellow-800"; }
+  }
 
   return (
     <Layout>
@@ -163,156 +139,214 @@ const StudiePage = () => {
           </Button>
 
           {/* ── 1. HERO ──────────────────────────────────── */}
-          <div className="rounded-2xl bg-gradient-to-br from-violet-500/10 via-background to-primary/5 border border-violet-400/20 p-8 mb-8">
-            <div className="flex items-start gap-6 flex-wrap">
-              <div className="w-16 h-16 rounded-xl bg-violet-500/10 border border-violet-400/20 flex items-center justify-center flex-shrink-0">
-                <GraduationCap className="h-8 w-8 text-violet-600" />
+          <Card className="border-l-4 border-l-primary mb-6">
+            <CardContent className="pt-6">
+              <div className="flex justify-between items-start gap-4">
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-3xl font-bold mb-2">{studie.studie_navn}</h1>
+                  {institusjonsListe.length > 0 && (
+                    <p className="text-muted-foreground mb-3">{institusjonsListe.slice(0,3).join(', ')}{institusjonsListe.length > 3 ? ` og ${institusjonsListe.length - 3} til` : ''}</p>
+                  )}
+                  <div className="flex flex-wrap gap-3 text-sm">
+                    {førstekode && <span className="text-muted-foreground">Studiekode: <span className="font-medium text-foreground">{førstekode}</span></span>}
+                    {studie.sektor && (
+                      <button onClick={() => navigate(`/sektor/${sektorSlug(studie.sektor!)}`)}>
+                        <Badge className="bg-primary/15 text-primary border-primary/30 hover:bg-primary/25 cursor-pointer">
+                          {studie.sektor}
+                        </Badge>
+                      </button>
+                    )}
+                    {studie.under_sektor && <Badge variant="secondary">{studie.under_sektor}</Badge>}
+                  </div>
+                </div>
+                {studie.opptakspoeng != null && studie.opptakspoeng > 0 && (
+                  <div className="rounded-full bg-primary/10 px-4 py-2 font-semibold text-primary flex items-center gap-2 flex-shrink-0">
+                    <GraduationCap className="h-5 w-5" />
+                    <span className="text-lg">{studie.opptakspoeng}</span>
+                  </div>
+                )}
               </div>
-              <div className="flex-1 min-w-0">
-                <h1 className="text-3xl font-bold mb-2">{studie.studie_navn}</h1>
-                <div className="flex flex-wrap gap-2">
-                  {studie.sektor && (
-                    <button onClick={() => navigate(`/sektor/${sektorSlug(studie.sektor!)}`)}>
-                      <Badge className="bg-primary/15 text-primary border-primary/30 hover:bg-primary/25 cursor-pointer">
-                        {studie.sektor}
-                      </Badge>
-                    </button>
-                  )}
-                  {studie.under_sektor && <Badge variant="secondary">{studie.under_sektor}</Badge>}
-                  {studie.ai_generert && (
-                    <span className="flex items-center gap-1 text-xs text-violet-600 ml-1">
-                      <Sparkles className="h-3 w-3" />AI-beskrivelse
-                    </span>
-                  )}
+
+              {/* Quick stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t">
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">Karaktersnitt</div>
+                  <div className="font-semibold text-lg">{studie.opptakspoeng ?? '—'}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">Studieplasser</div>
+                  <div className="font-semibold text-lg">{studie.studieplasser ?? '—'}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">Søkere møtt</div>
+                  <div className="font-semibold text-lg">{studie.sokere_mott ?? '—'}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground mb-1">Konkurransenivå</div>
+                  {ratio != null ? (
+                    <div className={`text-xs px-2 py-0.5 rounded-full w-fit ${fargekl} font-medium`}>{niv}</div>
+                  ) : <span className="text-muted-foreground">—</span>}
                 </div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          {/* ── 2. BESKRIVELSE ───────────────────────────── */}
-          {studie.beskrivelse && (
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-3">Om studiet</h2>
-              <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
-                {studie.beskrivelse}
-              </p>
-            </div>
+          {/* ── 2. DETALJERTE SØKERSTATISTIKKER ──────────── */}
+          {(studie.sokere_kvalifisert || studie.sokere_mott || studie.studieplasser) && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Detaljerte søkerstatistikker</CardTitle>
+                <CardDescription>Oversikt over søkertall og opptaksstatistikk</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {studie.sokere_kvalifisert != null && (
+                    <div className="flex justify-between border-b pb-2">
+                      <span className="text-muted-foreground">Kvalifiserte søkere:</span>
+                      <span className="font-medium">{fmt(studie.sokere_kvalifisert)}</span>
+                    </div>
+                  )}
+                  {studie.studieplasser != null && (
+                    <div className="flex justify-between border-b pb-2">
+                      <span className="text-muted-foreground">Studieplasser:</span>
+                      <span className="font-medium">{fmt(studie.studieplasser)}</span>
+                    </div>
+                  )}
+                  {studie.sokere_mott != null && (
+                    <div className="flex justify-between border-b pb-2">
+                      <span className="text-muted-foreground">Søkere som møtte:</span>
+                      <span className="font-medium">{fmt(studie.sokere_mott)}</span>
+                    </div>
+                  )}
+                  {ratio != null && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Søkere per studieplass:</span>
+                      <span className="font-medium">{ratio.toFixed(1)}</span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           )}
 
-          {/* ── 3. NØKKELTALL ────────────────────────────── */}
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">Nøkkeltall</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <StatCard
-                icon={Building2}
-                label="Institusjoner"
-                value={studie.antall_inst ?? '—'}
-                sub={studie.antall_inst ? 'tilbyr studiet' : undefined}
-              />
-              <StatCard
-                icon={TrendingUp}
-                label="Opptakspoeng"
-                value={studie.opptakspoeng != null ? fmt(studie.opptakspoeng) : '—'}
-                sub={studie.opptakspoeng != null ? 'gjennomsnitt' : undefined}
-              />
-              <StatCard
-                icon={Briefcase}
-                label="Relevante yrker"
-                value={yrker.length || '—'}
-                sub={yrker.length ? 'kan lede til' : undefined}
-              />
-            </div>
-          </div>
+          {/* ── 3. OM STUDIET ────────────────────────────── */}
+          {studie.beskrivelse && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  Om studiet
+                  {studie.ai_generert && (
+                    <span className="flex items-center gap-1 text-xs text-violet-600 font-normal">
+                      <Sparkles className="h-3 w-3" />AI
+                    </span>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                  {studie.beskrivelse}
+                </p>
+                <Button variant="outline" size="sm" className="mt-4" asChild>
+                  <a
+                    href={`https://www.samordnaopptak.no/info/soeking/soeke-studier/finn-studier/?search=${encodeURIComponent(studie.studie_navn)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    Les mer på Samordna opptak
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
           {/* ── 4. INSTITUSJONER ─────────────────────────── */}
           {institusjonsListe.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-1">Lærested</h2>
-              <p className="text-sm text-muted-foreground mb-4">
-                {institusjonsListe.length} institusjon{institusjonsListe.length === 1 ? '' : 'er'} tilbyr dette studiet
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {institusjonsListe.map((inst) => (
-                  <span
-                    key={inst}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg border bg-card text-sm font-medium"
-                  >
-                    <MapPin className="h-3.5 w-3.5 text-violet-600" />
-                    {inst}
-                  </span>
-                ))}
-              </div>
-            </div>
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5" />
+                  Lærested ({institusjonsListe.length})
+                </CardTitle>
+                <CardDescription>Institusjoner som tilbyr dette studiet</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {institusjonsListe.map((inst) => (
+                    <span key={inst} className="flex items-center gap-1.5 px-3 py-2 rounded-lg border bg-card text-sm font-medium">
+                      <MapPin className="h-3.5 w-3.5 text-violet-600" />
+                      {inst}
+                    </span>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           )}
 
           {/* ── 5. YRKER STUDIET LEDER TIL ───────────────── */}
           {yrker.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-1">Yrker du kan ende opp i</h2>
-              <p className="text-sm text-muted-foreground mb-4">
-                De vanligste yrkene blant personer med denne utdanningen
-              </p>
-              <div className="grid md:grid-cols-2 gap-3">
-                {yrker.map((y) => (
-                  <button
-                    key={y.uno_id}
-                    onClick={() => navigate(`/yrke/${y.uno_id}`)}
-                    className="text-left rounded-xl border bg-card hover:bg-primary/5 hover:border-primary/30 transition-all p-4 group"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <Briefcase className="h-4 w-4 text-primary" />
-                        </div>
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Briefcase className="h-5 w-5" />
+                  Yrker du kan ende opp i
+                </CardTitle>
+                <CardDescription>De vanligste yrkene blant personer med denne utdanningen</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-3">
+                  {yrker.map((y) => (
+                    <button
+                      key={y.uno_id}
+                      onClick={() => navigate(`/yrke/${y.uno_id}`)}
+                      className="text-left rounded-xl border bg-card hover:bg-primary/5 hover:border-primary/30 transition-all p-4 group"
+                    >
+                      <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
                           <div className="font-medium text-sm leading-tight mb-1">{y.tittel}</div>
                           <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                            {y.gjennomsnitt_lonn ? (
-                              <span>{fmt(y.gjennomsnitt_lonn)} kr/mnd</span>
-                            ) : null}
-                            {y.ledighetsrate != null ? (
-                              <span>· Ledighet {(Number(y.ledighetsrate) * 100).toFixed(1)}%</span>
-                            ) : null}
+                            {y.gjennomsnitt_lonn ? <span>{fmt(y.gjennomsnitt_lonn)} kr/mnd</span> : null}
+                            {y.ledighetsrate != null ? <span>· Ledighet {(Number(y.ledighetsrate) * 100).toFixed(1)}%</span> : null}
                           </div>
                         </div>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary flex-shrink-0 mt-0.5 transition-colors" />
                       </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary flex-shrink-0 mt-0.5 transition-colors" />
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
+                    </button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           )}
 
           {/* ── 6. RELATERTE STUDIER ─────────────────────── */}
           {relaterte.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">
-                Relaterte studier i {studie.under_sektor}
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {relaterte.map((r) => (
-                  <button
-                    key={r.studie_navn}
-                    onClick={() => navigate(`/studie/${encodeURIComponent(r.studie_navn)}`)}
-                    className="text-left rounded-xl border bg-card hover:bg-violet-500/5 hover:border-violet-400/50 transition-all p-4 group"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="font-medium text-sm leading-tight mb-1 line-clamp-2">
-                          {r.studie_navn}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Relaterte studier i {studie.under_sektor}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {relaterte.map((r) => (
+                    <button
+                      key={r.studie_navn}
+                      onClick={() => navigate(`/studie/${encodeURIComponent(r.studie_navn)}`)}
+                      className="text-left rounded-xl border bg-card hover:bg-violet-500/5 hover:border-violet-400/50 transition-all p-4 group"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="font-medium text-sm leading-tight mb-1 line-clamp-2">{r.studie_navn}</div>
+                          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                            {r.antall_inst ? <span>{r.antall_inst} inst.</span> : null}
+                            {r.opptakspoeng ? <span>· {r.opptakspoeng} poeng</span> : null}
+                          </div>
                         </div>
-                        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                          {r.antall_inst ? <span>{r.antall_inst} inst.</span> : null}
-                          {r.opptakspoeng ? <span>· {r.opptakspoeng} poeng</span> : null}
-                        </div>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-violet-600 flex-shrink-0 mt-0.5 transition-colors" />
                       </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-violet-600 flex-shrink-0 mt-0.5 transition-colors" />
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
+                    </button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           )}
 
         </div>
