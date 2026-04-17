@@ -332,7 +332,7 @@ const SektorPage = () => {
               {studier.map((s) => (
                 <button
                   key={s.studie_navn}
-                  onClick={() => navigate(`/utdanning/${encodeURIComponent(s.studie_navn)}`)}
+                  onClick={() => navigate(`/studie/${encodeURIComponent(s.studie_navn)}`)}
                   className="text-left rounded-xl border bg-card hover:bg-violet-500/5 hover:border-violet-500/30 transition-all p-4 group"
                 >
                   <div className="flex items-start justify-between gap-2">

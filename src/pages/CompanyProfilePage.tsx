@@ -364,7 +364,7 @@ const CompanyProfilePage = () => {
                 {studierListe.map((s) => (
                   <button
                     key={s}
-                    onClick={() => navigate(`/utdanning/${encodeURIComponent(s)}`)}
+                    onClick={() => navigate(`/studie/${encodeURIComponent(s)}`)}
                     className="flex items-center gap-1.5 px-3 py-2 rounded-lg border bg-card hover:bg-violet-500/5 hover:border-violet-500/30 transition-all text-sm font-medium"
                   >
                     <BookOpen className="h-3.5 w-3.5 text-violet-600" />
