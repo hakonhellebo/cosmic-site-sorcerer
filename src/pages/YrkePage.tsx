@@ -20,6 +20,9 @@ interface Yrke {
   under_sektor?: string;
   antall_sysselsatte?: number;
   ledighetsrate?: number;
+  gjennomsnitt_lonn?: number;
+  lonn_menn?: number;
+  lonn_kvinner?: number;
   er_utvidet?: boolean;
   ai_generert?: boolean;
   linked_uno_id?: string;
@@ -44,12 +47,6 @@ interface YrkeNus {
   nus_navn?: string;
   fagfelt_navn?: string;
   nivaa_navn?: string;
-}
-
-interface Lonn {
-  begge?: number;
-  menn?: number;
-  kvinner?: number;
 }
 
 // ─── Helpers ─────────────────────────────────────────────
@@ -85,7 +82,6 @@ const YrkePage = () => {
   const [bedrifter, setBedrifter] = useState<YrkeBedrift[]>([]);
   const [utdanning, setUtdanning] = useState<YrkeUtdanning[]>([]);
   const [nus,       setNus]       = useState<YrkeNus[]>([]);
-  const [lonn,      setLonn]      = useState<Lonn | null>(null);
   const [lignende,  setLignende]  = useState<Yrke[]>([]);
   const [loading,   setLoading]   = useState(true);
 
@@ -109,7 +105,7 @@ const YrkePage = () => {
       const dataId = yrkeData.linked_uno_id || unoId;
 
       // 2. Bedrifter + utdanning + NUS — parallelt
-      const [bedRes, utdRes, nusRes, lonnRes] = await Promise.all([
+      const [bedRes, utdRes, nusRes] = await Promise.all([
         supabase
           .from('yrke_bedrifter')
           .select('bedrift, stillinger, kommune, fylke, rang')
@@ -130,32 +126,11 @@ const YrkePage = () => {
           .eq('uno_id', dataId)
           .not('nus_navn', 'is', null)
           .limit(10),
-
-        supabase
-          .from('Clean_11418')
-          .select('value, Kjonn')
-          .eq('Yrke', yrkeData.tittel)
-          .eq('Tid', 2024)
-          .eq('MaaleMetode', 'Gjennomsnitt')
-          .eq('AvtaltVanlig', 'Heltidsansatte')
-          .eq('Sektor', 'Sum alle sektorer')
-          .eq('ContentsCode', 'Månedslønn (kr)'),
       ]);
 
       setBedrifter(bedRes.data || []);
       setUtdanning(utdRes.data || []);
       setNus(nusRes.data || []);
-
-      // Parse lønn
-      if (lonnRes.data && lonnRes.data.length > 0) {
-        const lonnObj: Lonn = {};
-        for (const r of lonnRes.data) {
-          if (r.Kjonn === 'Begge kjønn') lonnObj.begge = r.value;
-          else if (r.Kjonn === 'Menn')   lonnObj.menn  = r.value;
-          else if (r.Kjonn === 'Kvinner') lonnObj.kvinner = r.value;
-        }
-        setLonn(lonnObj);
-      }
 
       // 3. Lignende yrker i samme sektor
       if (yrkeData.sektor) {
@@ -288,18 +263,18 @@ const YrkePage = () => {
               <StatCard
                 icon={TrendingUp}
                 label="Gj.snitt lønn"
-                value={lonn?.begge ? `${fmt(lonn.begge)} kr` : '—'}
+                value={yrke.gjennomsnitt_lonn ? `${fmt(yrke.gjennomsnitt_lonn)} kr` : '—'}
                 sub="månedlig heltid, 2024"
               />
               <StatCard
                 icon={BarChart3}
                 label="Lønnsgap"
                 value={
-                  lonn?.menn && lonn?.kvinner
-                    ? `${fmt(lonn.menn)} / ${fmt(lonn.kvinner)}`
+                  yrke.lonn_menn && yrke.lonn_kvinner
+                    ? `${fmt(yrke.lonn_menn)} / ${fmt(yrke.lonn_kvinner)}`
                     : '—'
                 }
-                sub={lonn?.menn && lonn?.kvinner ? 'menn / kvinner kr/mnd' : undefined}
+                sub={yrke.lonn_menn && yrke.lonn_kvinner ? 'menn / kvinner kr/mnd' : undefined}
               />
             </div>
           </div>
