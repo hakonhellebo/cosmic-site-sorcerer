@@ -41,6 +41,12 @@ interface SektorAndel {
   prosent: number;
 }
 
+interface TopBedrift {
+  bedrift: string;
+  stillinger: number;
+  yrker: number;  // antall linkede yrker
+}
+
 interface RelatertStudie {
   studie_navn: string;
   antall_inst?: number;
@@ -70,6 +76,7 @@ const StudiePage = () => {
   const [sektorFordeling, setSektorFordeling] = useState<SektorAndel[]>([]);
   const [relaterte, setRelaterte] = useState<RelatertStudie[]>([]);
   const [instListe, setInstListe] = useState<StudieInst[]>([]);
+  const [topBedrifter, setTopBedrifter] = useState<TopBedrift[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -104,8 +111,7 @@ const StudiePage = () => {
         const sorterte = [...alleYrker].sort((a, b) => (b.antall_sysselsatte || 0) - (a.antall_sysselsatte || 0));
         setYrker(sorterte.slice(0, 12));
 
-        // Sektor-fordeling VEKTET med antall_sysselsatte (minimum 1 per yrke for
-        // å inkludere yrker uten tall)
+        // Sektor-fordeling VEKTET med antall_sysselsatte
         const teller: Record<string, number> = {};
         for (const y of alleYrker) {
           if (!y.sektor) continue;
@@ -117,6 +123,25 @@ const StudiePage = () => {
           .map(([sektor, antall]) => ({ sektor, antall, prosent: Math.round((antall / total) * 100) }))
           .sort((a, b) => b.antall - a.antall);
         setSektorFordeling(fordeling);
+
+        // Top bedrifter via yrke → yrke_bedrifter
+        const { data: bedData } = await supabase
+          .from('yrke_bedrifter')
+          .select('bedrift, stillinger, uno_id')
+          .in('uno_id', unoIds)
+          .order('rang', { ascending: true })
+          .limit(500);
+        const bedAgg: Record<string, { stillinger: number; yrker: Set<string> }> = {};
+        for (const b of bedData || []) {
+          if (!bedAgg[b.bedrift]) bedAgg[b.bedrift] = { stillinger: 0, yrker: new Set() };
+          bedAgg[b.bedrift].stillinger += b.stillinger || 0;
+          bedAgg[b.bedrift].yrker.add(b.uno_id);
+        }
+        const topBed = Object.entries(bedAgg)
+          .map(([bedrift, d]) => ({ bedrift, stillinger: d.stillinger, yrker: d.yrker.size }))
+          .sort((a, b) => b.stillinger - a.stillinger)
+          .slice(0, 15);
+        setTopBedrifter(topBed);
       }
 
       if (s.under_sektor) {
@@ -477,6 +502,50 @@ const StudiePage = () => {
                         />
                       </div>
                     </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* ── 4c. BEDRIFTER SOM ANSETTER ──────────────── */}
+          {topBedrifter.length > 0 && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5" />
+                  Bedrifter som ansetter
+                </CardTitle>
+                <CardDescription>
+                  Topp arbeidsgivere basert på yrkene denne utdanningen fører til
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-2">
+                  {topBedrifter.map((b) => (
+                    <button
+                      key={b.bedrift}
+                      onClick={() => navigate(
+                        `/bedrift/${encodeURIComponent(b.bedrift.toLowerCase().replace(/\s+/g, '-'))}`,
+                        { state: { company: { Selskap: b.bedrift } } }
+                      )}
+                      className="text-left rounded-xl border bg-card hover:bg-primary/5 hover:border-primary/30 transition-all p-3 group"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex items-center gap-3">
+                          <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <Building2 className="h-3.5 w-3.5 text-primary" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-medium text-sm truncate">{b.bedrift}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {b.stillinger} stillinger{b.yrker > 1 ? ` · ${b.yrker} ulike yrker` : ''}
+                            </div>
+                          </div>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary flex-shrink-0 mt-1 transition-colors" />
+                      </div>
+                    </button>
                   ))}
                 </div>
               </CardContent>
