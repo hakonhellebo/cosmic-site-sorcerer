@@ -58,14 +58,18 @@ interface Yrke {
   under_sektor?: string;
   ledighetsrate?: number;
   antall_sysselsatte?: number;
+  gjennomsnitt_lonn?: number;
 }
 
 interface Bedrift {
   Selskap: string;
   sub_sektor?: string;
   Lokasjon?: string;
+  Geografi?: string;
   Ansatte?: string;
   antall_ansatte_tall?: number;
+  driftsresultat_mnok?: number;
+  'Driftsinntekter (MNOK)'?: number;
 }
 
 interface Studie {
@@ -130,6 +134,15 @@ const SektorPage = () => {
   const [filtInst,    setFiltInst]    = useState<string>('alle');
   const [sortStudier, setSortStudier] = useState<'karakter' | 'popularitet' | 'konkurranse' | 'navn'>('karakter');
 
+  // Filter/sort for yrker-tab
+  const [filtYrkeUnder, setFiltYrkeUnder] = useState<string>('alle');
+  const [sortYrker,     setSortYrker]     = useState<'navn' | 'ledighet' | 'lonn' | 'sysselsatte'>('navn');
+
+  // Filter/sort for bedrifter-tab
+  const [filtBedSub,  setFiltBedSub]  = useState<string>('alle');
+  const [filtBedGeo,  setFiltBedGeo]  = useState<string>('alle');
+  const [sortBedr,    setSortBedr]    = useState<'ansatte' | 'inntekter' | 'navn'>('ansatte');
+
   const sektorNavn = slug ? (SEKTORER[slug] ?? decodeURIComponent(slug)) : '';
   const emoji      = SEKTOR_EMOJI[sektorNavn] ?? '📂';
 
@@ -140,18 +153,16 @@ const SektorPage = () => {
       const [yrkeRes, bedriftRes, studieRes] = await Promise.all([
         supabase
           .from('yrker')
-          .select('uno_id, tittel, under_sektor, ledighetsrate, antall_sysselsatte')
+          .select('uno_id, tittel, under_sektor, ledighetsrate, antall_sysselsatte, gjennomsnitt_lonn')
           .eq('sektor', sektorNavn)
           .order('under_sektor', { ascending: true, nullsFirst: false })
           .order('tittel',       { ascending: true }),
 
         supabase
           .from('Bedrifter_ny')
-          .select('Selskap, sub_sektor, Lokasjon, Ansatte, antall_ansatte_tall')
+          .select('Selskap, sub_sektor, Lokasjon, Geografi, Ansatte, antall_ansatte_tall, driftsresultat_mnok, "Driftsinntekter (MNOK)"')
           .eq('Sektor', sektorNavn)
-          .order('sub_sektor',          { ascending: true, nullsFirst: false })
-          .order('antall_ansatte_tall', { ascending: false, nullsFirst: false })
-          .limit(200),
+          .limit(500),
 
         supabase
           .from('studier')
@@ -243,114 +254,201 @@ const SektorPage = () => {
             ))}
           </div>
 
-          {/* ── YRKER — gruppert etter under_sektor ──────── */}
-          {aktiv === 'yrker' && (
-            <div>
-              {yrker.length > 8 && (
-                <div className="relative mb-6">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Søk etter yrke…"
-                    className="pl-9"
-                    value={sokYrke}
-                    onChange={(e) => setSokYrke(e.target.value)}
-                  />
-                </div>
-              )}
+          {/* ── YRKER — søk, filter, sort ─────────────────── */}
+          {aktiv === 'yrker' && (() => {
+            const alleUnder = Array.from(new Set(yrker.map(y => y.under_sektor).filter(Boolean))).sort() as string[];
 
-              {filtrert.length === 0 ? (
-                <p className="text-center text-muted-foreground py-12">
-                  Ingen yrker matcher «{sokYrke}»
-                </p>
-              ) : (
-                <div className="space-y-8">
-                  {sorterteGrupper.map(([underSektor, liste]) => (
-                    <div key={underSektor}>
-                      {/* Underkategori-overskrift */}
-                      <div className="flex items-center gap-3 mb-3">
-                        <h2 className="text-base font-semibold">{underSektor}</h2>
-                        <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                          {liste.length}
-                        </span>
-                        <div className="flex-1 h-px bg-border" />
-                      </div>
+            let filt = yrker;
+            if (sokYrke) filt = filt.filter(y => y.tittel.toLowerCase().includes(sokYrke.toLowerCase()));
+            if (filtYrkeUnder !== 'alle') filt = filt.filter(y => y.under_sektor === filtYrkeUnder);
 
-                      <div className="grid md:grid-cols-2 gap-2">
-                        {liste.map((y) => (
-                          <YrkeKort
-                            key={y.uno_id}
-                            y={y}
-                            onClick={() => navigate(`/yrke/${y.uno_id}`)}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+            filt = [...filt].sort((a, b) => {
+              if (sortYrker === 'ledighet')    return (b.ledighetsrate || 0) - (a.ledighetsrate || 0);
+              if (sortYrker === 'lonn')        return (b.gjennomsnitt_lonn || 0) - (a.gjennomsnitt_lonn || 0);
+              if (sortYrker === 'sysselsatte') return (b.antall_sysselsatte || 0) - (a.antall_sysselsatte || 0);
+              return a.tittel.localeCompare(b.tittel, 'nb');
+            });
 
-          {/* ── BEDRIFTER ────────────────────────────────── */}
-          {aktiv === 'bedrifter' && (() => {
-            const grupper: Record<string, typeof bedrifter> = {};
-            for (const b of bedrifter) {
-              const k = b.sub_sektor || 'Andre';
-              (grupper[k] = grupper[k] || []).push(b);
+            // Gruppér bare når sortert etter navn
+            const gruppert = sortYrker === 'navn';
+            const grupper: Record<string, Yrke[]> = {};
+            if (gruppert) {
+              for (const y of filt) {
+                const k = y.under_sektor || 'Andre';
+                (grupper[k] = grupper[k] || []).push(y);
+              }
             }
-            const sortert = Object.entries(grupper).sort(([a], [b]) =>
+            const sorterteGrupper = Object.entries(grupper).sort(([a], [b]) =>
               a === 'Andre' ? 1 : b === 'Andre' ? -1 : a.localeCompare(b, 'nb')
             );
+
             return (
-              <div className="space-y-6">
-                {sortert.map(([kat, liste]) => (
-                  <div key={kat}>
-                    <div className="flex items-center gap-2 mb-3">
-                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{kat}</h3>
-                      <span className="text-xs text-muted-foreground">({liste.length})</span>
-                    </div>
-                    <div className="grid md:grid-cols-2 gap-3">
-                      {liste.map((b) => (
-                        <button
-                          key={b.Selskap}
-                          onClick={() => navigate(
-                            `/bedrift/${encodeURIComponent(b.Selskap.toLowerCase().replace(/\s+/g, '-'))}`,
-                            { state: { company: b } }
-                          )}
-                          className="text-left rounded-xl border bg-card hover:bg-primary/5 hover:border-primary/30 transition-all p-4 group"
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0 flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                <Building2 className="h-4 w-4 text-primary" />
-                              </div>
-                              <div className="min-w-0">
-                                <div className="font-medium text-sm truncate">{b.Selskap}</div>
-                                <div className="flex gap-2 text-xs text-muted-foreground mt-0.5">
-                                  {b.Lokasjon && (
-                                    <span className="flex items-center gap-1">
-                                      <MapPin className="h-3 w-3 flex-shrink-0" />{b.Lokasjon}
-                                    </span>
-                                  )}
-                                  {(b.antall_ansatte_tall || b.Ansatte) && (
-                                    <span className="flex items-center gap-1">
-                                      <Users className="h-3 w-3 flex-shrink-0" />
-                                      {b.antall_ansatte_tall ? fmt(b.antall_ansatte_tall) : b.Ansatte}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                            <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary flex-shrink-0 mt-1 transition-colors" />
-                          </div>
-                        </button>
-                      ))}
-                    </div>
+              <div>
+                {/* Kontroller */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
+                  <div className="md:col-span-1 relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+                    <Input
+                      placeholder="Søk etter yrke…"
+                      className="pl-9"
+                      value={sokYrke}
+                      onChange={(e) => setSokYrke(e.target.value)}
+                    />
                   </div>
-                ))}
-                {bedrifter.length === 0 && (
+                  <div>
+                    <Select value={filtYrkeUnder} onValueChange={setFiltYrkeUnder}>
+                      <SelectTrigger><SelectValue placeholder="Alle sub-sektorer" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="alle">Alle sub-sektorer</SelectItem>
+                        {alleUnder.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Select value={sortYrker} onValueChange={v => setSortYrker(v as any)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="navn">Sortér: Navn (A–Å)</SelectItem>
+                        <SelectItem value="lonn">Sortér: Lønn (høyest først)</SelectItem>
+                        <SelectItem value="ledighet">Sortér: Ledighet (høyest først)</SelectItem>
+                        <SelectItem value="sysselsatte">Sortér: Antall sysselsatte</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    Viser {filt.length} av {yrker.length}
+                  </div>
+                </div>
+
+                {filt.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-12">Ingen yrker matcher filtrene</p>
+                ) : gruppert ? (
+                  <div className="space-y-8">
+                    {sorterteGrupper.map(([underSektor, liste]) => (
+                      <div key={underSektor}>
+                        <div className="flex items-center gap-3 mb-3">
+                          <h2 className="text-base font-semibold">{underSektor}</h2>
+                          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                            {liste.length}
+                          </span>
+                          <div className="flex-1 h-px bg-border" />
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-2">
+                          {liste.map((y) => (
+                            <YrkeKort key={y.uno_id} y={y} onClick={() => navigate(`/yrke/${y.uno_id}`)} />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 gap-2">
+                    {filt.map((y) => (
+                      <YrkeKort key={y.uno_id} y={y} onClick={() => navigate(`/yrke/${y.uno_id}`)} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* ── BEDRIFTER — søk, filter, sort ───────────── */}
+          {aktiv === 'bedrifter' && (() => {
+            const alleSub = Array.from(new Set(bedrifter.map(b => b.sub_sektor).filter(Boolean))).sort() as string[];
+            const alleGeo = Array.from(new Set(
+              bedrifter.map(b => b.Geografi || b.Lokasjon).filter(Boolean)
+            )).sort() as string[];
+
+            const inntekt = (b: Bedrift) => b.driftsresultat_mnok ?? b['Driftsinntekter (MNOK)'] ?? 0;
+
+            let filt = bedrifter;
+            if (filtBedSub !== 'alle') filt = filt.filter(b => b.sub_sektor === filtBedSub);
+            if (filtBedGeo !== 'alle') filt = filt.filter(b => (b.Geografi || b.Lokasjon) === filtBedGeo);
+
+            filt = [...filt].sort((a, b) => {
+              if (sortBedr === 'ansatte')   return (b.antall_ansatte_tall || 0) - (a.antall_ansatte_tall || 0);
+              if (sortBedr === 'inntekter') return inntekt(b) - inntekt(a);
+              return a.Selskap.localeCompare(b.Selskap, 'nb');
+            });
+
+            return (
+              <div>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
+                  <div>
+                    <Select value={filtBedSub} onValueChange={setFiltBedSub}>
+                      <SelectTrigger><SelectValue placeholder="Alle sub-sektorer" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="alle">Alle sub-sektorer</SelectItem>
+                        {alleSub.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Select value={filtBedGeo} onValueChange={setFiltBedGeo}>
+                      <SelectTrigger><SelectValue placeholder="Alle geografier" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="alle">Alle geografier</SelectItem>
+                        {alleGeo.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Select value={sortBedr} onValueChange={v => setSortBedr(v as any)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ansatte">Sortér: Antall ansatte</SelectItem>
+                        <SelectItem value="inntekter">Sortér: Driftsinntekter</SelectItem>
+                        <SelectItem value="navn">Sortér: Navn (A–Å)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    Viser {filt.length} av {bedrifter.length}
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-3">
+                  {filt.map((b) => (
+                    <button
+                      key={b.Selskap}
+                      onClick={() => navigate(
+                        `/bedrift/${encodeURIComponent(b.Selskap.toLowerCase().replace(/\s+/g, '-'))}`,
+                        { state: { company: b } }
+                      )}
+                      className="text-left rounded-xl border bg-card hover:bg-primary/5 hover:border-primary/30 transition-all p-4 group"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <Building2 className="h-4 w-4 text-primary" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-medium text-sm truncate">{b.Selskap}</div>
+                            <div className="flex flex-wrap gap-2 text-xs text-muted-foreground mt-0.5">
+                              {b.sub_sektor && <span>{b.sub_sektor}</span>}
+                              {(b.Lokasjon || b.Geografi) && (
+                                <span className="flex items-center gap-1">
+                                  <MapPin className="h-3 w-3 flex-shrink-0" />{b.Lokasjon || b.Geografi}
+                                </span>
+                              )}
+                              {(b.antall_ansatte_tall || b.Ansatte) && (
+                                <span className="flex items-center gap-1">
+                                  <Users className="h-3 w-3 flex-shrink-0" />
+                                  {b.antall_ansatte_tall ? fmt(b.antall_ansatte_tall) : b.Ansatte}
+                                </span>
+                              )}
+                              {inntekt(b) > 0 && <span>· {fmt(inntekt(b))} MNOK</span>}
+                            </div>
+                          </div>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary flex-shrink-0 mt-1 transition-colors" />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                {filt.length === 0 && (
                   <p className="text-center text-muted-foreground py-12">
-                    Ingen bedrifter funnet i denne sektoren
+                    Ingen bedrifter matcher filtrene
                   </p>
                 )}
               </div>
