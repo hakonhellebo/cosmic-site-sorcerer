@@ -88,7 +88,7 @@ const StudiePage = () => {
           .select('uno_id, tittel, ledighetsrate, gjennomsnitt_lonn')
           .in('uno_id', unoIds);
         const info = new Map((yrkeInfo || []).map(y => [y.uno_id, y]));
-        setYrker(ysData.map(y => info.get(y.uno_id)).filter((y): y is LinketYrke => !!y).slice(0, 12));
+        setYrker(ysData.map(y => info.get(y.uno_id)).filter(Boolean).slice(0, 12) as LinketYrke[]);
       }
 
       if (s.under_sektor) {

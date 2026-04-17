@@ -654,6 +654,57 @@ export type Database = {
         }
         Relationships: []
       }
+      studie_institusjoner: {
+        Row: {
+          årstall: number | null
+          id: number
+          institusjon: string
+          opptakspoeng: number | null
+          sist_oppdatert: string | null
+          sokere_akseptert: number | null
+          sokere_kvalifisert: number | null
+          sokere_mott: number | null
+          sokere_tilbud: number | null
+          sokere_totalt: number | null
+          studie_navn: string
+          studiekode: string | null
+          studieplasser: number | null
+          studiested: string | null
+        }
+        Insert: {
+          årstall?: number | null
+          id?: never
+          institusjon: string
+          opptakspoeng?: number | null
+          sist_oppdatert?: string | null
+          sokere_akseptert?: number | null
+          sokere_kvalifisert?: number | null
+          sokere_mott?: number | null
+          sokere_tilbud?: number | null
+          sokere_totalt?: number | null
+          studie_navn: string
+          studiekode?: string | null
+          studieplasser?: number | null
+          studiested?: string | null
+        }
+        Update: {
+          årstall?: number | null
+          id?: never
+          institusjon?: string
+          opptakspoeng?: number | null
+          sist_oppdatert?: string | null
+          sokere_akseptert?: number | null
+          sokere_kvalifisert?: number | null
+          sokere_mott?: number | null
+          sokere_tilbud?: number | null
+          sokere_totalt?: number | null
+          studie_navn?: string
+          studiekode?: string | null
+          studieplasser?: number | null
+          studiested?: string | null
+        }
+        Relationships: []
+      }
       studier: {
         Row: {
           ai_generert: boolean | null
@@ -665,7 +716,11 @@ export type Database = {
           opptakspoeng: number | null
           sektor: string | null
           sist_oppdatert: string | null
+          sokere_kvalifisert: number | null
+          sokere_mott: number | null
           studie_navn: string
+          studiekoder: string | null
+          studieplasser: number | null
           under_sektor: string | null
         }
         Insert: {
@@ -678,7 +733,11 @@ export type Database = {
           opptakspoeng?: number | null
           sektor?: string | null
           sist_oppdatert?: string | null
+          sokere_kvalifisert?: number | null
+          sokere_mott?: number | null
           studie_navn: string
+          studiekoder?: string | null
+          studieplasser?: number | null
           under_sektor?: string | null
         }
         Update: {
@@ -691,7 +750,11 @@ export type Database = {
           opptakspoeng?: number | null
           sektor?: string | null
           sist_oppdatert?: string | null
+          sokere_kvalifisert?: number | null
+          sokere_mott?: number | null
           studie_navn?: string
+          studiekoder?: string | null
+          studieplasser?: number | null
           under_sektor?: string | null
         }
         Relationships: []
