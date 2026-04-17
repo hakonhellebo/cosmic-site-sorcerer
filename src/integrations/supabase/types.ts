@@ -423,6 +423,42 @@ export type Database = {
         }
         Relationships: []
       }
+      nus_koder: {
+        Row: {
+          fagfelt_kode: string | null
+          fagfelt_navn: string | null
+          faggruppe_kode: string | null
+          faggruppe_navn: string | null
+          kode: string
+          navn: string | null
+          nivaa: number | null
+          nivaa_navn: string | null
+          parent_kode: string | null
+        }
+        Insert: {
+          fagfelt_kode?: string | null
+          fagfelt_navn?: string | null
+          faggruppe_kode?: string | null
+          faggruppe_navn?: string | null
+          kode: string
+          navn?: string | null
+          nivaa?: number | null
+          nivaa_navn?: string | null
+          parent_kode?: string | null
+        }
+        Update: {
+          fagfelt_kode?: string | null
+          fagfelt_navn?: string | null
+          faggruppe_kode?: string | null
+          faggruppe_navn?: string | null
+          kode?: string
+          navn?: string | null
+          nivaa?: number | null
+          nivaa_navn?: string | null
+          parent_kode?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -615,6 +651,42 @@ export type Database = {
           Studiested?: string | null
           undersektor?: string | null
           "Utdanningsområde- og type"?: string | null
+        }
+        Relationships: []
+      }
+      studier: {
+        Row: {
+          ai_generert: boolean | null
+          antall_inst: number | null
+          beskrivelse: string | null
+          id: number
+          institusjoner: string | null
+          nus_koder: string | null
+          sektor: string | null
+          sist_oppdatert: string | null
+          studie_navn: string
+        }
+        Insert: {
+          ai_generert?: boolean | null
+          antall_inst?: number | null
+          beskrivelse?: string | null
+          id?: number
+          institusjoner?: string | null
+          nus_koder?: string | null
+          sektor?: string | null
+          sist_oppdatert?: string | null
+          studie_navn: string
+        }
+        Update: {
+          ai_generert?: boolean | null
+          antall_inst?: number | null
+          beskrivelse?: string | null
+          id?: number
+          institusjoner?: string | null
+          nus_koder?: string | null
+          sektor?: string | null
+          sist_oppdatert?: string | null
+          studie_navn?: string
         }
         Relationships: []
       }
@@ -994,18 +1066,30 @@ export type Database = {
       }
       yrke_nus_map: {
         Row: {
+          fagfelt_kode: string | null
+          fagfelt_navn: string | null
           id: number
+          nivaa_navn: string | null
           nus_kode: string
+          nus_navn: string | null
           uno_id: string
         }
         Insert: {
+          fagfelt_kode?: string | null
+          fagfelt_navn?: string | null
           id?: number
+          nivaa_navn?: string | null
           nus_kode: string
+          nus_navn?: string | null
           uno_id: string
         }
         Update: {
+          fagfelt_kode?: string | null
+          fagfelt_navn?: string | null
           id?: number
+          nivaa_navn?: string | null
           nus_kode?: string
+          nus_navn?: string | null
           uno_id?: string
         }
         Relationships: [
@@ -1055,30 +1139,48 @@ export type Database = {
       }
       yrker: {
         Row: {
+          ai_generert: boolean | null
           antall_ledige: number | null
           antall_sysselsatte: number | null
+          beskrivelse: string | null
+          er_utvidet: boolean | null
           kilde_dato: string | null
           ledighetsrate: number | null
+          linked_uno_id: string | null
+          sektor: string | null
           sist_oppdatert: string | null
           tittel: string
+          under_sektor: string | null
           uno_id: string
         }
         Insert: {
+          ai_generert?: boolean | null
           antall_ledige?: number | null
           antall_sysselsatte?: number | null
+          beskrivelse?: string | null
+          er_utvidet?: boolean | null
           kilde_dato?: string | null
           ledighetsrate?: number | null
+          linked_uno_id?: string | null
+          sektor?: string | null
           sist_oppdatert?: string | null
           tittel: string
+          under_sektor?: string | null
           uno_id: string
         }
         Update: {
+          ai_generert?: boolean | null
           antall_ledige?: number | null
           antall_sysselsatte?: number | null
+          beskrivelse?: string | null
+          er_utvidet?: boolean | null
           kilde_dato?: string | null
           ledighetsrate?: number | null
+          linked_uno_id?: string | null
+          sektor?: string | null
           sist_oppdatert?: string | null
           tittel?: string
+          under_sektor?: string | null
           uno_id?: string
         }
         Relationships: []
