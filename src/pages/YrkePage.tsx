@@ -132,14 +132,21 @@ const YrkePage = () => {
       setUtdanning(utdRes.data || []);
       setNus(nusRes.data || []);
 
-      // 3. Lignende yrker i samme sektor
+      // 3. Lignende yrker i samme under_sektor (faller tilbake til sektor om ingen under_sektor)
       if (yrkeData.sektor) {
-        const { data: ligData } = await supabase
+        let query = supabase
           .from('yrker')
-          .select('uno_id, tittel, sektor, ledighetsrate, antall_sysselsatte')
-          .eq('sektor', yrkeData.sektor)
+          .select('uno_id, tittel, sektor, under_sektor, ledighetsrate, antall_sysselsatte')
           .neq('uno_id', unoId)
           .limit(6);
+
+        if (yrkeData.under_sektor) {
+          query = query.eq('under_sektor', yrkeData.under_sektor);
+        } else {
+          query = query.eq('sektor', yrkeData.sektor);
+        }
+
+        const { data: ligData } = await query;
         setLignende(ligData || []);
       }
 
@@ -376,7 +383,7 @@ const YrkePage = () => {
           {lignende.length > 0 && (
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Andre yrker i {yrke.sektor}</h2>
+                <h2 className="text-xl font-semibold">Andre yrker i {yrke.under_sektor || yrke.sektor}</h2>
                 {yrke.sektor && (
                   <Button
                     variant="ghost"
