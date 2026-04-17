@@ -662,9 +662,11 @@ export type Database = {
           id: number
           institusjoner: string | null
           nus_koder: string | null
+          opptakspoeng: number | null
           sektor: string | null
           sist_oppdatert: string | null
           studie_navn: string
+          under_sektor: string | null
         }
         Insert: {
           ai_generert?: boolean | null
@@ -673,9 +675,11 @@ export type Database = {
           id?: number
           institusjoner?: string | null
           nus_koder?: string | null
+          opptakspoeng?: number | null
           sektor?: string | null
           sist_oppdatert?: string | null
           studie_navn: string
+          under_sektor?: string | null
         }
         Update: {
           ai_generert?: boolean | null
@@ -684,9 +688,11 @@ export type Database = {
           id?: number
           institusjoner?: string | null
           nus_koder?: string | null
+          opptakspoeng?: number | null
           sektor?: string | null
           sist_oppdatert?: string | null
           studie_navn?: string
+          under_sektor?: string | null
         }
         Relationships: []
       }
@@ -1102,6 +1108,35 @@ export type Database = {
           },
         ]
       }
+      yrke_studier: {
+        Row: {
+          id: number
+          rang: number | null
+          studie_navn: string
+          uno_id: string
+        }
+        Insert: {
+          id?: never
+          rang?: number | null
+          studie_navn: string
+          uno_id: string
+        }
+        Update: {
+          id?: never
+          rang?: number | null
+          studie_navn?: string
+          uno_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "yrke_studier_uno_id_fkey"
+            columns: ["uno_id"]
+            isOneToOne: false
+            referencedRelation: "yrker"
+            referencedColumns: ["uno_id"]
+          },
+        ]
+      }
       yrke_utdanning: {
         Row: {
           antall: number | null
@@ -1144,9 +1179,12 @@ export type Database = {
           antall_sysselsatte: number | null
           beskrivelse: string | null
           er_utvidet: boolean | null
+          gjennomsnitt_lonn: number | null
           kilde_dato: string | null
           ledighetsrate: number | null
           linked_uno_id: string | null
+          lonn_kvinner: number | null
+          lonn_menn: number | null
           sektor: string | null
           sist_oppdatert: string | null
           tittel: string
@@ -1159,9 +1197,12 @@ export type Database = {
           antall_sysselsatte?: number | null
           beskrivelse?: string | null
           er_utvidet?: boolean | null
+          gjennomsnitt_lonn?: number | null
           kilde_dato?: string | null
           ledighetsrate?: number | null
           linked_uno_id?: string | null
+          lonn_kvinner?: number | null
+          lonn_menn?: number | null
           sektor?: string | null
           sist_oppdatert?: string | null
           tittel: string
@@ -1174,9 +1215,12 @@ export type Database = {
           antall_sysselsatte?: number | null
           beskrivelse?: string | null
           er_utvidet?: boolean | null
+          gjennomsnitt_lonn?: number | null
           kilde_dato?: string | null
           ledighetsrate?: number | null
           linked_uno_id?: string | null
+          lonn_kvinner?: number | null
+          lonn_menn?: number | null
           sektor?: string | null
           sist_oppdatert?: string | null
           tittel?: string
