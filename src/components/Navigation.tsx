@@ -6,6 +6,7 @@ import { User, LogOut } from 'lucide-react';
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { getCurrentUser, signOut } from '@/lib/supabase';
+import { ChevronDown } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,12 +25,18 @@ const Navigation: React.FC = () => {
   const navItems = [
     { name: 'Hjem', href: '/' },
     { name: 'Statistikk', href: '/statistikk' },
-    { name: 'Sektorer', href: '/sektorer' },
     { name: 'Lærer', href: '/laerer' },
     { name: 'Hvordan det fungerer', href: '#how-it-works' },
     { name: 'Fordeler', href: '#features' },
     { name: 'Tilbakemeldinger', href: '#testimonials' },
     { name: 'Kontakt', href: '#contact' },
+  ];
+
+  const utforskItems = [
+    { name: 'Bransjer',  href: '/sektorer',  beskrivelse: 'Utforsk karriereområder' },
+    { name: 'Yrker',     href: '/yrker',     beskrivelse: 'Alle 1000+ yrker' },
+    { name: 'Bedrifter', href: '/bedrifter', beskrivelse: 'Norske arbeidsgivere' },
+    { name: 'Studier',   href: '/studier',   beskrivelse: 'Studieprogrammer og lærested' },
   ];
 
   useEffect(() => {
@@ -176,26 +183,31 @@ const Navigation: React.FC = () => {
         </Link>
         
         <nav className="hidden md:block">
-          <ul className="flex space-x-8">
+          <ul className="flex space-x-8 items-center">
             {navItems.map((item) => (
               <li key={item.name}>
                 {item.href.startsWith('/') ? (
-                  <Link 
-                    to={item.href} 
-                    className="link-hover text-xs font-medium"
-                  >
-                    {item.name}
-                  </Link>
+                  <Link to={item.href} className="link-hover text-xs font-medium">{item.name}</Link>
                 ) : (
-                  <a 
-                    href={item.href} 
-                    className="link-hover text-xs font-medium"
-                  >
-                    {item.name}
-                  </a>
+                  <a href={item.href} className="link-hover text-xs font-medium">{item.name}</a>
                 )}
               </li>
             ))}
+            <li>
+              <DropdownMenu>
+                <DropdownMenuTrigger className="link-hover text-xs font-medium flex items-center gap-1 outline-none">
+                  Utforsk <ChevronDown className="h-3 w-3" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-64">
+                  {utforskItems.map((u) => (
+                    <DropdownMenuItem key={u.href} onClick={() => navigate(u.href)} className="flex-col items-start gap-0.5 cursor-pointer py-2.5">
+                      <span className="text-sm font-medium">{u.name}</span>
+                      <span className="text-xs text-muted-foreground">{u.beskrivelse}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </li>
           </ul>
         </nav>
         
@@ -262,16 +274,16 @@ const Navigation: React.FC = () => {
                 {navItems.map((item) => (
                   <li key={item.name}>
                     {item.href.startsWith('/') ? (
-                      <Link 
-                        to={item.href} 
+                      <Link
+                        to={item.href}
                         className="block py-2 text-xs font-medium"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         {item.name}
                       </Link>
                     ) : (
-                      <a 
-                        href={item.href} 
+                      <a
+                        href={item.href}
                         className="block py-2 text-xs font-medium"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
@@ -280,6 +292,19 @@ const Navigation: React.FC = () => {
                     )}
                   </li>
                 ))}
+                <li className="pt-2 border-t">
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-2">Utforsk</div>
+                  {utforskItems.map((u) => (
+                    <Link
+                      key={u.href}
+                      to={u.href}
+                      className="block py-1.5 text-xs font-medium"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {u.name}
+                    </Link>
+                  ))}
+                </li>
                 
                 {currentUser ? (
                   <>

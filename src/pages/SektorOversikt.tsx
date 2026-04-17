@@ -33,9 +33,9 @@ const SektorOversikt = () => {
 
           {/* Hero */}
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold mb-3">Utforsk etter sektor</h1>
+            <h1 className="text-4xl font-bold mb-3">Utforsk etter bransje</h1>
             <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-              Finn yrker, bedrifter og studier innenfor 17 ulike sektorer — alt koblet sammen.
+              Finn yrker, bedrifter og studier innenfor 17 ulike bransjer — alt koblet sammen.
             </p>
           </div>
 
