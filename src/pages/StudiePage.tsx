@@ -169,6 +169,16 @@ const StudiePage = () => {
     else if (ratio > 5)  { niv = "Moderat";      fargekl = "bg-yellow-100 text-yellow-800"; }
   }
 
+  // Poeng-range fra per-inst-data (mer ærlig enn aggregert snitt)
+  const poengArr = instListe
+    .map(i => i.opptakspoeng)
+    .filter((p): p is number => p != null && p > 0);
+  const minPoeng = poengArr.length ? Math.min(...poengArr) : null;
+  const maxPoeng = poengArr.length ? Math.max(...poengArr) : null;
+  const poengVisning = minPoeng != null && maxPoeng != null
+    ? (minPoeng === maxPoeng ? `${minPoeng}` : `${minPoeng}–${maxPoeng}`)
+    : (studie.opptakspoeng != null && studie.opptakspoeng > 0 ? `ca. ${studie.opptakspoeng}` : '—');
+
   return (
     <Layout>
       <div className="min-h-screen">
@@ -199,10 +209,10 @@ const StudiePage = () => {
                     {studie.under_sektor && <Badge variant="secondary">{studie.under_sektor}</Badge>}
                   </div>
                 </div>
-                {studie.opptakspoeng != null && studie.opptakspoeng > 0 && (
+                {poengArr.length > 0 && (
                   <div className="rounded-full bg-primary/10 px-4 py-2 font-semibold text-primary flex items-center gap-2 flex-shrink-0">
                     <GraduationCap className="h-5 w-5" />
-                    <span className="text-lg">{studie.opptakspoeng}</span>
+                    <span className="text-lg">{poengVisning}</span>
                   </div>
                 )}
               </div>
@@ -210,8 +220,13 @@ const StudiePage = () => {
               {/* Quick stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t">
                 <div>
-                  <div className="text-xs text-muted-foreground mb-1">Karaktersnitt</div>
-                  <div className="font-semibold text-lg">{studie.opptakspoeng ?? '—'}</div>
+                  <div className="text-xs text-muted-foreground mb-1">
+                    {minPoeng !== maxPoeng ? 'Karaktersnitt-range' : 'Karaktersnitt'}
+                  </div>
+                  <div className="font-semibold text-lg">{poengVisning}</div>
+                  {poengArr.length > 1 && (
+                    <div className="text-[10px] text-muted-foreground mt-0.5">varierer mellom lærested</div>
+                  )}
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground mb-1">Studieplasser</div>
