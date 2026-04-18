@@ -45,20 +45,29 @@ const StudieInstitusjonPage = () => {
     const hent = async () => {
       setLoading(true);
       let q = supabase
-        .from('studie_institusjoner')
+        .from('studier_v2')
         .select('*')
         .eq('studie_navn', decNavn)
-        .eq('institusjon', decInst);
+        .eq('laerestednavn', decInst);
       if (kode) q = q.eq('studiekode', kode);
-      const { data: d } = await q.limit(1).maybeSingle();
-      setData(d);
-
-      const { data: s } = await supabase
-        .from('studier')
-        .select('sektor, under_sektor, beskrivelse')
-        .eq('studie_navn', decNavn)
-        .maybeSingle();
-      setStudieSektor(s);
+      const { data: rows } = await q.limit(1);
+      const row = rows?.[0];
+      if (row) {
+        setData({
+          studie_navn:         row.studie_navn,
+          institusjon:         row.laerestednavn,
+          studiested:          row.studiested,
+          studiekode:          row.studiekode,
+          opptakspoeng:        row.opptakspoeng,
+          studieplasser:       row.studieplasser,
+          sokere_mott:         row.sokere_moett,
+          sokere_kvalifisert:  row.sokere_kvalifisert,
+          sokere_tilbud:       row.sokere_tilbud,
+          sokere_akseptert:    row.sokere_ja_svar,
+          sokere_totalt:       row.sokere_totalt,
+        });
+        setStudieSektor({ sektor: row.sektor, under_sektor: row.under_sektor });
+      }
       setLoading(false);
     };
     hent();

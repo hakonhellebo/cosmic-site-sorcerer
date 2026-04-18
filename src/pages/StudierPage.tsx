@@ -30,18 +30,53 @@ const StudierPage = () => {
 
   useEffect(() => {
     const hent = async () => {
-      const alle: Studie[] = [];
+      const rå: any[] = [];
       let offset = 0;
       while (true) {
         const { data } = await supabase
-          .from('studier')
-          .select('studie_navn, sektor, under_sektor, antall_inst, opptakspoeng, studieplasser, sokere_mott, sokere_kvalifisert, institusjoner')
+          .from('studier_v2')
+          .select('studie_navn, sektor, under_sektor, opptakspoeng, studieplasser, sokere_moett, sokere_kvalifisert, laerestednavn')
           .range(offset, offset + 999);
         if (!data || data.length === 0) break;
-        alle.push(...data);
+        rå.push(...data);
         if (data.length < 1000) break;
         offset += 1000;
       }
+
+      // Aggreger per studie_navn
+      const aggMap = new Map<string, any>();
+      for (const r of rå) {
+        let a = aggMap.get(r.studie_navn);
+        if (!a) {
+          a = {
+            studie_navn: r.studie_navn,
+            sektor: r.sektor,
+            under_sektor: r.under_sektor,
+            studieplasser: 0,
+            sokere_mott: 0,
+            sokere_kvalifisert: 0,
+            _poenger: [],
+            _institusjoner: new Set<string>(),
+          };
+          aggMap.set(r.studie_navn, a);
+        }
+        if (r.laerestednavn) a._institusjoner.add(r.laerestednavn);
+        if (r.opptakspoeng && r.opptakspoeng > 0) a._poenger.push(r.opptakspoeng);
+        a.studieplasser += (r.studieplasser || 0);
+        a.sokere_mott += (r.sokere_moett || 0);
+        a.sokere_kvalifisert += (r.sokere_kvalifisert || 0);
+      }
+      const alle: Studie[] = Array.from(aggMap.values()).map((a: any) => ({
+        studie_navn: a.studie_navn,
+        sektor: a.sektor,
+        under_sektor: a.under_sektor,
+        opptakspoeng: a._poenger.length ? Math.round((a._poenger.reduce((s: number, p: number) => s + p, 0) / a._poenger.length) * 10) / 10 : undefined,
+        studieplasser: a.studieplasser || undefined,
+        sokere_mott: a.sokere_mott || undefined,
+        sokere_kvalifisert: a.sokere_kvalifisert || undefined,
+        institusjoner: Array.from(a._institusjoner).join(','),
+        antall_inst: a._institusjoner.size,
+      }));
       setStudier(alle);
       setLoading(false);
     };

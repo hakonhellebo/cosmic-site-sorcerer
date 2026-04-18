@@ -81,7 +81,18 @@ interface Studie {
   studieplasser?: number;
   sokere_mott?: number;
   sokere_kvalifisert?: number;
-  institusjoner?: string;
+  institusjoner?: string;  // komma-separert læresteder
+}
+
+// Rå rad fra studier_v2 (før aggregering)
+interface StudieRaw {
+  studie_navn: string;
+  under_sektor?: string;
+  opptakspoeng?: number;
+  studieplasser?: number;
+  sokere_moett?: number;
+  sokere_kvalifisert?: number;
+  laerestednavn?: string;
 }
 
 const fmt = (n?: number | null) =>
@@ -170,15 +181,48 @@ const SektorPage = () => {
           .limit(500),
 
         supabase
-          .from('studier')
-          .select('studie_navn, antall_inst, under_sektor, opptakspoeng, studieplasser, sokere_mott, sokere_kvalifisert, institusjoner')
+          .from('studier_v2')
+          .select('studie_navn, under_sektor, opptakspoeng, studieplasser, sokere_moett, sokere_kvalifisert, laerestednavn')
           .eq('sektor', sektorNavn)
-          .limit(500),
+          .limit(2000),
       ]);
 
       setYrker(yrkeRes.data || []);
       setBedrifter(bedriftRes.data || []);
-      setStudier(studieRes.data || []);
+      // Aggreger studier_v2-rader per studie_navn (én kort per studium)
+      const rå: StudieRaw[] = studieRes.data || [];
+      const aggMap = new Map<string, Studie & { _poenger: number[]; _institusjoner: Set<string> }>();
+      for (const r of rå) {
+        let a = aggMap.get(r.studie_navn);
+        if (!a) {
+          a = {
+            studie_navn: r.studie_navn,
+            under_sektor: r.under_sektor,
+            studieplasser: 0,
+            sokere_mott: 0,
+            sokere_kvalifisert: 0,
+            _poenger: [],
+            _institusjoner: new Set(),
+          };
+          aggMap.set(r.studie_navn, a);
+        }
+        if (r.laerestednavn) a._institusjoner.add(r.laerestednavn);
+        if (r.opptakspoeng && r.opptakspoeng > 0) a._poenger.push(r.opptakspoeng);
+        a.studieplasser = (a.studieplasser || 0) + (r.studieplasser || 0);
+        a.sokere_mott = (a.sokere_mott || 0) + (r.sokere_moett || 0);
+        a.sokere_kvalifisert = (a.sokere_kvalifisert || 0) + (r.sokere_kvalifisert || 0);
+      }
+      const aggregert: Studie[] = Array.from(aggMap.values()).map(a => ({
+        studie_navn: a.studie_navn,
+        under_sektor: a.under_sektor,
+        opptakspoeng: a._poenger.length ? Math.round((a._poenger.reduce((s, p) => s + p, 0) / a._poenger.length) * 10) / 10 : undefined,
+        studieplasser: a.studieplasser || undefined,
+        sokere_mott: a.sokere_mott || undefined,
+        sokere_kvalifisert: a.sokere_kvalifisert || undefined,
+        institusjoner: Array.from(a._institusjoner).join(','),
+        antall_inst: a._institusjoner.size,
+      }));
+      setStudier(aggregert);
       setLoading(false);
     };
     hent();

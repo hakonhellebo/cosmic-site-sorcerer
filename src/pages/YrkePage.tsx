@@ -166,15 +166,40 @@ const YrkePage = () => {
       setUtdanning(utdRes.data || []);
       setNus(nusRes.data || []);
 
-      // Berik studier-listen med info fra studier-tabellen
+      // Berik studier-listen med aggregerte tall fra studier_v2
       const studieNavn = (studRes.data || []).map(s => s.studie_navn);
       if (studieNavn.length > 0) {
-        const { data: studInfo } = await supabase
-          .from('studier')
-          .select('studie_navn, institusjoner, antall_inst, opptakspoeng, studiekoder, studieplasser, sokere_mott, sokere_kvalifisert, beskrivelse')
+        const { data: rå } = await supabase
+          .from('studier_v2')
+          .select('studie_navn, opptakspoeng, studieplasser, sokere_moett, sokere_kvalifisert, laerestednavn, studiekode')
           .in('studie_navn', studieNavn);
-        const infoMap = new Map((studInfo || []).map(s => [s.studie_navn, s]));
-        setStudier((studRes.data || []).map(s => ({ ...s, ...infoMap.get(s.studie_navn) })));
+        // Aggreger per studie_navn
+        const aggMap = new Map<string, any>();
+        for (const r of rå || []) {
+          let a = aggMap.get(r.studie_navn);
+          if (!a) {
+            a = { studie_navn: r.studie_navn, studieplasser: 0, sokere_mott: 0, sokere_kvalifisert: 0,
+                  _poenger: [], _institusjoner: new Set<string>(), _koder: new Set<string>() };
+            aggMap.set(r.studie_navn, a);
+          }
+          if (r.laerestednavn) a._institusjoner.add(r.laerestednavn);
+          if (r.studiekode)    a._koder.add(r.studiekode);
+          if (r.opptakspoeng && r.opptakspoeng > 0) a._poenger.push(r.opptakspoeng);
+          a.studieplasser += (r.studieplasser || 0);
+          a.sokere_mott += (r.sokere_moett || 0);
+          a.sokere_kvalifisert += (r.sokere_kvalifisert || 0);
+        }
+        const infoMap = new Map<string, any>();
+        aggMap.forEach((a, navn) => infoMap.set(navn, {
+          institusjoner: Array.from(a._institusjoner).join(','),
+          antall_inst: a._institusjoner.size,
+          opptakspoeng: a._poenger.length ? Math.round((a._poenger.reduce((s: number, p: number) => s + p, 0) / a._poenger.length) * 10) / 10 : undefined,
+          studieplasser: a.studieplasser || undefined,
+          sokere_mott: a.sokere_mott || undefined,
+          sokere_kvalifisert: a.sokere_kvalifisert || undefined,
+          studiekoder: Array.from(a._koder).join(','),
+        }));
+        setStudier((studRes.data || []).map(s => ({ ...s, ...(infoMap.get(s.studie_navn) || {}) })));
       } else {
         setStudier([]);
       }

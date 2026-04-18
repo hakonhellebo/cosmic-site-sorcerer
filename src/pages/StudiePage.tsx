@@ -86,18 +86,38 @@ const StudiePage = () => {
     const hent = async () => {
       setLoading(true);
 
-      const { data: s } = await supabase
-        .from('studier').select('*').eq('studie_navn', decoded).maybeSingle();
-      if (!s) { setLoading(false); return; }
+      // Hent alle rader med dette navnet fra studier_v2 (én per lærested)
+      const { data: alle } = await supabase
+        .from('studier_v2').select('*').eq('studie_navn', decoded);
+      if (!alle?.length) { setLoading(false); return; }
+
+      // Aggregér til én Studie for hero/oversikt
+      const poenger = alle.map(r => r.opptakspoeng).filter(p => p != null && p > 0) as number[];
+      const nusSet = new Set<string>();
+      alle.forEach(r => (r.nus_koder || '').split(',').forEach((n: string) => n.trim() && nusSet.add(n.trim())));
+      const institusjoner = Array.from(new Set(alle.map(r => r.laerestednavn).filter(Boolean)));
+
+      const s: Studie = {
+        studie_navn:  alle[0].studie_navn,
+        sektor:       alle[0].sektor,
+        under_sektor: alle[0].under_sektor,
+        nus_koder:    Array.from(nusSet).join(','),
+        institusjoner: institusjoner.join(','),
+        antall_inst:  institusjoner.length,
+        opptakspoeng: poenger.length ? Math.round(poenger.reduce((a, b) => a + b, 0) / poenger.length * 10) / 10 : undefined,
+        studieplasser: alle.reduce((s, r) => s + (r.studieplasser || 0), 0) || undefined,
+        sokere_mott:   alle.reduce((s, r) => s + (r.sokere_moett || 0), 0) || undefined,
+        sokere_kvalifisert: alle.reduce((s, r) => s + (r.sokere_kvalifisert || 0), 0) || undefined,
+      };
       setStudie(s);
 
-      // Hent yrke_studier (kun rang 1-3 = høyest signal)
+      // Hent yrke_studier (bruk antall_personer som signal i stedet for rang)
       const { data: ysData } = await supabase
         .from('yrke_studier')
-        .select('uno_id, rang')
+        .select('uno_id, rang, antall_personer, andel_personer')
         .eq('studie_navn', decoded)
-        .lte('rang', 3)
-        .order('rang', { ascending: true });
+        .order('antall_personer', { ascending: false, nullsFirst: false })
+        .limit(30);
 
       if (ysData?.length) {
         const unoIds = ysData.map(y => y.uno_id);
@@ -147,21 +167,35 @@ const StudiePage = () => {
 
       if (s.under_sektor) {
         const { data: rel } = await supabase
-          .from('studier')
-          .select('studie_navn, antall_inst, opptakspoeng')
+          .from('studier_v2')
+          .select('studie_navn, opptakspoeng')
           .eq('under_sektor', s.under_sektor)
           .neq('studie_navn', decoded)
-          .limit(8);
-        setRelaterte(rel || []);
+          .limit(40);
+        // Dedup per studie_navn + ta høyeste opptakspoeng
+        const seen = new Map<string, RelatertStudie>();
+        (rel || []).forEach(r => {
+          const prev = seen.get(r.studie_navn);
+          if (!prev || ((r.opptakspoeng || 0) > (prev.opptakspoeng || 0))) {
+            seen.set(r.studie_navn, { studie_navn: r.studie_navn, opptakspoeng: r.opptakspoeng });
+          }
+        });
+        setRelaterte(Array.from(seen.values()).slice(0, 8));
       }
 
-      // Per-lærested data
-      const { data: instData } = await supabase
-        .from('studie_institusjoner')
-        .select('institusjon, studiested, studiekode, opptakspoeng, studieplasser, sokere_mott, sokere_kvalifisert')
-        .eq('studie_navn', decoded)
-        .order('opptakspoeng', { ascending: false, nullsFirst: false });
-      setInstListe(instData || []);
+      // Per-lærested — direkte fra alle-raden som er hentet over
+      const perInst: StudieInst[] = alle
+        .map(r => ({
+          institusjon: r.laerestednavn,
+          studiested:  r.studiested,
+          studiekode:  r.studiekode,
+          opptakspoeng: r.opptakspoeng,
+          studieplasser: r.studieplasser,
+          sokere_mott: r.sokere_moett,
+          sokere_kvalifisert: r.sokere_kvalifisert,
+        }))
+        .sort((a, b) => (b.opptakspoeng || 0) - (a.opptakspoeng || 0));
+      setInstListe(perInst);
 
       setLoading(false);
     };
