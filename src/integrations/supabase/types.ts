@@ -91,6 +91,7 @@ export type Database = {
       }
       Bedrifter_ny: {
         Row: {
+          aarsresultat: number | null
           ai_beskrivelse: string | null
           Ansatte: string | null
           ansetter_fra_studier: string | null
@@ -98,7 +99,10 @@ export type Database = {
           antall_ansatte_tall: number | null
           Beskrivelse: string | null
           brreg_hentet: boolean | null
+          brreg_oppdatert: string | null
+          driftsinntekter: number | null
           "Driftsinntekter (MNOK)": string | null
+          driftsresultat: number | null
           driftsresultat_mnok: number | null
           Geografi: string | null
           Karriereportal: string | null
@@ -114,8 +118,13 @@ export type Database = {
           sist_oppdatert: string | null
           stiftelsesaar: number | null
           sub_sektor: string | null
+          sum_egenkapital: number | null
+          sum_eiendeler: number | null
+          sum_gjeld: number | null
+          valuta: string | null
         }
         Insert: {
+          aarsresultat?: number | null
           ai_beskrivelse?: string | null
           Ansatte?: string | null
           ansetter_fra_studier?: string | null
@@ -123,7 +132,10 @@ export type Database = {
           antall_ansatte_tall?: number | null
           Beskrivelse?: string | null
           brreg_hentet?: boolean | null
+          brreg_oppdatert?: string | null
+          driftsinntekter?: number | null
           "Driftsinntekter (MNOK)"?: string | null
+          driftsresultat?: number | null
           driftsresultat_mnok?: number | null
           Geografi?: string | null
           Karriereportal?: string | null
@@ -139,8 +151,13 @@ export type Database = {
           sist_oppdatert?: string | null
           stiftelsesaar?: number | null
           sub_sektor?: string | null
+          sum_egenkapital?: number | null
+          sum_eiendeler?: number | null
+          sum_gjeld?: number | null
+          valuta?: string | null
         }
         Update: {
+          aarsresultat?: number | null
           ai_beskrivelse?: string | null
           Ansatte?: string | null
           ansetter_fra_studier?: string | null
@@ -148,7 +165,10 @@ export type Database = {
           antall_ansatte_tall?: number | null
           Beskrivelse?: string | null
           brreg_hentet?: boolean | null
+          brreg_oppdatert?: string | null
+          driftsinntekter?: number | null
           "Driftsinntekter (MNOK)"?: string | null
+          driftsresultat?: number | null
           driftsresultat_mnok?: number | null
           Geografi?: string | null
           Karriereportal?: string | null
@@ -164,6 +184,10 @@ export type Database = {
           sist_oppdatert?: string | null
           stiftelsesaar?: number | null
           sub_sektor?: string | null
+          sum_egenkapital?: number | null
+          sum_eiendeler?: number | null
+          sum_gjeld?: number | null
+          valuta?: string | null
         }
         Relationships: []
       }
@@ -390,6 +414,42 @@ export type Database = {
           Tid?: number | null
           UtdNivaa?: string
           value?: number | null
+        }
+        Relationships: []
+      }
+      feedback_reports: {
+        Row: {
+          created_at: string | null
+          entity_id: string | null
+          entity_label: string | null
+          id: number
+          kategori: string | null
+          melding: string | null
+          status: string | null
+          type: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          entity_id?: string | null
+          entity_label?: string | null
+          id?: never
+          kategori?: string | null
+          melding?: string | null
+          status?: string | null
+          type: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          entity_id?: string | null
+          entity_label?: string | null
+          id?: never
+          kategori?: string | null
+          melding?: string | null
+          status?: string | null
+          type?: string
+          url?: string | null
         }
         Relationships: []
       }
@@ -756,6 +816,72 @@ export type Database = {
           studiekoder?: string | null
           studieplasser?: number | null
           under_sektor?: string | null
+        }
+        Relationships: []
+      }
+      studier_v2: {
+        Row: {
+          id: number
+          laerestednavn: string | null
+          nus_koder: string | null
+          opptakspoeng: number | null
+          sektor: string | null
+          sist_oppdatert: string | null
+          sokere_ja_svar: number | null
+          sokere_kvalifisert: number | null
+          sokere_moett: number | null
+          sokere_moett_per_plass: number | null
+          sokere_per_plass: number | null
+          sokere_tilbud: number | null
+          sokere_totalt: number | null
+          studie_navn: string
+          studiekode: string | null
+          studieplasser: number | null
+          studiested: string | null
+          under_sektor: string | null
+          utdanningsomraade: string | null
+        }
+        Insert: {
+          id?: never
+          laerestednavn?: string | null
+          nus_koder?: string | null
+          opptakspoeng?: number | null
+          sektor?: string | null
+          sist_oppdatert?: string | null
+          sokere_ja_svar?: number | null
+          sokere_kvalifisert?: number | null
+          sokere_moett?: number | null
+          sokere_moett_per_plass?: number | null
+          sokere_per_plass?: number | null
+          sokere_tilbud?: number | null
+          sokere_totalt?: number | null
+          studie_navn: string
+          studiekode?: string | null
+          studieplasser?: number | null
+          studiested?: string | null
+          under_sektor?: string | null
+          utdanningsomraade?: string | null
+        }
+        Update: {
+          id?: never
+          laerestednavn?: string | null
+          nus_koder?: string | null
+          opptakspoeng?: number | null
+          sektor?: string | null
+          sist_oppdatert?: string | null
+          sokere_ja_svar?: number | null
+          sokere_kvalifisert?: number | null
+          sokere_moett?: number | null
+          sokere_moett_per_plass?: number | null
+          sokere_per_plass?: number | null
+          sokere_tilbud?: number | null
+          sokere_totalt?: number | null
+          studie_navn?: string
+          studiekode?: string | null
+          studieplasser?: number | null
+          studiested?: string | null
+          under_sektor?: string | null
+          utdanningsomraade?: string | null
         }
         Relationships: []
       }
@@ -1173,18 +1299,24 @@ export type Database = {
       }
       yrke_studier: {
         Row: {
+          andel_personer: number | null
+          antall_personer: number | null
           id: number
           rang: number | null
           studie_navn: string
           uno_id: string
         }
         Insert: {
+          andel_personer?: number | null
+          antall_personer?: number | null
           id?: never
           rang?: number | null
           studie_navn: string
           uno_id: string
         }
         Update: {
+          andel_personer?: number | null
+          antall_personer?: number | null
           id?: never
           rang?: number | null
           studie_navn?: string
