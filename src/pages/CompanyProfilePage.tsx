@@ -99,16 +99,31 @@ const CompanyProfilePage = () => {
     const hent = async () => {
       setLoading(true);
 
-      // 1. Firmadata
-      let firmadata: Company | null = location.state?.company ?? null;
-      if (!firmadata && companySlug) {
-        const decoded = decodeURIComponent(companySlug).replace(/-/g, ' ');
-        const { data } = await supabase
+      // 1. Firmadata — alltid hent full rad fra DB (state kan mangle Brreg-felter)
+      let firmadata: Company | null = null;
+      const stateCompany: Company | null = location.state?.company ?? null;
+      const sokeNavn = stateCompany?.Selskap
+        || (companySlug ? decodeURIComponent(companySlug).replace(/-/g, ' ') : null);
+
+      if (sokeNavn) {
+        // Først: prøv eksakt match på Selskap
+        const { data: exact } = await supabase
           .from('Bedrifter_ny').select('*')
-          .ilike('Selskap', `%${decoded}%`)
+          .eq('Selskap', sokeNavn)
           .limit(1);
-        firmadata = data?.[0] ?? null;
+        firmadata = exact?.[0] ?? null;
+
+        // Fallback: ilike-søk
+        if (!firmadata) {
+          const { data } = await supabase
+            .from('Bedrifter_ny').select('*')
+            .ilike('Selskap', `%${sokeNavn}%`)
+            .limit(1);
+          firmadata = data?.[0] ?? null;
+        }
       }
+      // Siste fallback: bruk state direkte (sjelden)
+      if (!firmadata && stateCompany) firmadata = stateCompany;
       setCompany(firmadata);
 
       if (firmadata) {
