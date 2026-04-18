@@ -225,30 +225,46 @@ const YrkePage = () => {
   );
 
   // ── Derived ───────────────────────────────────────────
-  // Estimerte verdier fra lignende yrker (brukes om yrket mangler egne tall)
-  const caLonn = yrke.gjennomsnitt_lonn == null
-    ? (() => {
-        const vals = lignende.map(l => l.gjennomsnitt_lonn).filter((v): v is number => v != null);
-        return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
-      })()
+  // For utvidede yrker er lønn/ledighet arvet fra forelder → marker som estimat
+  const erEstimert = !!yrke.er_utvidet;
+
+  // Beregn range fra lignende yrker (min-max) for ærlig visning
+  const computeRange = (getter: (l: Yrke) => number | undefined) => {
+    const vals = lignende.map(getter).filter((v): v is number => v != null && v > 0);
+    if (!vals.length) return null;
+    return { min: Math.min(...vals), max: Math.max(...vals), avg: vals.reduce((a, b) => a + b, 0) / vals.length };
+  };
+
+  const lonnRange = computeRange(l => l.gjennomsnitt_lonn);
+  const ledRange  = computeRange(l => l.ledighetsrate);
+
+  // Lønn-visning
+  const lonnVisning = !erEstimert && yrke.gjennomsnitt_lonn != null
+    ? { tekst: `${fmt(yrke.gjennomsnitt_lonn)} kr`, sub: 'månedlig heltid, 2024', estimat: false }
+    : lonnRange
+    ? { tekst: lonnRange.min === lonnRange.max
+          ? `ca. ${fmt(Math.round(lonnRange.avg))} kr`
+          : `${fmt(Math.round(lonnRange.min))}–${fmt(Math.round(lonnRange.max))} kr`,
+        sub: 'lønn i lignende yrker', estimat: true }
+    : yrke.gjennomsnitt_lonn != null
+    ? { tekst: `ca. ${fmt(yrke.gjennomsnitt_lonn)} kr`, sub: 'anslag', estimat: true }
     : null;
 
-  const caLed = yrke.ledighetsrate == null
-    ? (() => {
-        const vals = lignende.map(l => l.ledighetsrate).filter((v): v is number => v != null);
-        return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
-      })()
+  // Ledighet-visning
+  const ledVisning = !erEstimert && yrke.ledighetsrate != null
+    ? { tekst: `${(Number(yrke.ledighetsrate) * 100).toFixed(1)}%`, sub: 'andel arbeidsledige', estimat: false, verdi: yrke.ledighetsrate }
+    : ledRange
+    ? { tekst: ledRange.min === ledRange.max
+          ? `ca. ${(ledRange.avg * 100).toFixed(1)}%`
+          : `${(ledRange.min * 100).toFixed(1)}–${(ledRange.max * 100).toFixed(1)}%`,
+        sub: 'arbeidsledighet i lignende yrker', estimat: true, verdi: ledRange.avg }
+    : yrke.ledighetsrate != null
+    ? { tekst: `ca. ${(Number(yrke.ledighetsrate) * 100).toFixed(1)}%`, sub: 'anslag', estimat: true, verdi: yrke.ledighetsrate }
     : null;
 
-  const ledPct = yrke.ledighetsrate != null
-    ? `${(Number(yrke.ledighetsrate) * 100).toFixed(1)}%`
-    : caLed != null
-    ? `ca. ${(caLed * 100).toFixed(1)}%`
-    : null;
-
-  const ledFarge = (yrke.ledighetsrate ?? caLed) != null
-    ? (yrke.ledighetsrate ?? caLed)! < 0.03 ? 'text-green-600'
-    : (yrke.ledighetsrate ?? caLed)! < 0.06 ? 'text-yellow-600'
+  const ledFarge = ledVisning?.verdi != null
+    ? ledVisning.verdi < 0.03 ? 'text-green-600'
+    : ledVisning.verdi < 0.06 ? 'text-yellow-600'
     : 'text-red-500'
     : '';
 
@@ -330,45 +346,32 @@ const YrkePage = () => {
               <StatCard
                 icon={AlertCircle}
                 label="Ledighetsrate"
-                value={ledPct ?? '—'}
+                value={ledVisning?.tekst ?? '—'}
                 color={ledFarge}
-                sub={
-                  yrke.ledighetsrate != null
-                    ? 'andel arbeidsledige'
-                    : caLed != null
-                    ? 'arbeidsledighet i lignende yrker'
-                    : undefined
-                }
+                sub={ledVisning?.sub}
               />
               <StatCard
                 icon={TrendingUp}
                 label="Gj.snitt lønn"
-                value={
-                  yrke.gjennomsnitt_lonn
-                    ? `${fmt(yrke.gjennomsnitt_lonn)} kr`
-                    : caLonn
-                    ? `ca. ${fmt(caLonn)} kr`
-                    : '—'
-                }
-                sub={
-                  yrke.gjennomsnitt_lonn
-                    ? 'månedlig heltid, 2024'
-                    : caLonn
-                    ? 'lønn i lignende yrker'
-                    : undefined
-                }
+                value={lonnVisning?.tekst ?? '—'}
+                sub={lonnVisning?.sub}
               />
               <StatCard
                 icon={BarChart3}
                 label="Lønnsgap"
                 value={
-                  yrke.lonn_menn && yrke.lonn_kvinner
+                  !erEstimert && yrke.lonn_menn && yrke.lonn_kvinner
                     ? `${fmt(yrke.lonn_menn)} / ${fmt(yrke.lonn_kvinner)}`
                     : '—'
                 }
-                sub={yrke.lonn_menn && yrke.lonn_kvinner ? 'menn / kvinner kr/mnd' : undefined}
+                sub={!erEstimert && yrke.lonn_menn && yrke.lonn_kvinner ? 'menn / kvinner kr/mnd' : undefined}
               />
             </div>
+            {erEstimert && (
+              <p className="text-xs text-muted-foreground mt-3 italic">
+                Dette er et spesialisert yrke uten egen SSB-statistikk. Tallene er basert på lignende yrker i samme under-sektor.
+              </p>
+            )}
           </div>
 
           {/* ── 3b. LØNNSUTVIKLING ───────────────────────── */}
