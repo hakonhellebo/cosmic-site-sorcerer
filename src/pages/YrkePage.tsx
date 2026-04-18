@@ -367,10 +367,23 @@ const YrkePage = () => {
                 sub={!erEstimert && yrke.lonn_menn && yrke.lonn_kvinner ? 'menn / kvinner kr/mnd' : undefined}
               />
             </div>
-            {erEstimert && (
-              <p className="text-xs text-muted-foreground mt-3 italic">
-                Dette er et spesialisert yrke uten egen SSB-statistikk. Tallene er basert på lignende yrker i samme under-sektor.
-              </p>
+            {erEstimert && lignende.length > 0 && (
+              <div className="text-xs text-muted-foreground mt-3">
+                <span className="italic">Dette er et spesialisert yrke uten egen SSB-statistikk. Tallene over er basert på disse lignende yrkene:</span>
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {lignende
+                    .filter(l => l.gjennomsnitt_lonn || l.ledighetsrate != null)
+                    .map(l => (
+                      <button
+                        key={l.uno_id}
+                        onClick={() => navigate(`/yrke/${l.uno_id}`)}
+                        className="px-2 py-0.5 rounded border bg-card hover:bg-primary/5 hover:border-primary/30 transition-colors"
+                      >
+                        {l.tittel}
+                      </button>
+                    ))}
+                </div>
+              </div>
             )}
           </div>
 
