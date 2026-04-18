@@ -27,6 +27,15 @@ interface Company {
   'Driftsinntekter (MNOK)'?: string;
   driftsresultat_mnok?: number;
   regnskapsaar?: number;
+  // Brreg-data (rå tall, kroner)
+  driftsinntekter?: number;
+  driftsresultat?: number;
+  aarsresultat?: number;
+  sum_eiendeler?: number;
+  sum_egenkapital?: number;
+  sum_gjeld?: number;
+  valuta?: string;
+  brreg_oppdatert?: string;
   Linker?: string;
   Karriereportal?: string;
   organisasjonsnummer?: string;
@@ -186,10 +195,25 @@ const CompanyProfilePage = () => {
   const beskrivelse    = company.ai_beskrivelse || company.Beskrivelse;
   const ansatte        = company.antall_ansatte_tall
     ? fmt(company.antall_ansatte_tall) : company.Ansatte;
-  const omsetning      = company['Driftsinntekter (MNOK)'];
-  const driftsres      = company.driftsresultat_mnok;
-  const drFarge        = driftsres != null
-    ? driftsres >= 0 ? 'text-green-600' : 'text-red-500' : '';
+  // Format beløp: store tall som mrd/mill, prioriter nye Brreg-tall
+  const valuta = company.valuta || 'NOK';
+  const formatBeloep = (n?: number | null): string | null => {
+    if (n == null) return null;
+    const abs = Math.abs(n);
+    if (abs >= 1e9) return `${(n/1e9).toFixed(1)} mrd ${valuta}`;
+    if (abs >= 1e6) return `${(n/1e6).toFixed(0)} mill ${valuta}`;
+    return `${n.toLocaleString('nb-NO')} ${valuta}`;
+  };
+  // Fallback til gamle MNOK-tall hvis Brreg mangler
+  const omsetningStr = company.driftsinntekter != null
+    ? formatBeloep(company.driftsinntekter)
+    : (company['Driftsinntekter (MNOK)'] ? `${company['Driftsinntekter (MNOK)']} MNOK` : null);
+  const driftsresVal = company.driftsresultat ?? (company.driftsresultat_mnok != null ? company.driftsresultat_mnok * 1e6 : null);
+  const driftsresStr = driftsresVal != null ? formatBeloep(driftsresVal) : null;
+  const drFarge = driftsresVal != null
+    ? driftsresVal >= 0 ? 'text-green-600' : 'text-red-500' : '';
+  const aarsresultatStr = formatBeloep(company.aarsresultat);
+  const egenkapitalStr = formatBeloep(company.sum_egenkapital);
   const studierListe   = (company.ansetter_fra_studier || '')
     .split(',').map(s => s.trim()).filter(Boolean);
 
@@ -302,19 +326,37 @@ const CompanyProfilePage = () => {
 
           {/* ── 3. NØKKELTALL ────────────────────────────── */}
           <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">Nøkkeltall</h2>
+            <h2 className="text-xl font-semibold mb-1">Nøkkeltall</h2>
+            {company.regnskapsaar && (
+              <p className="text-xs text-muted-foreground mb-4">
+                Regnskapstall fra Brønnøysundregistrene · {company.regnskapsaar}
+              </p>
+            )}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <StatCard icon={Users}      label="Ansatte"
-                value={ansatte || null} />
+                value={ansatte || null}
+                sub={company.Geografi || company.Lokasjon || undefined} />
               <StatCard icon={TrendingUp} label="Driftsinntekter"
-                value={omsetning ? `${omsetning} MNOK` : null}
-                sub={company.regnskapsaar ? `Regnskap ${company.regnskapsaar}` : undefined} />
+                value={omsetningStr} />
               <StatCard icon={BarChart3}  label="Driftsresultat"
-                value={driftsres != null ? `${driftsres > 0 ? '+' : ''}${driftsres} MNOK` : null}
+                value={driftsresStr}
                 color={drFarge} />
-              <StatCard icon={MapPin}     label="Geografi"
-                value={company.Geografi || company.Lokasjon || null} />
+              <StatCard icon={BarChart3}  label="Årsresultat"
+                value={aarsresultatStr}
+                color={company.aarsresultat != null ? (company.aarsresultat >= 0 ? 'text-green-600' : 'text-red-500') : ''} />
             </div>
+            {(company.sum_eiendeler || company.sum_egenkapital) && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
+                <StatCard icon={BarChart3}  label="Sum eiendeler"
+                  value={formatBeloep(company.sum_eiendeler)} />
+                <StatCard icon={BarChart3}  label="Egenkapital"
+                  value={egenkapitalStr} />
+                <StatCard icon={BarChart3}  label="Sum gjeld"
+                  value={formatBeloep(company.sum_gjeld)} />
+                <StatCard icon={MapPin}     label="Stiftet"
+                  value={company.stiftelsesaar?.toString() || null} />
+              </div>
+            )}
           </div>
 
           {/* ── 4. YRKER I BEDRIFTEN ─────────────────────── */}
