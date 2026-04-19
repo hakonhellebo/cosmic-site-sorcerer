@@ -8,6 +8,20 @@ import { supabase } from '@/lib/supabase';
 
 type Nivaa = 'bachelor' | 'master' | 'årsstudium' | 'phd';
 
+interface StudieRow {
+  studie_navn: string;
+  laerestednavn: string;
+  studiested?: string;
+  studiekode?: string;
+  kortnavn_slug?: string;
+  opptakspoeng?: number;
+  studieplasser?: number;
+  sokere_moett?: number;
+  sokere_kvalifisert?: number;
+  kanonisk_navn?: string;
+  nivaa?: Nivaa | null;
+}
+
 interface Kortnavn {
   slug: string;
   tittel: string;
@@ -38,6 +52,7 @@ const klassifiserNivaa = (studieNavn?: string, kanoniskNavn?: string): Nivaa | n
 const StudierPage = () => {
   const navigate = useNavigate();
   const [rows, setRows] = useState<Kortnavn[]>([]);
+  const [rawStudier, setRawStudier] = useState<StudieRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [sok, setSok] = useState('');
   const [filtBransje, setFiltBransje] = useState('alle');
@@ -68,17 +83,20 @@ const StudierPage = () => {
       // 2) Alle studier_v2 m/ kortnavn_slug — aggregér stats per slug
       // Filtrer bort videreutdanninger (krever at du allerede er i yrket).
       const agg = new Map<string, any>();
+      const raw: StudieRow[] = [];
       {
         let offset = 0;
         while (true) {
           const { data } = await supabase
             .from('studier_v2')
-            .select('kortnavn_slug, studie_navn, laerestednavn, opptakspoeng, studieplasser, sokere_moett, sokere_kvalifisert, kanonisk_navn')
+            .select('kortnavn_slug, studie_navn, laerestednavn, studiested, studiekode, opptakspoeng, studieplasser, sokere_moett, sokere_kvalifisert, kanonisk_navn')
             .not('kortnavn_slug', 'is', null)
             .range(offset, offset + 999);
           if (!data || data.length === 0) break;
           for (const r of data) {
             if ((r.kanonisk_navn || '').toLowerCase().startsWith('videreutdanning')) continue;
+            const niv = klassifiserNivaa(r.studie_navn, r.kanonisk_navn);
+            raw.push({ ...r, nivaa: niv });
             let a = agg.get(r.kortnavn_slug);
             if (!a) {
               a = { antall_studier: 0, _poenger: [], studieplasser: 0, sokere_mott: 0, sokere_kvalifisert: 0, _inst: new Set<string>(), _nivaa: new Set<Nivaa>() };
@@ -90,13 +108,13 @@ const StudierPage = () => {
             a.studieplasser += (r.studieplasser || 0);
             a.sokere_mott += (r.sokere_moett || 0);
             a.sokere_kvalifisert += (r.sokere_kvalifisert || 0);
-            const niv = klassifiserNivaa(r.studie_navn, r.kanonisk_navn);
             if (niv) a._nivaa.add(niv);
           }
           if (data.length < 1000) break;
           offset += 1000;
         }
       }
+      setRawStudier(raw);
 
       // 3) Kombinér — kun kortnavn som faktisk har studier
       const kombinert: Kortnavn[] = [];
@@ -142,6 +160,33 @@ const StudierPage = () => {
 
   const konk = (r: Kortnavn) =>
     r.sokere_kvalifisert && r.studieplasser ? r.sokere_kvalifisert / r.studieplasser : 0;
+
+  const sektorBySlug = useMemo(() => {
+    const m = new Map<string, { sektor?: string; under_sektor?: string }>();
+    for (const r of rows) m.set(r.slug, { sektor: r.sektor, under_sektor: r.under_sektor });
+    return m;
+  }, [rows]);
+
+  const visStudier = filtInst !== 'alle';
+
+  const filtStudier = useMemo(() => {
+    if (!visStudier) return [];
+    let f = rawStudier.filter(s => s.laerestednavn === filtInst);
+    if (sok) f = f.filter(s => s.studie_navn.toLowerCase().includes(sok.toLowerCase()));
+    if (filtBransje !== 'alle') f = f.filter(s => sektorBySlug.get(s.kortnavn_slug || '')?.sektor === filtBransje);
+    if (filtUnder !== 'alle') f = f.filter(s => sektorBySlug.get(s.kortnavn_slug || '')?.under_sektor === filtUnder);
+    if (filtNivaa !== 'alle') f = f.filter(s => s.nivaa === filtNivaa);
+    return [...f].sort((a, b) => {
+      if (sort === 'karakter')    return (b.opptakspoeng || 0) - (a.opptakspoeng || 0);
+      if (sort === 'popularitet') return (b.sokere_moett || 0) - (a.sokere_moett || 0);
+      if (sort === 'konkurranse') {
+        const ra = a.sokere_kvalifisert && a.studieplasser ? a.sokere_kvalifisert / a.studieplasser : 0;
+        const rb = b.sokere_kvalifisert && b.studieplasser ? b.sokere_kvalifisert / b.studieplasser : 0;
+        return rb - ra;
+      }
+      return a.studie_navn.localeCompare(b.studie_navn, 'nb');
+    });
+  }, [visStudier, rawStudier, filtInst, sok, filtBransje, filtUnder, filtNivaa, sort, sektorBySlug]);
 
   const filt = useMemo(() => {
     let f = rows;
@@ -222,11 +267,51 @@ const StudierPage = () => {
             </Select>
           </div>
 
-          <p className="text-xs text-muted-foreground mb-4">Viser {filt.length} av {rows.length}</p>
+          <p className="text-xs text-muted-foreground mb-4">
+            {visStudier
+              ? `Viser ${filtStudier.length} studier ved ${filtInst}`
+              : `Viser ${filt.length} av ${rows.length}`}
+          </p>
 
           {loading ? (
             <div className="text-center py-20">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600 mx-auto" />
+            </div>
+          ) : visStudier ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {filtStudier.slice(0, 300).map((s, idx) => {
+                const ratio = s.sokere_kvalifisert && s.studieplasser ? s.sokere_kvalifisert / s.studieplasser : 0;
+                let niv = '', kl = '';
+                if (ratio > 0) {
+                  if (ratio > 15)      { niv = 'Veldig høy'; kl = 'bg-red-100 text-red-800'; }
+                  else if (ratio > 10) { niv = 'Høy'; kl = 'bg-orange-100 text-orange-800'; }
+                  else if (ratio > 5)  { niv = 'Moderat'; kl = 'bg-yellow-100 text-yellow-800'; }
+                  else                 { niv = 'Lav'; kl = 'bg-green-100 text-green-800'; }
+                }
+                const url = `/studie/${encodeURIComponent(s.studie_navn)}/${encodeURIComponent(s.laerestednavn)}${s.studiekode ? `?kode=${encodeURIComponent(s.studiekode)}` : ''}`;
+                return (
+                  <button
+                    key={`${s.studie_navn}-${s.studiekode ?? idx}`}
+                    onClick={() => navigate(url)}
+                    className="text-left rounded-xl border bg-card hover:bg-violet-500/5 hover:border-violet-400/50 transition-all p-4 group"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium text-sm mb-1 truncate">{s.studie_navn}</div>
+                        <div className="text-xs text-muted-foreground mb-1 truncate">
+                          {s.studiested || s.laerestednavn}
+                        </div>
+                        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                          {s.opptakspoeng != null && s.opptakspoeng > 0 && <span>{s.opptakspoeng} poeng</span>}
+                          {s.studieplasser != null && s.studieplasser > 0 && <span>· {s.studieplasser} plasser</span>}
+                          {niv && <span className={`px-1.5 py-0.5 rounded ${kl}`}>{niv}</span>}
+                        </div>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-violet-600 flex-shrink-0 mt-1 transition-colors" />
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -266,9 +351,14 @@ const StudierPage = () => {
               })}
             </div>
           )}
-          {filt.length > 300 && (
+          {!visStudier && filt.length > 300 && (
             <p className="text-center text-sm text-muted-foreground mt-6">
               Viser 300 av {filt.length} — bruk filter eller søk for å snevre inn
+            </p>
+          )}
+          {visStudier && filtStudier.length > 300 && (
+            <p className="text-center text-sm text-muted-foreground mt-6">
+              Viser 300 av {filtStudier.length} — bruk filter eller søk for å snevre inn
             </p>
           )}
         </div>
