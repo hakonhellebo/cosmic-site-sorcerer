@@ -6,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { GraduationCap, Search, ChevronRight } from "lucide-react";
 import { supabase } from '@/lib/supabase';
 
+type Nivaa = 'bachelor' | 'master' | 'årsstudium' | 'phd';
+
 interface Kortnavn {
   slug: string;
   tittel: string;
@@ -18,7 +20,20 @@ interface Kortnavn {
   sokere_mott?: number;
   sokere_kvalifisert?: number;
   institusjoner: string[];
+  nivaaer: Nivaa[];
 }
+
+const klassifiserNivaa = (studieNavn?: string, kanoniskNavn?: string): Nivaa | null => {
+  const s = (studieNavn || '').toLowerCase();
+  const k = (kanoniskNavn || '').toLowerCase();
+  const combo = `${s} | ${k}`;
+  if (combo.includes('videreutdanning')) return null;
+  if (/\bph\.?d\b/.test(combo) || combo.includes('doktorgrad')) return 'phd';
+  if (/\bmaster\b/.test(combo) || combo.includes('siv.ing') || combo.includes('sivilingeniør') || /\bcand\./.test(combo) || combo.includes('høyere nivå')) return 'master';
+  if (/\b(bachelor|bachelorprogram)\b/.test(combo)) return 'bachelor';
+  if (/\b(årsstudium|årsenhet|ettårig)\b/.test(combo) || combo.includes('lavere nivå')) return 'årsstudium';
+  return null;
+};
 
 const StudierPage = () => {
   const navigate = useNavigate();
@@ -28,6 +43,7 @@ const StudierPage = () => {
   const [filtBransje, setFiltBransje] = useState('alle');
   const [filtUnder, setFiltUnder] = useState('alle');
   const [filtInst, setFiltInst] = useState('alle');
+  const [filtNivaa, setFiltNivaa] = useState<'alle' | Nivaa>('alle');
   const [sort, setSort] = useState<'karakter'|'popularitet'|'konkurranse'|'navn'>('karakter');
 
   useEffect(() => {
@@ -57,7 +73,7 @@ const StudierPage = () => {
         while (true) {
           const { data } = await supabase
             .from('studier_v2')
-            .select('kortnavn_slug, laerestednavn, opptakspoeng, studieplasser, sokere_moett, sokere_kvalifisert, kanonisk_navn')
+            .select('kortnavn_slug, studie_navn, laerestednavn, opptakspoeng, studieplasser, sokere_moett, sokere_kvalifisert, kanonisk_navn')
             .not('kortnavn_slug', 'is', null)
             .range(offset, offset + 999);
           if (!data || data.length === 0) break;
@@ -65,7 +81,7 @@ const StudierPage = () => {
             if ((r.kanonisk_navn || '').toLowerCase().startsWith('videreutdanning')) continue;
             let a = agg.get(r.kortnavn_slug);
             if (!a) {
-              a = { antall_studier: 0, _poenger: [], studieplasser: 0, sokere_mott: 0, sokere_kvalifisert: 0, _inst: new Set<string>() };
+              a = { antall_studier: 0, _poenger: [], studieplasser: 0, sokere_mott: 0, sokere_kvalifisert: 0, _inst: new Set<string>(), _nivaa: new Set<Nivaa>() };
               agg.set(r.kortnavn_slug, a);
             }
             a.antall_studier += 1;
@@ -74,6 +90,8 @@ const StudierPage = () => {
             a.studieplasser += (r.studieplasser || 0);
             a.sokere_mott += (r.sokere_moett || 0);
             a.sokere_kvalifisert += (r.sokere_kvalifisert || 0);
+            const niv = klassifiserNivaa(r.studie_navn, r.kanonisk_navn);
+            if (niv) a._nivaa.add(niv);
           }
           if (data.length < 1000) break;
           offset += 1000;
@@ -99,6 +117,7 @@ const StudierPage = () => {
           sokere_mott:   a.sokere_mott || undefined,
           sokere_kvalifisert: a.sokere_kvalifisert || undefined,
           institusjoner: Array.from(a._inst) as string[],
+          nivaaer: Array.from(a._nivaa) as Nivaa[],
         });
       }
       setRows(kombinert);
@@ -130,13 +149,14 @@ const StudierPage = () => {
     if (filtBransje !== 'alle') f = f.filter(r => r.sektor === filtBransje);
     if (filtUnder !== 'alle') f = f.filter(r => r.under_sektor === filtUnder);
     if (filtInst !== 'alle') f = f.filter(r => r.institusjoner.includes(filtInst));
+    if (filtNivaa !== 'alle') f = f.filter(r => r.nivaaer.includes(filtNivaa));
     return [...f].sort((a, b) => {
       if (sort === 'karakter')    return (b.opptakspoeng || 0) - (a.opptakspoeng || 0);
       if (sort === 'popularitet') return (b.sokere_mott || 0) - (a.sokere_mott || 0);
       if (sort === 'konkurranse') return konk(b) - konk(a);
       return a.tittel.localeCompare(b.tittel, 'nb');
     });
-  }, [rows, sok, filtBransje, filtUnder, filtInst, sort]);
+  }, [rows, sok, filtBransje, filtUnder, filtInst, filtNivaa, sort]);
 
   return (
     <Layout>
@@ -155,7 +175,7 @@ const StudierPage = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-3 mb-6">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
               <Input placeholder="Søk etter studie…" className="pl-9" value={sok} onChange={e => setSok(e.target.value)} />
@@ -172,6 +192,16 @@ const StudierPage = () => {
               <SelectContent>
                 <SelectItem value="alle">Alle underbransjer</SelectItem>
                 {underBransjer.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={filtNivaa} onValueChange={v => setFiltNivaa(v as any)}>
+              <SelectTrigger><SelectValue placeholder="Alle nivåer" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="alle">Alle nivåer</SelectItem>
+                <SelectItem value="bachelor">Bachelor</SelectItem>
+                <SelectItem value="master">Master</SelectItem>
+                <SelectItem value="årsstudium">Årsstudium</SelectItem>
+                <SelectItem value="phd">PhD / doktorgrad</SelectItem>
               </SelectContent>
             </Select>
             <Select value={filtInst} onValueChange={setFiltInst}>
