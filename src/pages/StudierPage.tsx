@@ -6,21 +6,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { GraduationCap, Search, ChevronRight } from "lucide-react";
 import { supabase } from '@/lib/supabase';
 
-interface Studie {
-  studie_navn: string;
+interface Kortnavn {
+  slug: string;
+  tittel: string;
   sektor?: string;
   under_sektor?: string;
-  antall_inst?: number;
+  antall_inst: number;
+  antall_studier: number;
   opptakspoeng?: number;
   studieplasser?: number;
   sokere_mott?: number;
   sokere_kvalifisert?: number;
-  institusjoner?: string;
+  institusjoner: string[];
 }
 
 const StudierPage = () => {
   const navigate = useNavigate();
-  const [studier, setStudier] = useState<Studie[]>([]);
+  const [rows, setRows] = useState<Kortnavn[]>([]);
   const [loading, setLoading] = useState(true);
   const [sok, setSok] = useState('');
   const [filtBransje, setFiltBransje] = useState('alle');
@@ -30,93 +32,109 @@ const StudierPage = () => {
 
   useEffect(() => {
     const hent = async () => {
-      const rå: any[] = [];
-      let offset = 0;
-      while (true) {
-        const { data } = await supabase
-          .from('studier_v2')
-          .select('studie_navn, sektor, under_sektor, opptakspoeng, studieplasser, sokere_moett, sokere_kvalifisert, laerestednavn')
-          .range(offset, offset + 999);
-        if (!data || data.length === 0) break;
-        rå.push(...data);
-        if (data.length < 1000) break;
-        offset += 1000;
+      // 1) Alle kortnavn med sektor satt
+      const kortnavn: any[] = [];
+      {
+        let offset = 0;
+        while (true) {
+          const { data } = await supabase
+            .from('studier_kortnavn')
+            .select('slug, tittel, sektor, under_sektor')
+            .not('sektor', 'is', null)
+            .range(offset, offset + 999);
+          if (!data || data.length === 0) break;
+          kortnavn.push(...data);
+          if (data.length < 1000) break;
+          offset += 1000;
+        }
       }
 
-      // Aggreger per studie_navn
-      const aggMap = new Map<string, any>();
-      for (const r of rå) {
-        let a = aggMap.get(r.studie_navn);
-        if (!a) {
-          a = {
-            studie_navn: r.studie_navn,
-            sektor: r.sektor,
-            under_sektor: r.under_sektor,
-            studieplasser: 0,
-            sokere_mott: 0,
-            sokere_kvalifisert: 0,
-            _poenger: [],
-            _institusjoner: new Set<string>(),
-          };
-          aggMap.set(r.studie_navn, a);
+      // 2) Alle studier_v2 m/ kortnavn_slug — aggregér stats per slug
+      const agg = new Map<string, any>();
+      {
+        let offset = 0;
+        while (true) {
+          const { data } = await supabase
+            .from('studier_v2')
+            .select('kortnavn_slug, laerestednavn, opptakspoeng, studieplasser, sokere_moett, sokere_kvalifisert')
+            .not('kortnavn_slug', 'is', null)
+            .range(offset, offset + 999);
+          if (!data || data.length === 0) break;
+          for (const r of data) {
+            let a = agg.get(r.kortnavn_slug);
+            if (!a) {
+              a = { antall_studier: 0, _poenger: [], studieplasser: 0, sokere_mott: 0, sokere_kvalifisert: 0, _inst: new Set<string>() };
+              agg.set(r.kortnavn_slug, a);
+            }
+            a.antall_studier += 1;
+            if (r.laerestednavn) a._inst.add(r.laerestednavn);
+            if (r.opptakspoeng && r.opptakspoeng > 0) a._poenger.push(r.opptakspoeng);
+            a.studieplasser += (r.studieplasser || 0);
+            a.sokere_mott += (r.sokere_moett || 0);
+            a.sokere_kvalifisert += (r.sokere_kvalifisert || 0);
+          }
+          if (data.length < 1000) break;
+          offset += 1000;
         }
-        if (r.laerestednavn) a._institusjoner.add(r.laerestednavn);
-        if (r.opptakspoeng && r.opptakspoeng > 0) a._poenger.push(r.opptakspoeng);
-        a.studieplasser += (r.studieplasser || 0);
-        a.sokere_mott += (r.sokere_moett || 0);
-        a.sokere_kvalifisert += (r.sokere_kvalifisert || 0);
       }
-      const alle: Studie[] = Array.from(aggMap.values()).map((a: any) => ({
-        studie_navn: a.studie_navn,
-        sektor: a.sektor,
-        under_sektor: a.under_sektor,
-        opptakspoeng: a._poenger.length ? Math.round((a._poenger.reduce((s: number, p: number) => s + p, 0) / a._poenger.length) * 10) / 10 : undefined,
-        studieplasser: a.studieplasser || undefined,
-        sokere_mott: a.sokere_mott || undefined,
-        sokere_kvalifisert: a.sokere_kvalifisert || undefined,
-        institusjoner: Array.from(a._institusjoner).join(','),
-        antall_inst: a._institusjoner.size,
-      }));
-      setStudier(alle);
+
+      // 3) Kombinér — kun kortnavn som faktisk har studier
+      const kombinert: Kortnavn[] = [];
+      for (const k of kortnavn) {
+        const a = agg.get(k.slug);
+        if (!a || a.antall_studier === 0) continue;
+        kombinert.push({
+          slug:        k.slug,
+          tittel:      k.tittel,
+          sektor:      k.sektor,
+          under_sektor: k.under_sektor,
+          antall_inst:  a._inst.size,
+          antall_studier: a.antall_studier,
+          opptakspoeng: a._poenger.length
+            ? Math.round((a._poenger.reduce((s: number, p: number) => s + p, 0) / a._poenger.length) * 10) / 10
+            : undefined,
+          studieplasser: a.studieplasser || undefined,
+          sokere_mott:   a.sokere_mott || undefined,
+          sokere_kvalifisert: a.sokere_kvalifisert || undefined,
+          institusjoner: Array.from(a._inst) as string[],
+        });
+      }
+      setRows(kombinert);
       setLoading(false);
     };
     hent();
   }, []);
 
   const bransjer = useMemo(() =>
-    Array.from(new Set(studier.map(s => s.sektor).filter(Boolean))).sort() as string[]
-  , [studier]);
+    Array.from(new Set(rows.map(r => r.sektor).filter(Boolean))).sort() as string[]
+  , [rows]);
 
   const underBransjer = useMemo(() =>
     Array.from(new Set(
-      studier
-        .filter(s => filtBransje === 'alle' || s.sektor === filtBransje)
-        .map(s => s.under_sektor).filter(Boolean)
+      rows.filter(r => filtBransje === 'alle' || r.sektor === filtBransje).map(r => r.under_sektor).filter(Boolean)
     )).sort() as string[]
-  , [studier, filtBransje]);
+  , [rows, filtBransje]);
 
   const institusjoner = useMemo(() =>
-    Array.from(new Set(
-      studier.flatMap(s => (s.institusjoner || '').split(',').map(i => i.trim()).filter(Boolean))
-    )).sort()
-  , [studier]);
+    Array.from(new Set(rows.flatMap(r => r.institusjoner))).sort()
+  , [rows]);
 
-  const konk = (s: Studie) =>
-    s.sokere_kvalifisert && s.studieplasser ? s.sokere_kvalifisert / s.studieplasser : 0;
+  const konk = (r: Kortnavn) =>
+    r.sokere_kvalifisert && r.studieplasser ? r.sokere_kvalifisert / r.studieplasser : 0;
 
   const filt = useMemo(() => {
-    let f = studier;
-    if (sok) f = f.filter(s => s.studie_navn.toLowerCase().includes(sok.toLowerCase()));
-    if (filtBransje !== 'alle') f = f.filter(s => s.sektor === filtBransje);
-    if (filtUnder !== 'alle') f = f.filter(s => s.under_sektor === filtUnder);
-    if (filtInst !== 'alle') f = f.filter(s => (s.institusjoner || '').includes(filtInst));
+    let f = rows;
+    if (sok) f = f.filter(r => r.tittel.toLowerCase().includes(sok.toLowerCase()));
+    if (filtBransje !== 'alle') f = f.filter(r => r.sektor === filtBransje);
+    if (filtUnder !== 'alle') f = f.filter(r => r.under_sektor === filtUnder);
+    if (filtInst !== 'alle') f = f.filter(r => r.institusjoner.includes(filtInst));
     return [...f].sort((a, b) => {
       if (sort === 'karakter')    return (b.opptakspoeng || 0) - (a.opptakspoeng || 0);
       if (sort === 'popularitet') return (b.sokere_mott || 0) - (a.sokere_mott || 0);
       if (sort === 'konkurranse') return konk(b) - konk(a);
-      return a.studie_navn.localeCompare(b.studie_navn, 'nb');
+      return a.tittel.localeCompare(b.tittel, 'nb');
     });
-  }, [studier, sok, filtBransje, filtUnder, filtInst, sort]);
+  }, [rows, sok, filtBransje, filtUnder, filtInst, sort]);
 
   return (
     <Layout>
@@ -130,7 +148,7 @@ const StudierPage = () => {
               </div>
               <div>
                 <h1 className="text-3xl font-bold mb-1">Alle studier</h1>
-                <p className="text-muted-foreground">{studier.length} studieprogrammer med poenggrense, konkurranse og jobbmuligheter</p>
+                <p className="text-muted-foreground">{rows.length} studier med poenggrense, konkurranse og jobbmuligheter</p>
               </div>
             </div>
           </div>
@@ -172,7 +190,7 @@ const StudierPage = () => {
             </Select>
           </div>
 
-          <p className="text-xs text-muted-foreground mb-4">Viser {filt.length} av {studier.length}</p>
+          <p className="text-xs text-muted-foreground mb-4">Viser {filt.length} av {rows.length}</p>
 
           {loading ? (
             <div className="text-center py-20">
@@ -180,8 +198,8 @@ const StudierPage = () => {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {filt.slice(0, 300).map(s => {
-                const ratio = konk(s);
+              {filt.slice(0, 300).map(r => {
+                const ratio = konk(r);
                 let niv = '', kl = '';
                 if (ratio > 0) {
                   if (ratio > 15)      { niv = 'Veldig høy'; kl = 'bg-red-100 text-red-800'; }
@@ -191,8 +209,8 @@ const StudierPage = () => {
                 }
                 return (
                   <button
-                    key={s.studie_navn}
-                    onClick={() => navigate(`/studie/${encodeURIComponent(s.studie_navn)}`)}
+                    key={r.slug}
+                    onClick={() => navigate(`/studier/${r.slug}`)}
                     className="text-left rounded-xl border bg-card hover:bg-violet-500/5 hover:border-violet-400/50 transition-all p-4 group"
                   >
                     <div className="flex items-start justify-between gap-2">
@@ -201,10 +219,10 @@ const StudierPage = () => {
                           <GraduationCap className="h-4 w-4 text-violet-600" />
                         </div>
                         <div className="min-w-0">
-                          <div className="font-medium text-sm truncate">{s.studie_navn}</div>
+                          <div className="font-medium text-sm truncate">{r.tittel}</div>
                           <div className="flex flex-wrap gap-2 text-xs text-muted-foreground mt-0.5">
-                            {s.antall_inst != null && <span>{s.antall_inst} læresteder</span>}
-                            {s.opptakspoeng != null && s.opptakspoeng > 0 && <span>· {s.opptakspoeng} poeng</span>}
+                            <span>{r.antall_inst} læresteder</span>
+                            {r.opptakspoeng != null && r.opptakspoeng > 0 && <span>· {r.opptakspoeng} poeng</span>}
                             {niv && <span className={`px-1.5 py-0.5 rounded ${kl}`}>{niv}</span>}
                           </div>
                         </div>
