@@ -37,6 +37,20 @@ interface Kortnavn {
   nivaaer: Nivaa[];
 }
 
+const erHkdirKode = (k?: string) => !!k && !/^\d+\s*\d+$/.test(k);
+
+const normStudieNavn = (s: string) => {
+  let n = s.toLowerCase();
+  n = n.replace(/,?\s*\(?h(ø|o)st\)?\s*$/, '');
+  n = n.replace(/,?\s*\(?v(å|a)r\)?\s*$/, '');
+  n = n.replace(/,?\s*(bachelor(program|studium)?|master(program|studium)?|årsstudium|årsenhet|ettårig|treårig|femårig|profesjonsstudium|phd|doktorgrad|ph\.?d\.?)\b.*$/, '');
+  n = n.replace(/^bachelor(program|studium)?\s*(i\s+)?/, '');
+  n = n.replace(/^master(program|studium)?\s*(i\s+)?/, '');
+  n = n.replace(/^årsstudium\s*(i\s+)?/, '');
+  n = n.replace(/[^a-zæøå0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+  return n;
+};
+
 const klassifiserNivaa = (studieNavn?: string, kanoniskNavn?: string): Nivaa | null => {
   const s = (studieNavn || '').toLowerCase();
   const k = (kanoniskNavn || '').toLowerCase();
@@ -176,6 +190,26 @@ const StudierPage = () => {
     if (filtBransje !== 'alle') f = f.filter(s => sektorBySlug.get(s.kortnavn_slug || '')?.sektor === filtBransje);
     if (filtUnder !== 'alle') f = f.filter(s => sektorBySlug.get(s.kortnavn_slug || '')?.under_sektor === filtUnder);
     if (filtNivaa !== 'alle') f = f.filter(s => s.nivaa === filtNivaa);
+
+    // Dedup: når samme (normalisert navn + lærested + nivå) har både Samordna og HKDIR,
+    // velg Samordna-raden (den har poeng/søkerstats).
+    const bucket = new Map<string, StudieRow>();
+    for (const s of f) {
+      const key = `${s.laerestednavn}|${s.nivaa || ''}|${normStudieNavn(s.studie_navn)}`;
+      const current = bucket.get(key);
+      if (!current) { bucket.set(key, s); continue; }
+      const curHk = erHkdirKode(current.studiekode);
+      const sHk = erHkdirKode(s.studiekode);
+      if (curHk && !sHk) bucket.set(key, s);
+      else if (!curHk && sHk) continue;
+      else {
+        const curScore = (current.opptakspoeng || 0) + (current.sokere_kvalifisert || 0);
+        const sScore = (s.opptakspoeng || 0) + (s.sokere_kvalifisert || 0);
+        if (sScore > curScore) bucket.set(key, s);
+      }
+    }
+    f = Array.from(bucket.values());
+
     return [...f].sort((a, b) => {
       if (sort === 'karakter')    return (b.opptakspoeng || 0) - (a.opptakspoeng || 0);
       if (sort === 'popularitet') return (b.sokere_moett || 0) - (a.sokere_moett || 0);

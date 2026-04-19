@@ -28,6 +28,31 @@ interface StudieRow {
 
 const fmt = (n?: number | null) => n != null ? n.toLocaleString('nb-NO') : null;
 
+const erHkdirKode = (k?: string) => !!k && !/^\d+\s*\d+$/.test(k);
+
+const normStudieNavn = (s: string) => {
+  let n = s.toLowerCase();
+  n = n.replace(/,?\s*\(?h(ø|o)st\)?\s*$/, '');
+  n = n.replace(/,?\s*\(?v(å|a)r\)?\s*$/, '');
+  n = n.replace(/,?\s*(bachelor(program|studium)?|master(program|studium)?|årsstudium|årsenhet|ettårig|treårig|femårig|profesjonsstudium|phd|doktorgrad|ph\.?d\.?)\b.*$/, '');
+  n = n.replace(/^bachelor(program|studium)?\s*(i\s+)?/, '');
+  n = n.replace(/^master(program|studium)?\s*(i\s+)?/, '');
+  n = n.replace(/^årsstudium\s*(i\s+)?/, '');
+  n = n.replace(/[^a-zæøå0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+  return n;
+};
+
+const klassifiserNivaa = (studieNavn?: string, kanoniskNavn?: string): string => {
+  const s = (studieNavn || '').toLowerCase();
+  const k = (kanoniskNavn || '').toLowerCase();
+  const c = `${s} | ${k}`;
+  if (/\bph\.?d\b/.test(c) || c.includes('doktorgrad')) return 'phd';
+  if (/\bmaster\b/.test(c) || c.includes('siv.ing') || c.includes('sivilingeniør') || /\bcand\./.test(c) || c.includes('høyere nivå')) return 'master';
+  if (/\b(bachelor|bachelorprogram)\b/.test(c)) return 'bachelor';
+  if (/\b(årsstudium|årsenhet|ettårig)\b/.test(c) || c.includes('lavere nivå')) return 'årsstudium';
+  return 'annet';
+};
+
 const KortnavnPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
@@ -52,7 +77,24 @@ const KortnavnPage = () => {
       const filtered = (sData || []).filter(
         s => !(s.kanonisk_navn || '').toLowerCase().startsWith('videreutdanning')
       );
-      setStudier(filtered);
+      // Dedup: når samme (navn + lærested + nivå) finnes både i Samordna og HKDIR,
+      // velg Samordna-raden (har poeng/søkertall).
+      const bucket = new Map<string, StudieRow>();
+      for (const s of filtered) {
+        const key = `${s.laerestednavn}|${klassifiserNivaa(s.studie_navn, s.kanonisk_navn)}|${normStudieNavn(s.studie_navn)}`;
+        const cur = bucket.get(key);
+        if (!cur) { bucket.set(key, s); continue; }
+        const curHk = erHkdirKode(cur.studiekode);
+        const sHk = erHkdirKode(s.studiekode);
+        if (curHk && !sHk) bucket.set(key, s);
+        else if (!curHk && sHk) continue;
+        else {
+          const curScore = (cur.opptakspoeng || 0) + (cur.sokere_kvalifisert || 0);
+          const sScore = (s.opptakspoeng || 0) + (s.sokere_kvalifisert || 0);
+          if (sScore > curScore) bucket.set(key, s);
+        }
+      }
+      setStudier(Array.from(bucket.values()));
       setLoading(false);
     };
     hent();
