@@ -50,17 +50,19 @@ const StudierPage = () => {
       }
 
       // 2) Alle studier_v2 m/ kortnavn_slug — aggregér stats per slug
+      // Filtrer bort videreutdanninger (krever at du allerede er i yrket).
       const agg = new Map<string, any>();
       {
         let offset = 0;
         while (true) {
           const { data } = await supabase
             .from('studier_v2')
-            .select('kortnavn_slug, laerestednavn, opptakspoeng, studieplasser, sokere_moett, sokere_kvalifisert')
+            .select('kortnavn_slug, laerestednavn, opptakspoeng, studieplasser, sokere_moett, sokere_kvalifisert, kanonisk_navn')
             .not('kortnavn_slug', 'is', null)
             .range(offset, offset + 999);
           if (!data || data.length === 0) break;
           for (const r of data) {
+            if ((r.kanonisk_navn || '').toLowerCase().startsWith('videreutdanning')) continue;
             let a = agg.get(r.kortnavn_slug);
             if (!a) {
               a = { antall_studier: 0, _poenger: [], studieplasser: 0, sokere_mott: 0, sokere_kvalifisert: 0, _inst: new Set<string>() };

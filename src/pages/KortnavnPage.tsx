@@ -23,6 +23,7 @@ interface StudieRow {
   studieplasser?: number;
   sokere_moett?: number;
   sokere_kvalifisert?: number;
+  kanonisk_navn?: string;
 }
 
 const fmt = (n?: number | null) => n != null ? n.toLocaleString('nb-NO') : null;
@@ -45,9 +46,13 @@ const KortnavnPage = () => {
 
       const { data: sData } = await supabase
         .from('studier_v2')
-        .select('id, studie_navn, laerestednavn, studiested, studiekode, opptakspoeng, studieplasser, sokere_moett, sokere_kvalifisert')
+        .select('id, studie_navn, laerestednavn, studiested, studiekode, opptakspoeng, studieplasser, sokere_moett, sokere_kvalifisert, kanonisk_navn')
         .eq('kortnavn_slug', slug);
-      setStudier(sData || []);
+      // Skjul videreutdanninger — ikke relevant som grunnstudium.
+      const filtered = (sData || []).filter(
+        s => !(s.kanonisk_navn || '').toLowerCase().startsWith('videreutdanning')
+      );
+      setStudier(filtered);
       setLoading(false);
     };
     hent();
