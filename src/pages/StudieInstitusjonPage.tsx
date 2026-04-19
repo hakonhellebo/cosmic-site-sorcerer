@@ -53,18 +53,38 @@ const StudieInstitusjonPage = () => {
       const { data: rows } = await q.limit(1);
       const row = rows?.[0];
       if (row) {
+        // Merge fra søskenrader ved samme (kortnavn_slug, lærested) — HKDIR-
+        // rader mangler ofte studieplasser/sokere_kvalifisert, mens Samordna-
+        // rader har full statistikk.
+        let søsken: any[] = [];
+        if (row.kortnavn_slug) {
+          const { data } = await supabase
+            .from('studier_v2')
+            .select('*')
+            .eq('kortnavn_slug', row.kortnavn_slug)
+            .eq('laerestednavn', decInst);
+          søsken = (data || []).filter(r => r.id !== row.id);
+        }
+        const pick = <T,>(key: keyof typeof row): T | undefined => {
+          const primary = (row as any)[key];
+          if (primary != null && primary !== 0) return primary;
+          for (const s of søsken) {
+            if (s[key] != null && s[key] !== 0) return s[key];
+          }
+          return primary;
+        };
         setData({
           studie_navn:         row.studie_navn,
           institusjon:         row.laerestednavn,
-          studiested:          row.studiested,
+          studiested:          pick('studiested'),
           studiekode:          row.studiekode,
-          opptakspoeng:        row.opptakspoeng,
-          studieplasser:       row.studieplasser,
-          sokere_mott:         row.sokere_moett,
-          sokere_kvalifisert:  row.sokere_kvalifisert,
-          sokere_tilbud:       row.sokere_tilbud,
-          sokere_akseptert:    row.sokere_ja_svar,
-          sokere_totalt:       row.sokere_totalt,
+          opptakspoeng:        pick('opptakspoeng'),
+          studieplasser:       pick('studieplasser'),
+          sokere_mott:         pick('sokere_moett'),
+          sokere_kvalifisert:  pick('sokere_kvalifisert'),
+          sokere_tilbud:       pick('sokere_tilbud'),
+          sokere_akseptert:    pick('sokere_ja_svar'),
+          sokere_totalt:       pick('sokere_totalt'),
         });
         setStudieSektor({ sektor: row.sektor, under_sektor: row.under_sektor });
       }
