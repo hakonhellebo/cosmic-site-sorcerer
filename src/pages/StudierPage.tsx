@@ -39,6 +39,9 @@ interface Kortnavn {
 
 const erHkdirKode = (k?: string) => !!k && !/^\d+\s*\d+$/.test(k);
 
+const normLaerested = (s?: string) =>
+  (s || '').toLowerCase().split(',')[0].replace(/\s+/g, ' ').trim();
+
 const normStudieNavn = (s: string) => {
   let n = s.toLowerCase();
   n = n.replace(/,?\s*\(?h(ø|o)st\)?\s*$/, '');
@@ -191,24 +194,22 @@ const StudierPage = () => {
     if (filtUnder !== 'alle') f = f.filter(s => sektorBySlug.get(s.kortnavn_slug || '')?.under_sektor === filtUnder);
     if (filtNivaa !== 'alle') f = f.filter(s => s.nivaa === filtNivaa);
 
-    // Dedup: når samme (normalisert navn + lærested + nivå) har både Samordna og HKDIR,
-    // velg Samordna-raden (den har poeng/søkerstats).
-    const bucket = new Map<string, StudieRow>();
+    // Dedup: gruppér per (lærested normalisert + nivå + studie_navn normalisert).
+    // Når en gruppe har Samordna-rader: skjul HKDIR. Ellers behold HKDIR.
+    // Behold alle Samordna-rader (høst/vår er separate opptak med hver sin statistikk).
+    const bucket = new Map<string, StudieRow[]>();
     for (const s of f) {
-      const key = `${s.laerestednavn}|${s.nivaa || ''}|${normStudieNavn(s.studie_navn)}`;
-      const current = bucket.get(key);
-      if (!current) { bucket.set(key, s); continue; }
-      const curHk = erHkdirKode(current.studiekode);
-      const sHk = erHkdirKode(s.studiekode);
-      if (curHk && !sHk) bucket.set(key, s);
-      else if (!curHk && sHk) continue;
-      else {
-        const curScore = (current.opptakspoeng || 0) + (current.sokere_kvalifisert || 0);
-        const sScore = (s.opptakspoeng || 0) + (s.sokere_kvalifisert || 0);
-        if (sScore > curScore) bucket.set(key, s);
-      }
+      const key = `${normLaerested(s.laerestednavn)}|${s.nivaa || ''}|${normStudieNavn(s.studie_navn)}`;
+      const arr = bucket.get(key) || [];
+      arr.push(s);
+      bucket.set(key, arr);
     }
-    f = Array.from(bucket.values());
+    const dedupped: StudieRow[] = [];
+    for (const arr of bucket.values()) {
+      const samordna = arr.filter(s => !erHkdirKode(s.studiekode));
+      dedupped.push(...(samordna.length > 0 ? samordna : arr));
+    }
+    f = dedupped;
 
     return [...f].sort((a, b) => {
       if (sort === 'karakter')    return (b.opptakspoeng || 0) - (a.opptakspoeng || 0);

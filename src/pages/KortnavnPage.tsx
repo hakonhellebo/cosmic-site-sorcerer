@@ -30,6 +30,9 @@ const fmt = (n?: number | null) => n != null ? n.toLocaleString('nb-NO') : null;
 
 const erHkdirKode = (k?: string) => !!k && !/^\d+\s*\d+$/.test(k);
 
+const normLaerested = (s?: string) =>
+  (s || '').toLowerCase().split(',')[0].replace(/\s+/g, ' ').trim();
+
 const normStudieNavn = (s: string) => {
   let n = s.toLowerCase();
   n = n.replace(/,?\s*\(?h(ø|o)st\)?\s*$/, '');
@@ -77,24 +80,22 @@ const KortnavnPage = () => {
       const filtered = (sData || []).filter(
         s => !(s.kanonisk_navn || '').toLowerCase().startsWith('videreutdanning')
       );
-      // Dedup: når samme (navn + lærested + nivå) finnes både i Samordna og HKDIR,
-      // velg Samordna-raden (har poeng/søkertall).
-      const bucket = new Map<string, StudieRow>();
+      // Dedup: gruppér per (lærested normalisert + nivå + studie_navn normalisert).
+      // Hvis en gruppe har Samordna-rader (numerisk kode + full stats), skjul HKDIR-raden(e).
+      // Hvis bare HKDIR finnes, behold alle. Samordna-rader beholdes alltid (høst/vår er ulike opptak).
+      const bucket = new Map<string, StudieRow[]>();
       for (const s of filtered) {
-        const key = `${s.laerestednavn}|${klassifiserNivaa(s.studie_navn, s.kanonisk_navn)}|${normStudieNavn(s.studie_navn)}`;
-        const cur = bucket.get(key);
-        if (!cur) { bucket.set(key, s); continue; }
-        const curHk = erHkdirKode(cur.studiekode);
-        const sHk = erHkdirKode(s.studiekode);
-        if (curHk && !sHk) bucket.set(key, s);
-        else if (!curHk && sHk) continue;
-        else {
-          const curScore = (cur.opptakspoeng || 0) + (cur.sokere_kvalifisert || 0);
-          const sScore = (s.opptakspoeng || 0) + (s.sokere_kvalifisert || 0);
-          if (sScore > curScore) bucket.set(key, s);
-        }
+        const key = `${normLaerested(s.laerestednavn)}|${klassifiserNivaa(s.studie_navn, s.kanonisk_navn)}|${normStudieNavn(s.studie_navn)}`;
+        const arr = bucket.get(key) || [];
+        arr.push(s);
+        bucket.set(key, arr);
       }
-      setStudier(Array.from(bucket.values()));
+      const dedupped: StudieRow[] = [];
+      for (const arr of bucket.values()) {
+        const samordna = arr.filter(s => !erHkdirKode(s.studiekode));
+        dedupped.push(...(samordna.length > 0 ? samordna : arr));
+      }
+      setStudier(dedupped);
       setLoading(false);
     };
     hent();
