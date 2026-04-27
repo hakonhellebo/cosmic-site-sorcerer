@@ -93,6 +93,11 @@ export type Database = {
         Row: {
           aarsresultat: number | null
           ai_beskrivelse: string | null
+          ai_profil: Json | null
+          ai_profil_aar: number | null
+          ai_profil_kilde: string | null
+          ai_profil_oppdatert: string | null
+          ai_profil_pdf_url: string | null
           Ansatte: string | null
           ansetter_fra_studier: string | null
           ansetter_til_yrker: string | null
@@ -106,6 +111,14 @@ export type Database = {
           driftsresultat_mnok: number | null
           Geografi: string | null
           Karriereportal: string | null
+          linkedin_antall_ansatte: number | null
+          linkedin_scraped_at: string | null
+          linkedin_slug: string | null
+          linkedin_top_funksjoner: Json | null
+          linkedin_top_kompetanser: Json | null
+          linkedin_top_lokasjoner: Json | null
+          linkedin_top_skoler: Json | null
+          linkedin_top_studier: Json | null
           Linker: string | null
           Lokasjon: string | null
           nace_beskrivelse: string | null
@@ -115,6 +128,7 @@ export type Database = {
           regnskapsaar: number | null
           Sektor: string | null
           Selskap: string | null
+          selskap_norm: string | null
           sist_oppdatert: string | null
           stiftelsesaar: number | null
           sub_sektor: string | null
@@ -126,6 +140,11 @@ export type Database = {
         Insert: {
           aarsresultat?: number | null
           ai_beskrivelse?: string | null
+          ai_profil?: Json | null
+          ai_profil_aar?: number | null
+          ai_profil_kilde?: string | null
+          ai_profil_oppdatert?: string | null
+          ai_profil_pdf_url?: string | null
           Ansatte?: string | null
           ansetter_fra_studier?: string | null
           ansetter_til_yrker?: string | null
@@ -139,6 +158,14 @@ export type Database = {
           driftsresultat_mnok?: number | null
           Geografi?: string | null
           Karriereportal?: string | null
+          linkedin_antall_ansatte?: number | null
+          linkedin_scraped_at?: string | null
+          linkedin_slug?: string | null
+          linkedin_top_funksjoner?: Json | null
+          linkedin_top_kompetanser?: Json | null
+          linkedin_top_lokasjoner?: Json | null
+          linkedin_top_skoler?: Json | null
+          linkedin_top_studier?: Json | null
           Linker?: string | null
           Lokasjon?: string | null
           nace_beskrivelse?: string | null
@@ -148,6 +175,7 @@ export type Database = {
           regnskapsaar?: number | null
           Sektor?: string | null
           Selskap?: string | null
+          selskap_norm?: string | null
           sist_oppdatert?: string | null
           stiftelsesaar?: number | null
           sub_sektor?: string | null
@@ -159,6 +187,11 @@ export type Database = {
         Update: {
           aarsresultat?: number | null
           ai_beskrivelse?: string | null
+          ai_profil?: Json | null
+          ai_profil_aar?: number | null
+          ai_profil_kilde?: string | null
+          ai_profil_oppdatert?: string | null
+          ai_profil_pdf_url?: string | null
           Ansatte?: string | null
           ansetter_fra_studier?: string | null
           ansetter_til_yrker?: string | null
@@ -172,6 +205,14 @@ export type Database = {
           driftsresultat_mnok?: number | null
           Geografi?: string | null
           Karriereportal?: string | null
+          linkedin_antall_ansatte?: number | null
+          linkedin_scraped_at?: string | null
+          linkedin_slug?: string | null
+          linkedin_top_funksjoner?: Json | null
+          linkedin_top_kompetanser?: Json | null
+          linkedin_top_lokasjoner?: Json | null
+          linkedin_top_skoler?: Json | null
+          linkedin_top_studier?: Json | null
           Linker?: string | null
           Lokasjon?: string | null
           nace_beskrivelse?: string | null
@@ -181,6 +222,7 @@ export type Database = {
           regnskapsaar?: number | null
           Sektor?: string | null
           Selskap?: string | null
+          selskap_norm?: string | null
           sist_oppdatert?: string | null
           stiftelsesaar?: number | null
           sub_sektor?: string | null
@@ -453,6 +495,123 @@ export type Database = {
         }
         Relationships: []
       }
+      finn_stillinger: {
+        Row: {
+          ad_id: string
+          apply_url: string | null
+          bedrift_match: string | null
+          bransje: string | null
+          company_name: string | null
+          company_name_norm: string | null
+          company_url: string | null
+          country: string | null
+          date_posted: string | null
+          description_html: string | null
+          description_text: string | null
+          employment_type: string[] | null
+          inserted_at: string
+          kontakt_epost: string | null
+          kontakt_mobil: string | null
+          kontakt_telefon: string | null
+          kontaktperson: string | null
+          last_seen: string
+          locality: string | null
+          om_arbeidsgiver: string | null
+          postal_code: string | null
+          raw: Json | null
+          scraped_at: string
+          sektor: string | null
+          status: string
+          sted: string | null
+          stillingsfunksjon: string | null
+          street_address: string | null
+          styrk08_code: string | null
+          styrk08_confidence: number | null
+          styrk08_name: string | null
+          styrk08_top5: Json | null
+          title: string | null
+          updated_at: string
+          url: string | null
+          valid_through: string | null
+        }
+        Insert: {
+          ad_id: string
+          apply_url?: string | null
+          bedrift_match?: string | null
+          bransje?: string | null
+          company_name?: string | null
+          company_name_norm?: string | null
+          company_url?: string | null
+          country?: string | null
+          date_posted?: string | null
+          description_html?: string | null
+          description_text?: string | null
+          employment_type?: string[] | null
+          inserted_at?: string
+          kontakt_epost?: string | null
+          kontakt_mobil?: string | null
+          kontakt_telefon?: string | null
+          kontaktperson?: string | null
+          last_seen?: string
+          locality?: string | null
+          om_arbeidsgiver?: string | null
+          postal_code?: string | null
+          raw?: Json | null
+          scraped_at?: string
+          sektor?: string | null
+          status?: string
+          sted?: string | null
+          stillingsfunksjon?: string | null
+          street_address?: string | null
+          styrk08_code?: string | null
+          styrk08_confidence?: number | null
+          styrk08_name?: string | null
+          styrk08_top5?: Json | null
+          title?: string | null
+          updated_at?: string
+          url?: string | null
+          valid_through?: string | null
+        }
+        Update: {
+          ad_id?: string
+          apply_url?: string | null
+          bedrift_match?: string | null
+          bransje?: string | null
+          company_name?: string | null
+          company_name_norm?: string | null
+          company_url?: string | null
+          country?: string | null
+          date_posted?: string | null
+          description_html?: string | null
+          description_text?: string | null
+          employment_type?: string[] | null
+          inserted_at?: string
+          kontakt_epost?: string | null
+          kontakt_mobil?: string | null
+          kontakt_telefon?: string | null
+          kontaktperson?: string | null
+          last_seen?: string
+          locality?: string | null
+          om_arbeidsgiver?: string | null
+          postal_code?: string | null
+          raw?: Json | null
+          scraped_at?: string
+          sektor?: string | null
+          status?: string
+          sted?: string | null
+          stillingsfunksjon?: string | null
+          street_address?: string | null
+          styrk08_code?: string | null
+          styrk08_confidence?: number | null
+          styrk08_name?: string | null
+          styrk08_top5?: Json | null
+          title?: string | null
+          updated_at?: string
+          url?: string | null
+          valid_through?: string | null
+        }
+        Relationships: []
+      }
       high_school_responses: {
         Row: {
           api_results: Json | null
@@ -480,6 +639,111 @@ export type Database = {
           name?: string | null
           responses?: Json | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      nav_cursor: {
+        Row: {
+          id: number
+          last_sist_endret: string | null
+          next_feed_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: number
+          last_sist_endret?: string | null
+          next_feed_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: number
+          last_sist_endret?: string | null
+          next_feed_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      nav_stillinger: {
+        Row: {
+          bedrift_match: string | null
+          business_name: string | null
+          business_name_norm: string | null
+          county: string | null
+          description: string | null
+          engagement_type: string | null
+          esco_code: string | null
+          esco_name: string | null
+          expires: string | null
+          extent: string | null
+          municipal: string | null
+          occupation_l1: string | null
+          occupation_l2: string | null
+          orgnr: string | null
+          position_count: number | null
+          published: string | null
+          raw: Json | null
+          sector: string | null
+          sist_endret: string | null
+          source: string | null
+          status: string | null
+          styrk08_code: string | null
+          styrk08_name: string | null
+          title: string | null
+          uuid: string
+        }
+        Insert: {
+          bedrift_match?: string | null
+          business_name?: string | null
+          business_name_norm?: string | null
+          county?: string | null
+          description?: string | null
+          engagement_type?: string | null
+          esco_code?: string | null
+          esco_name?: string | null
+          expires?: string | null
+          extent?: string | null
+          municipal?: string | null
+          occupation_l1?: string | null
+          occupation_l2?: string | null
+          orgnr?: string | null
+          position_count?: number | null
+          published?: string | null
+          raw?: Json | null
+          sector?: string | null
+          sist_endret?: string | null
+          source?: string | null
+          status?: string | null
+          styrk08_code?: string | null
+          styrk08_name?: string | null
+          title?: string | null
+          uuid: string
+        }
+        Update: {
+          bedrift_match?: string | null
+          business_name?: string | null
+          business_name_norm?: string | null
+          county?: string | null
+          description?: string | null
+          engagement_type?: string | null
+          esco_code?: string | null
+          esco_name?: string | null
+          expires?: string | null
+          extent?: string | null
+          municipal?: string | null
+          occupation_l1?: string | null
+          occupation_l2?: string | null
+          orgnr?: string | null
+          position_count?: number | null
+          published?: string | null
+          raw?: Json | null
+          sector?: string | null
+          sist_endret?: string | null
+          source?: string | null
+          status?: string | null
+          styrk08_code?: string | null
+          styrk08_name?: string | null
+          title?: string | null
+          uuid?: string
         }
         Relationships: []
       }
@@ -765,6 +1029,36 @@ export type Database = {
         }
         Relationships: []
       }
+      studie_yrke_mapping: {
+        Row: {
+          match_kilde: string | null
+          rank: number
+          same_sector: boolean
+          similarity: number
+          source: string | null
+          studie_id: number
+          uno_id: string
+        }
+        Insert: {
+          match_kilde?: string | null
+          rank: number
+          same_sector: boolean
+          similarity: number
+          source?: string | null
+          studie_id: number
+          uno_id: string
+        }
+        Update: {
+          match_kilde?: string | null
+          rank?: number
+          same_sector?: boolean
+          similarity?: number
+          source?: string | null
+          studie_id?: number
+          uno_id?: string
+        }
+        Relationships: []
+      }
       studier: {
         Row: {
           ai_generert: boolean | null
@@ -819,9 +1113,41 @@ export type Database = {
         }
         Relationships: []
       }
+      studier_kortnavn: {
+        Row: {
+          beskrivelse_ai: string | null
+          nus_koder: string[] | null
+          sektor: string | null
+          sist_oppdatert: string | null
+          slug: string
+          tittel: string
+          under_sektor: string | null
+        }
+        Insert: {
+          beskrivelse_ai?: string | null
+          nus_koder?: string[] | null
+          sektor?: string | null
+          sist_oppdatert?: string | null
+          slug: string
+          tittel: string
+          under_sektor?: string | null
+        }
+        Update: {
+          beskrivelse_ai?: string | null
+          nus_koder?: string[] | null
+          sektor?: string | null
+          sist_oppdatert?: string | null
+          slug?: string
+          tittel?: string
+          under_sektor?: string | null
+        }
+        Relationships: []
+      }
       studier_v2: {
         Row: {
           id: number
+          kanonisk_navn: string | null
+          kortnavn_slug: string | null
           laerestednavn: string | null
           nus_koder: string | null
           opptakspoeng: number | null
@@ -843,6 +1169,8 @@ export type Database = {
         }
         Insert: {
           id?: never
+          kanonisk_navn?: string | null
+          kortnavn_slug?: string | null
           laerestednavn?: string | null
           nus_koder?: string | null
           opptakspoeng?: number | null
@@ -864,6 +1192,8 @@ export type Database = {
         }
         Update: {
           id?: never
+          kanonisk_navn?: string | null
+          kortnavn_slug?: string | null
           laerestednavn?: string | null
           nus_koder?: string | null
           opptakspoeng?: number | null
@@ -882,6 +1212,30 @@ export type Database = {
           studiested?: string | null
           under_sektor?: string | null
           utdanningsomraade?: string | null
+        }
+        Relationships: []
+      }
+      styrk08_til_uno: {
+        Row: {
+          match_kilde: string | null
+          match_score: number | null
+          styrk08_code: string
+          styrk08_name: string | null
+          uno_id: string | null
+        }
+        Insert: {
+          match_kilde?: string | null
+          match_score?: number | null
+          styrk08_code: string
+          styrk08_name?: string | null
+          uno_id?: string | null
+        }
+        Update: {
+          match_kilde?: string | null
+          match_score?: number | null
+          styrk08_code?: string
+          styrk08_name?: string | null
+          uno_id?: string | null
         }
         Relationships: []
       }
@@ -1259,6 +1613,36 @@ export type Database = {
           },
         ]
       }
+      yrke_bedrifter_backup: {
+        Row: {
+          bedrift: string | null
+          fylke: string | null
+          id: number | null
+          kommune: string | null
+          rang: number | null
+          stillinger: number | null
+          uno_id: string | null
+        }
+        Insert: {
+          bedrift?: string | null
+          fylke?: string | null
+          id?: number | null
+          kommune?: string | null
+          rang?: number | null
+          stillinger?: number | null
+          uno_id?: string | null
+        }
+        Update: {
+          bedrift?: string | null
+          fylke?: string | null
+          id?: number | null
+          kommune?: string | null
+          rang?: number | null
+          stillinger?: number | null
+          uno_id?: string | null
+        }
+        Relationships: []
+      }
       yrke_nus_map: {
         Row: {
           fagfelt_kode: string | null
@@ -1296,6 +1680,81 @@ export type Database = {
             referencedColumns: ["uno_id"]
           },
         ]
+      }
+      yrke_skills: {
+        Row: {
+          count: number
+          rank: number | null
+          share_pct: number | null
+          skill: string
+          skill_type: string
+          source: string | null
+          uno_id: string
+        }
+        Insert: {
+          count: number
+          rank?: number | null
+          share_pct?: number | null
+          skill: string
+          skill_type: string
+          source?: string | null
+          uno_id: string
+        }
+        Update: {
+          count?: number
+          rank?: number | null
+          share_pct?: number | null
+          skill?: string
+          skill_type?: string
+          source?: string | null
+          uno_id?: string
+        }
+        Relationships: []
+      }
+      yrke_skills_summary: {
+        Row: {
+          avg_experience_years: number | null
+          education_dist: Json | null
+          source: string | null
+          styrk08_code: string | null
+          top_certs: Json | null
+          top_languages: Json | null
+          top_soft: Json | null
+          top_technical: Json | null
+          top_tools: Json | null
+          total_ads: number | null
+          uno_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          avg_experience_years?: number | null
+          education_dist?: Json | null
+          source?: string | null
+          styrk08_code?: string | null
+          top_certs?: Json | null
+          top_languages?: Json | null
+          top_soft?: Json | null
+          top_technical?: Json | null
+          top_tools?: Json | null
+          total_ads?: number | null
+          uno_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          avg_experience_years?: number | null
+          education_dist?: Json | null
+          source?: string | null
+          styrk08_code?: string | null
+          top_certs?: Json | null
+          top_languages?: Json | null
+          top_soft?: Json | null
+          top_technical?: Json | null
+          top_tools?: Json | null
+          total_ads?: number | null
+          uno_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       yrke_studier: {
         Row: {
@@ -1456,7 +1915,85 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_bedrift_yrker: {
+        Row: {
+          ads_count: number | null
+          bedrift: string | null
+          bedrift_norm: string | null
+          har_profil: boolean | null
+          uno_id: string | null
+        }
+        Relationships: []
+      }
+      v_studie_yrker: {
+        Row: {
+          rank: number | null
+          same_sector: boolean | null
+          similarity: number | null
+          studie_id: number | null
+          studie_sektor: string | null
+          studie_tittel: string | null
+          yrke_sektor: string | null
+          yrke_tittel: string | null
+          yrke_uno_id: string | null
+        }
+        Relationships: []
+      }
+      v_yrke_bedrifter: {
+        Row: {
+          ads_count: number | null
+          bedrift: string | null
+          bedrift_norm: string | null
+          har_profil: boolean | null
+          uno_id: string | null
+        }
+        Relationships: []
+      }
+      v_yrke_finn_ads: {
+        Row: {
+          ad_id: string | null
+          bedrift_kanonisk: string | null
+          bedrift_orgnr: string | null
+          company_name: string | null
+          company_name_norm: string | null
+          date_posted: string | null
+          locality: string | null
+          styrk08_code: string | null
+          title: string | null
+          uno_id: string | null
+          url: string | null
+        }
+        Relationships: []
+      }
+      v_yrke_nav_ads: {
+        Row: {
+          ad_id: string | null
+          bedrift_kanonisk: string | null
+          bedrift_orgnr: string | null
+          company_name: string | null
+          company_name_norm: string | null
+          date_posted: string | null
+          locality: string | null
+          orgnr: string | null
+          styrk08_code: string | null
+          title: string | null
+          uno_id: string | null
+        }
+        Relationships: []
+      }
+      v_yrke_studier: {
+        Row: {
+          rank: number | null
+          same_sector: boolean | null
+          similarity: number | null
+          studie_id: number | null
+          studie_sektor: string | null
+          studie_tittel: string | null
+          yrke_tittel: string | null
+          yrke_uno_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_user_role: { Args: { user_id: string }; Returns: string }
@@ -1464,6 +2001,7 @@ export type Database = {
         Args: { _class_group_id: string; _user_id: string }
         Returns: boolean
       }
+      normaliser_bedriftsnavn: { Args: { s: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never
